@@ -18,18 +18,18 @@ GOAL_R = 100
 
 class WalledGridworld(discrete.DiscreteEnv):
 
-    def __init__(self, n = 5):
+    def __init__(self, n=5, passage=-1):
         self.shape = (n, n)
-        self.start_state_index = np.ravel_multi_index((0, 0), shape)
+        self.start_state_index = np.ravel_multi_index((0, 0), self.shape)
 
-        nS = np.prod(shape)
+        nS = np.prod(self.shape)
         nA = 4
 
         # Wall
-        self._pass = np.randint(0, n)
-        self._wall = np.zeros(shape, dtype=np.bool)
-        self._wall[n/2, :] = True
-        self._wall[n/2, self._pass] = False;
+        self._pass = np.randint(0, n) if passage == -1 else passage
+        self._wall = np.zeros(self.shape, dtype=np.bool)
+        self._wall[n//2, :] = True
+        self._wall[n//2, self._pass] = False;
 
         # Calculate transition probabilities and rewards
         P = {}
@@ -45,7 +45,7 @@ class WalledGridworld(discrete.DiscreteEnv):
         isd = np.zeros(nS)
         isd[self.start_state_index] = 1.0
 
-        super(CliffWalkingEnv, self).__init__(nS, nA, P, isd)
+        super(WalledGridworld, self).__init__(nS, nA, P, isd)
 
     def _limit_coordinates(self, coord):
 
@@ -62,7 +62,7 @@ class WalledGridworld(discrete.DiscreteEnv):
         new_position = self._limit_coordinates(new_position).astype(int)
         new_state = np.ravel_multi_index(tuple(new_position), self.shape)
         if self._wall[tuple(new_position)]:
-            return [(1.0, current, HIT_WALL_R, False)]
+            return [(1.0, np.ravel_multi_index(tuple(current), self.shape), HIT_WALL_R, False)]
         terminal_state = (self.shape[0] - 1, self.shape[1] - 1)
         is_done = tuple(new_position) == terminal_state
         return [(1.0, new_state, NORMAL_R if not is_done else GOAL_R, is_done)]
@@ -75,7 +75,7 @@ class WalledGridworld(discrete.DiscreteEnv):
             if self.s == s:
                 output = " x "
             # Print terminal state
-            elif position == (3, 11):
+            elif position == (self.shape[0]-1, self.shape[1]-1):
                 output = " T "
             elif self._wall[position]:
                 output = " # "
