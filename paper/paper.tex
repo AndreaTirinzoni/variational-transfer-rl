@@ -23,6 +23,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{bm}
+\usepackage{todonotes}
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
@@ -142,6 +144,38 @@ P\left( ||B(Q)||_{p,D}^p \geq \hat{q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \r
 The first inequality is straightforward, the second one is from Markov's inequality, while the third one is due to the fact that $Q\in\mathcal{Q}^{\epsilon}$.
 \end{proof}
 \end{theorem}
+
+\subsection{Regularized Bellman Residual Minimization with Gaussian Priors}
+
+Consider solving the target task given a dataset $D$ of $N$ samples. The posterior distribution over optimal $Q$-functions is:
+\begin{equation}
+P(Q^* \mid D) \propto P(D \mid Q^*)P(Q^*)
+\end{equation}
+Bounding the likelihood $P(D \mid Q^*)$ ({\color{red}FIND A BETTER DERIVATION}) and taking the maximum of the log-posterior, we obtain the following optimization problem:
+\begin{equation}
+\min_{Q\in\mathcal{Q}} ||B(Q)||_{p,D}^p - \log P(Q) 
+\end{equation}
+Then, let us specify a particular hypothesis space $\mathcal{Q}$. We consider $Q$-functions $Q_{\bm{w}}$ parameterized by the vector $\bm{w}$. Our optimization problem becomes:
+\begin{equation}
+\min_{\bm{w}} ||B(\bm{w})||_{p,D}^p - \log P(\bm{w}) 
+\end{equation}
+We model the prior distribution over the optimal parameters $\bm{w}$ as a Gaussian. That is, we assume:
+\begin{equation}
+P(\bm{w}) = \mathcal{N}(\bm{\mu},\bm{\Sigma})
+\end{equation}
+Then, our optimization, adopting the $l_2$-norm, becomes:
+\begin{equation} \label{eq:optim}
+\min_{\bm{w}} ||B(\bm{w})||_{D}^2 + ||\bm{w}-\bm{\mu}||_{\bm{\Sigma}} = \min_{\bm{w}} \frac{1}{N}\sum_{i=1}^N\left\lvert y_i - Q_{\bm{w}}(s_i,a_i) \right\rvert^2 + ||\bm{w}-\bm{\mu}||_{\bm{\Sigma}}
+\end{equation}
+where $y_i = r_i + \gamma\max_{a'}Q_{\bm{w}}(s_i',a')$ and $||\bm{x}||_{\bm{A}} \triangleq \bm{x}^T\bm{A}^{-1}\bm{x}$ for $\bm{A}$ positive definite matrix.
+
+\paragraph{Linear model}
+
+We assume a linear model for the $Q$-functions: $Q_{\bm{w}}(s,a) = \bm{w}^T\bm{\phi}(s,a)$. Here $\bm{\phi}$ is a $K$-dimensional feature vector. Then, the solution to the optimization problem of Eq. \eqref{eq:optim} can be computed in closed form as follows:
+\begin{equation}
+\bm{w}^* = \left( \bm{A}^T\bm{A} + \bm{\Sigma}^{-1} \right)^{-1} \left( \bm{A}^T\bm{b} + \bm{\Sigma}^{-1}\bm{\mu} \right) 
+\end{equation}
+where $\bm{A}$ is an $N\times K$ matrix containing the feature vectors at each data point $(s_i,a_i)$ and $\bm{b}$ is an $N$-dimensional vector containing their targets $y_i$.
 
 \section{Related Works}
 
