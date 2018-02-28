@@ -1,0 +1,25 @@
+\begin{thebibliography}{1}
+
+\bibitem{chen2017ucb}
+Richard~Y Chen, John Schulman, Pieter Abbeel, and Szymon Sidor.
+\newblock Ucb and infogain exploration via q-ensembles.
+\newblock {\em arXiv preprint arXiv:1706.01502}, 2017.
+
+\bibitem{osband2016deep}
+Ian Osband, Charles Blundell, Alexander Pritzel, and Benjamin Van~Roy.
+\newblock Deep exploration via bootstrapped dqn.
+\newblock In {\em Advances in neural information processing systems}, pages
+  4026--4034, 2016.
+
+\bibitem{osband2014generalization}
+Ian Osband, Benjamin Van~Roy, and Zheng Wen.
+\newblock Generalization and exploration via randomized value functions.
+\newblock {\em arXiv preprint arXiv:1402.0635}, 2014.
+
+\bibitem{puterman1994markov}
+Martin~L. Puterman.
+\newblock {\em Markov Decision Processes: Discrete Stochastic Dynamic
+  Programming}.
+\newblock John Wiley \& Sons, Inc., New York, NY, USA, 1994.
+
+\end{thebibliography}

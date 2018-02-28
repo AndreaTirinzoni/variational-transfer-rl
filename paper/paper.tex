@@ -1,0 +1,168 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+% \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading nips_2017
+%
+% to avoid loading the natbib package, add option nonatbib:
+% \usepackage[nonatbib]{nips_2017}
+
+\usepackage{nips_2017}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{nips_2017}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+\title{Active Transfer Learning}
+
+% The \author macro works with any number of authors. There are two
+% commands used to separate the names and addresses of multiple
+% authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to
+% break the lines. Using \AND forces a line break at that point. So,
+% if LaTeX puts 3 of 4 authors names on the first line, and the last
+% on the second line, try using \AND instead of \And before the third
+% author name.
+
+\author{
+  David S.~Hippocampus\thanks{Use footnote for providing further
+    information about author (webpage, alternative
+    address)---\emph{not} for acknowledging funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  %% examples of more authors
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \AND
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+  %% \And
+  %% Coauthor \\
+  %% Affiliation \\
+  %% Address \\
+  %% \texttt{email} \\
+}
+
+\begin{document}
+% \nipsfinalcopy is no longer used
+
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+
+\section{Preliminaries}
+
+\paragraph{Markov Decision Processes}
+We define a Markov decision process (MDP) as a tuple $\mathcal{M} = \langle \mathcal{S},\mathcal{A},\mathcal{P},\mathcal{R},p_0,\gamma\rangle$, where $\mathcal{S}$ is the state-space, $\mathcal{A}$ is a finite set of actions, $\mathcal{P}(\cdot | s,a)$ is the distribution of the next state $s'$ given that action $a$ is taken in state $s$, $\mathcal{R}: \mathcal{S}\times\mathcal{A}\rightarrow\mathbb{R}$ is the reward function, $p_0$ is the initial-state distribution, and $\gamma\in [0,1)$ is the discount factor. We assume the reward function to be uniformly bounded by a constant $R_{max}>0$. A deterministic policy $\pi : \mathcal{S} \rightarrow \mathcal{A}$ is a mapping from states to actions. At the beginning of each episode of interaction, the initial state $s_0$ is drawn from $p_0$. Then, the agent takes the action $a_0 = \pi(s_0)$, receives a reward $\mathcal{R}(s_0,a_0)$, transitions to the next state $s_1 \sim \mathcal{P}(\cdot | s_0,a_0)$, and the process is repeated. The goal is to find the policy maximizing the long-term return over a possibly infinite horizon: $\max_{\pi}J(\pi)=\mathbb{E}[\sum_{t=0}^{\infty} \gamma^t r_t \mid \mathcal{M},\pi]$. To this end, we define the optimal value function $Q^*(s,a)$ as the expected return obtained by taking action $a$ in state $s$ and following an optimal policy thereafter. Then, an optimal policy $\pi^*$ is a policy that is greedy with respect to the optimal value function, i.e., $\pi^*(s) = \argmax_a Q^*(s,a)$ for all states $s$. It can be shown (e.g., \cite{puterman1994markov}) that $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$ defined by $TQ(s,a) = \mathcal{R}(s,a) + \gamma\mathbb{E}_{\mathcal{P}}[\max_{a'}Q(s',a')]$ for any value function $Q$. From now on, we adopt the term $Q$-function to denote any plausible value function, i.e., any function $Q : \mathcal{S}\times\mathcal{A} \rightarrow \mathbb{R}$ uniformly bounded by $\frac{R_{max}}{1-\gamma}$.
+
+We define the Bellman error (or Bellman residual) of a $Q$-function $Q$ as $B(Q) \triangleq TQ - Q$. Notice that a $Q$-function $Q$ is optimal if, and only if, $||B(Q)||_{\infty} = 0$.
+
+\paragraph{Multitask Settings}
+
+We represent tasks $\tau$ as MDPs with shared state and action spaces, but with potentially different values for all other parameters. We assume the existence of a distribution $\mathcal{D}$ over tasks, i.e., $\tau \sim \mathcal{D}$, and we suppose that we are able to sample from such distribution.
+
+\section{Approach}
+
+We start by noticing that the task distribution $\mathcal{D}$ clearly induces a distribution over optimal $Q$-functions. Then, our goal is to estimate such distribution from the set of source tasks and use it as a prior for speeding up the learning process in the target task.
+
+We assume states and actions to be drawn from a fixed joint distribution $\mu$. We define the set of $Q$-functions of our interest as the set $\mathcal{Q}^{\epsilon}$ of all $Q$ functions whose Bellman error $B(Q)$ is in some $\epsilon$-ball defined by the $l_p$-norm $|| \cdot ||_{p,\mu}$:
+\begin{equation}
+\mathcal{Q}^{\epsilon} = \left\{ Q\in\mathcal{Q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right\}
+\end{equation}
+Given a dataset of $N$ samples $D = \langle s_i,a_i,r_i,s_i' \rangle_{i=1}^N$, we can approximate the $l_p$-norm of the Bellman error of a $Q$-function $Q$ as:
+\begin{equation}
+||B(Q)||_{p,D}^p = \frac{1}{N}\sum_{i=1}^N \left\lvert r_i + \gamma\max_{a'}Q(s_i',a') - Q(s_i,a_i) \right\rvert^p
+\end{equation}
+
+\begin{theorem}
+Let $Q$ be a $Q$-function with empirical Bellman error, computed on a dataset $D$ of $N$ i.i.d. samples, given by $||B(Q)||_{p,D}^p = \hat{q}$. Then, for any $\epsilon >= 0$:
+\begin{equation}
+P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \leq exp\left( -\frac{2N\max\{\epsilon-\hat{q},0\}^2}{\left(\frac{2R_{max}}{1-\gamma}\right)^{2p}} \right)
+\end{equation}
+\end{theorem}
+\begin{proof}
+Assume $\hat{q}>\epsilon$. Then:
+\begin{align*}
+P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) =\ & 
+P\left(|| B(Q) ||_{p,\mu}^p \leq \epsilon \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \\ =\ &
+P\left(|| B(Q) ||_{p,\mu}^p - \hat{q} \leq \epsilon - \hat{q} \mid ||B(Q)||_{p,D}^p = \hat{q}\right)
+\end{align*}
+Notice that $\mathbb{E}[\hat{q}] = || B(Q) ||_{p,\mu}^p$ and that $\epsilon - \hat{q} < 0$ by assumption. Then, we can apply Hoeffding's inequality to write:
+\begin{equation*}
+P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \leq exp\left( -\frac{2N(\epsilon-\hat{q})^2}{\left(\frac{2R_{max}}{1-\gamma}\right)^{2p}} \right)
+\end{equation*}
+Finally, when $\hat{q} \leq \epsilon$, the probability can be straightforwardly upper-bounded by $1$. Combining the two results concludes the proof.
+\end{proof}
+\begin{theorem}
+Let $Q$ be a $Q$-function with empirical Bellman error, computed on a dataset $D$ of $N$ i.i.d. samples, given by $||B(Q)||_{p,D}^p = \hat{q}$. Then, for any $\epsilon >= 0$:
+\begin{equation*}
+P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid Q\in\mathcal{Q}^{\epsilon} \right) \leq \frac{\epsilon}{\hat{q}}
+\end{equation*}
+\begin{proof}
+\begin{align*}
+P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid Q\in\mathcal{Q}^{\epsilon} \right) =\ &
+P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right)\\ \leq\ &
+P\left( ||B(Q)||_{p,D}^p \geq \hat{q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right)\\ \leq\ &
+\frac{E[||B(Q)||_{p,D}^p]}{\hat{q}}\\ \leq\ &
+\frac{\epsilon}{\hat{q}}
+\end{align*}
+The first inequality is straightforward, the second one is from Markov's inequality, while the third one is due to the fact that $Q\in\mathcal{Q}^{\epsilon}$.
+\end{proof}
+\end{theorem}
+
+\section{Related Works}
+
+List of any paper that relates to our approach together with a brief description:
+\begin{itemize}
+\item \cite{osband2014generalization}: the authors propose a method for efficient exploration via randomized value functions. The optimal $Q$-function is computed by bayesian LSVI and, after each update, parameters are sampled from the posterior. Then, the agent follows a greedy policy with respect to the sampled $Q$-function. Regret bounds are provided.
+\item \cite{osband2016deep}: the authors extend the idea of randomized value functions to drive exploration in deep RL. A posterior distribution over $Q$-functions is approximated via bootstrapping. In each episode, the agent acts greedily with respect to a $Q$-function sampled from the approximated posterior.
+\item \cite{chen2017ucb}: the authors build on top of bootstrapped DQNs to provide UCB-like exploration bonuses. In a previous (?) version of the paper, exploration bonuses based on information gain are also proposed.
+\end{itemize}
+
+\section{Experiments}
+
+\section{Conclusion}
+
+{\small 
+\bibliography{biblio.bib}
+\bibliographystyle{plain}
+}
+\newpage
+\appendix
+
+\section{Proofs}
+
+\end{document}
