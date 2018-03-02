@@ -1,6 +1,7 @@
 import numpy as np
 import features.grbf as rbf
 import algorithms.regularized_lsvi as lsvi
+import utils
 
 class LinearQFunction:
 
@@ -22,15 +23,16 @@ class LinearQFunction:
         """
         Computes target as a sampled application of the Bellman optimal operator
 
-        :param samples: samples of the form (s,a,r,s'), one per row (Nx4)
+        :param samples: samples of the form (s,a,r,s',terminating), one per row (Nx5)
         :return:
         """
+
         t = list()
         for i in range(samples.shape[0]):
             qs = list()
             for a in self._actions:
-                qs.append(np.dot(self._w, self._features(np.asarray((samples[i,0], a)))))
-            t.append(samples[i, 3] + self._gamma * (max(qs)))
+                qs.append(np.dot(self._w, self._features(np.asarray((samples[i, 0], a)))))
+            t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 5] else samples[i, 3])
         return np.array(t)
 
     def update_weights(self, w):
