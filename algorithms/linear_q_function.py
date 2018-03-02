@@ -32,7 +32,7 @@ class LinearQFunction:
             qs = list()
             for a in self._actions:
                 qs.append(np.dot(self._w, self._features(np.asarray((samples[i, 0], a)))))
-            t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 5] else samples[i, 3])
+            t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 4] else samples[i, 3])
         return np.array(t)
 
     def update_weights(self, w):
@@ -62,6 +62,9 @@ if __name__ == '__main__':
     q = LinearQFunction(actions, f, weights)
 
     samples = np.random.random((100, 4))
+    term = np.random.random_integers(0, 2, (100, 1))
+
+    samples = np.hstack((samples, term))
     for k in range(samples.shape[0]):
         samples[k, 1] = np.random.randint(0, 5)
         samples[k, 2] = np.random.randint(-10, 10)
