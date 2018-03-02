@@ -5,15 +5,17 @@ import utils
 
 class LinearQFunction:
 
-    def __init__(self, actions, features, params=None, gamma=0.99):
+    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99):
         """
         :param actions: tuple with the possible actions available
         :param features: feature object
         :param gamma: discount factor
         :param params: initial parameters
+        :param state_dim: dimension of the state vector
+        :param action_dim: dimension of the action vector
 
         """
-        self._actions = actions
+        self.actions = actions
         self._features = features
         self._gamma = gamma
         self._w = params
@@ -30,7 +32,7 @@ class LinearQFunction:
         t = list()
         for i in range(samples.shape[0]):
             qs = list()
-            for a in self._actions:
+            for a in self.actions:
                 qs.append(np.dot(self._w, self._features(np.asarray((samples[i, 0], a)))))
             t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 4] else samples[i, 3])
         return np.array(t)
@@ -41,12 +43,15 @@ class LinearQFunction:
 
     def compute_all_actions(self, state):
         q = list()
-        for a in self._actions:
+        for a in self.actions:
             q.append(self.__call__(state, a))
         return np.array(q)
 
+    def compute_features(self, samples):
+        return self._features(samples)
+
     def __call__(self, state, action):
-        return np.dot(self._features(np.asarray((state, action), dtype=np.float64)), self._w)
+        return np.dot(self._features(np.hstack((state, action)), self._w))
 
 
 if __name__ == '__main__':
@@ -71,6 +76,6 @@ if __name__ == '__main__':
 
     targets = q.compute_bellman_target(samples)
 
-    print(lsvi.RegularizedLSVI.solve(f(samples[:, 0:2]), np.array((0, 0)), np.eye(2), targets))
+    print(lsvi.RegularizedLSVI.solve(f(samples[:, 0:2]), targets, np.array((0, 0)), np.eye(2)))
 
     print(q.compute_bellman_target(samples))
