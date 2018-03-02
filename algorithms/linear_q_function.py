@@ -33,6 +33,16 @@ class LinearQFunction:
             t.append(samples[i, 3] + self._gamma * (max(qs)))
         return np.array(t)
 
+    def update_weights(self, w):
+        assert w.shape == self._w.shape
+        self._w = w
+
+    def compute_all_actions(self, state):
+        q = list()
+        for a in self._actions:
+            q.append(self.__call__(state, a))
+        return np.array(q)
+
     def __call__(self, state, action):
         return np.dot(self._features(np.asarray((state, action), dtype=np.float64)), self._w)
 
