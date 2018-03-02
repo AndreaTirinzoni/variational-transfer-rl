@@ -16,7 +16,6 @@ Info
 
 
 class WalledGridworld(gym.Env):
-
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 15
@@ -32,15 +31,15 @@ class WalledGridworld(gym.Env):
         # Specific MDP parameters
         self.size = size
         self.start = np.array([0, 0])
-        self.goal = np.array([10, 10])
+        self.goal = size
         self.goal_radius = 1
-        self.noise = 0.1
+        self.noise = 0.2
         self.step_length = 1
         self.door_x = door_x
         self.door_width = door_width
         self.wall1_p1 = np.array([0, size[1] / 2])
-        self.wall1_p2 = np.array([max(0, door_x - door_width), size[1] / 2])
-        self.wall2_p1 = np.array([min(door_x + door_width, size[1]), size[1] / 2])
+        self.wall1_p2 = np.array([max(0., door_x - door_width / 2), size[1] / 2])
+        self.wall2_p1 = np.array([min(door_x + door_width / 2, size[1]), size[1] / 2])
         self.wall2_p2 = np.array([size[1], size[1] / 2])
 
         # State space: [0,width]x[0,height]
@@ -50,6 +49,7 @@ class WalledGridworld(gym.Env):
         self.action_space = spaces.Discrete(4)
 
         self.reset()
+        self.viewer = None
 
     def reset(self, state=None):
         if state is None:
@@ -84,12 +84,13 @@ class WalledGridworld(gym.Env):
         if self.noise > 0:
             self.current_position += np.random.normal(scale=self.noise, size=(2,))
 
-        # Check whether the agent hit a wall
-        if self._check_intersect(s,self.current_position,self.wall1_p1,self.wall1_p2) or self._check_intersect(s,self.current_position,self.wall2_p1,self.wall2_p2):
-            self.current_position = s
-
         # Clip to make sure the agent is inside the grid
         self.current_position = self.current_position.clip([0, 0], self.size)
+
+        # Check whether the agent hit a wall
+        if self._check_intersect(s, self.current_position, self.wall1_p1, self.wall1_p2) or \
+                self._check_intersect(s, self.current_position, self.wall2_p1, self.wall2_p2):
+            self.current_position = s
 
         # Compute reward
         if np.linalg.norm(self.current_position - self.goal) < self.goal_radius:
@@ -122,5 +123,51 @@ class WalledGridworld(gym.Env):
         in2 = min(p21[0], p22[0]) <= x[0] <= max(p21[0], p22[0]) and min(p21[1], p22[1]) <= x[1] <= max(p21[1], p22[1])
         return in1 and in2
 
+    def _render(self, mode='human', close=False, a=None):
+        if close:
+            if self.viewer is not None:
+                self.viewer.close()
+                self.viewer = None
+            return
+        from gym.envs.classic_control import rendering
 
+        if self.viewer is None:
+            self.viewer = rendering.Viewer(500, 500)
+            self.viewer.set_bounds(0, self.size[0], 0, self.size[1])
 
+        if self.current_position is None:
+            return None
+
+        self.viewer.draw_line(self.wall1_p1, self.wall1_p2)
+        self.viewer.draw_line(self.wall2_p1, self.wall2_p2)
+        c = self.viewer.draw_circle(radius=0.2)
+        c.set_color(0, 0, 0)
+        if a == 0:
+            c.set_color(0.8, 0.8, 0)
+        c.add_attr(rendering.Transform(translation=(1, self.size[1] - 0.5)))
+        c = self.viewer.draw_circle(radius=0.2)
+        c.set_color(0, 0, 0)
+        if a == 1:
+            c.set_color(0.8, 0.8, 0)
+        c.add_attr(rendering.Transform(translation=(1.5, self.size[1] - 1)))
+        c = self.viewer.draw_circle(radius=0.2)
+        c.set_color(0, 0, 0)
+        if a == 2:
+            c.set_color(0.8, 0.8, 0)
+        c.add_attr(rendering.Transform(translation=(1, self.size[1] - 1.5)))
+        c = self.viewer.draw_circle(radius=0.2)
+        c.set_color(0, 0, 0)
+        if a == 3:
+            c.set_color(0.8, 0.8, 0)
+        c.add_attr(rendering.Transform(translation=(0.5, self.size[1] - 1)))
+
+        goal = self.viewer.draw_circle(radius=self.goal_radius)
+        goal.set_color(0, 0.8, 0)
+        goal.add_attr(rendering.Transform(translation=(self.goal[0], self.goal[1])))
+
+        agent = self.viewer.draw_circle(radius=0.1)
+        agent.set_color(.8, 0, 0)
+        transform = rendering.Transform(translation=(self.current_position[0], self.current_position[1]))
+        agent.add_attr(transform)
+
+        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
