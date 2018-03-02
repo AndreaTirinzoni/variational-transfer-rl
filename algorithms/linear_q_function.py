@@ -51,7 +51,7 @@ class LinearQFunction:
         return self._features(samples)
 
     def __call__(self, state, action):
-        return np.dot(self._features(np.hstack((state, action)), self._w))
+        return np.dot(self._features(np.hstack((state, action))), self._w)
 
 
 if __name__ == '__main__':
