@@ -13,13 +13,14 @@ class RegularizedLSVI:
         :param target: np.ndarray with the target values for the fitting
         :return:
         """
+        prec = 1
 
         if prior:
             assert features.shape[1] == mean.size
             assert covariance.shape == (mean.size, mean.size)
             assert target.shape[0] == features.shape[0]
+            prec = np.linalg.inv(covariance)
 
-        prec = np.linalg.inv(covariance)
         X = np.dot(features.T, features)
         Y = (np.dot(features.T, target) + np.dot(prec, mean)) if prior else np.dot(features.T, target)
         return np.dot(np.linalg.inv(X + prec), Y)

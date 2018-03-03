@@ -19,6 +19,8 @@ class LinearQFunction:
         self._features = features
         self._gamma = gamma
         self._w = params
+        self._state_dim = state_dim
+        self._action_dim = action_dim
 
 
     def compute_bellman_target(self, samples):
@@ -33,7 +35,7 @@ class LinearQFunction:
         for i in range(samples.shape[0]):
             qs = list()
             for a in self.actions:
-                qs.append(np.dot(self._w, self._features(np.asarray((samples[i, 0], a)))))
+                qs.append(np.dot(self._w, self._features(np.hstack((samples[i, 0:self._state_dim], a)))))
             t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 4] else samples[i, 3])
         return np.array(t)
 
@@ -48,7 +50,7 @@ class LinearQFunction:
         return np.array(q)
 
     def compute_features(self, samples):
-        return self._features(samples)
+        return self._features(samples[:, 0: self._state_dim + self._action_dim])
 
     def __call__(self, state, action):
         return np.dot(self._features(np.hstack((state, action))), self._w)

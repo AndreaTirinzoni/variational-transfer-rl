@@ -36,7 +36,6 @@ class GaussianRBF:
         return f
 
     def __call__(self, x):
-
         if x.ndim == 2:
             return self._compute_feature_matrix(x)
         elif x.ndim == 1:
@@ -49,7 +48,6 @@ class GaussianRBF:
         :param data: np.ndarray with a sample per row
         :return: feature matrix (np.ndarray) with feature vector for each row.
         """
-
         assert data.shape[1] == self._dims
         features = []
         for x in range(data.shape[0]):
