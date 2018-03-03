@@ -53,7 +53,7 @@ def _single_eval(mdp, policy, criterion, initial_state):
     return score if criterion == "discounted" else score / t, t
 
 
-def generate_episodes(mdp, policy, n_episodes=1):
+def generate_episodes(mdp, policy, n_episodes=1, render=False):
     """
     Generates episodes in a given mdp using a given policy
 
@@ -68,12 +68,12 @@ def generate_episodes(mdp, policy, n_episodes=1):
     A matrix where each row corresponds to a single sample (t,s,a,r,s',absorbing)
     """
 
-    episodes = [_single_episode(mdp, policy) for _ in range(n_episodes)]
+    episodes = [_single_episode(mdp, policy, render) for _ in range(n_episodes)]
 
     return np.concatenate(episodes)
 
 
-def _single_episode(mdp, policy):
+def _single_episode(mdp, policy, render=False):
     episode = np.zeros((mdp.horizon, 1 + mdp.state_dim + mdp.action_dim + 1 + mdp.state_dim + 1))
     a_idx = 1 + mdp.state_dim
     r_idx = a_idx + mdp.action_dim
@@ -89,6 +89,8 @@ def _single_episode(mdp, policy):
 
         a = policy.sample_action(s)
         s, r, done, _ = mdp.step(a)
+        if render:
+            mdp._render(a=a)
         episode[t, a_idx:r_idx] = a
         episode[t, r_idx] = r
         episode[t, s_idx:-1] = s
