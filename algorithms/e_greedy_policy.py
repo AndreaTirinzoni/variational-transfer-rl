@@ -14,4 +14,4 @@ class eGreedyPolicy:
         if t < 1-self._e:
             return self._actions[max_a]
         else:
-            return self._actions[other_a(np.random.random_integers(0, len(other_a)))]
+            return self._actions[other_a[np.random.random_integers(0, len(other_a)-1)]]

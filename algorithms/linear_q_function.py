@@ -5,7 +5,7 @@ import utils
 
 class LinearQFunction:
 
-    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99):
+    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=1):
         """
         :param actions: tuple with the possible actions available
         :param features: feature object
@@ -31,12 +31,14 @@ class LinearQFunction:
         :return:
         """
 
+        s_prime = self._state_dim + self._action_dim + 1
+        r = self._state_dim + self._action_dim
         t = list()
         for i in range(samples.shape[0]):
             qs = list()
             for a in self.actions:
-                qs.append(np.dot(self._w, self._features(np.hstack((samples[i, 0:self._state_dim], a)))))
-            t.append((samples[i, 2] + self._gamma * (max(qs))) if not samples[i, 4] else samples[i, 3])
+                qs.append(np.dot(self._w, self._features(np.hstack((samples[i, s_prime: s_prime + self._state_dim], a)))))
+            t.append((samples[i, r] + self._gamma * (max(qs))) if not samples[i, -1] else samples[i, r])
         return np.array(t)
 
     def update_weights(self, w):

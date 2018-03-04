@@ -13,7 +13,6 @@ class GaussianRBF:
         assert mean.shape == (K, dims)
         assert variance.shape == (K,)
 
-
         self._K = K
         self._mean = mean
         self._dims = dims
@@ -31,7 +30,7 @@ class GaussianRBF:
         for k in range(self._K):
             dif = self._mean[k, :] - point
             dif = np.dot(dif, dif)
-            val.append(np.exp(-dif/self._var[k]))
+            val.append(np.exp(-dif/(2*self._var[k])))
         f = np.asarray(val, order='F')
         return f
 

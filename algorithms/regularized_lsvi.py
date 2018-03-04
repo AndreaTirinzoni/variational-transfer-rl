@@ -23,4 +23,5 @@ class RegularizedLSVI:
 
         X = np.dot(features.T, features)
         Y = (np.dot(features.T, target) + np.dot(prec, mean)) if prior else np.dot(features.T, target)
-        return np.dot(np.linalg.inv(X + prec), Y)
+        print("det X = " + str(np.linalg.det(X)))
+        return np.dot(np.linalg.inv(X + prec) if prior else np.linalg.inv(X), Y)
