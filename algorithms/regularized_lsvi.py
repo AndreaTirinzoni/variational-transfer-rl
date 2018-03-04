@@ -20,8 +20,11 @@ class RegularizedLSVI:
             assert covariance.shape == (mean.size, mean.size)
             assert target.shape[0] == features.shape[0]
             prec = np.linalg.inv(covariance)
-
+        lamb = 1
         X = np.dot(features.T, features)
         Y = (np.dot(features.T, target) + np.dot(prec, mean)) if prior else np.dot(features.T, target)
-        w = np.dot(np.linalg.inv(X + prec) if prior else np.linalg.inv(X), Y)
+        w = np.dot(np.linalg.inv(X + prec) if prior else np.linalg.inv(X + lamb*np.eye(X.shape[0])), Y)
+
+        # u, s, v = np.linalg.svd(features)
+        # w = np.dot(v.T[:, : s.shape[0]] @ np.diag(1/s) @ u.T, target)
         return w

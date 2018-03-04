@@ -19,6 +19,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False):
         targets = Q.compute_bellman_target(samples[:, 1:])
         w = lsvi.RegularizedLSVI.solve(Q.compute_features(samples[:, 1:]), targets, prior=False)
         Q.update_weights(w)
+        print(w)
         r.append(np.sum(samples[:, 1+mdp.state_dim+mdp.action_dim])/batch_size)
     return r
 
@@ -35,6 +36,6 @@ if __name__ == '__main__':
 
     for i in range(200):
         print("Iteration " + str(i))
-        r = simple_RL(world, q, epsilon=0.1, render=True)
+        r = simple_RL(world, q, epsilon=0.05, render=True)
         print(r)
     world._render(close=True)
