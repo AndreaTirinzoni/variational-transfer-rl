@@ -22,6 +22,6 @@ class RegularizedLSVI:
             prec = np.linalg.inv(covariance)
 
         X = np.dot(features.T, features)
+        print(X)
         Y = (np.dot(features.T, target) + np.dot(prec, mean)) if prior else np.dot(features.T, target)
-        print("det X = " + str(np.linalg.det(X)))
         return np.dot(np.linalg.inv(X + prec) if prior else np.linalg.inv(X), Y)
