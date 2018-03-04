@@ -19,7 +19,6 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False):
         targets = Q.compute_bellman_target(samples[:, 1:])
         w = lsvi.RegularizedLSVI.solve(Q.compute_features(samples[:, 1:]), targets, prior=False)
         Q.update_weights(w)
-    
         r.append(np.sum(samples[:, 1+mdp.state_dim+mdp.action_dim])/batch_size)
     return r
 
@@ -27,9 +26,9 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False):
 if __name__ == '__main__':
     n = 5
     acts = 4
-    k = (n-1)*(n-1)*acts
+    k = n*n*acts
     world = env.WalledGridworld(np.array((n, n)), door_x=n/2)
-    mean = np.array([[x, y, a] for x in range(1, n) for y in range(1, n) for a in range(acts)])
+    mean = np.array([[x, y, a] for x in range(0, n) for y in range(0, n) for a in range(acts)])
     variance = (np.ones(k)/3)**2
     features = grbf.GaussianRBF(mean, variance, K=k, dims=world.state_dim+world.action_dim)
     q = Q.LinearQFunction(range(acts), features, np.zeros(k), state_dim=world.state_dim, action_dim=world.action_dim)
