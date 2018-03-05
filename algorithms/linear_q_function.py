@@ -18,7 +18,7 @@ class LinearQFunction:
         self.actions = actions
         self._features = features
         self._gamma = gamma
-        self._w = params
+        self._w = [params for i in range(len(actions))]
         self._state_dim = state_dim
         self._action_dim = action_dim
 
@@ -34,16 +34,28 @@ class LinearQFunction:
         s_prime = self._state_dim + self._action_dim + 1
         r = self._state_dim + self._action_dim
         t = list()
+        a = self._state_dim
         for i in range(samples.shape[0]):
             qs = list()
             for a in self.actions:
-                qs.append(np.dot(self._w, self._features(np.hstack((samples[i, s_prime: s_prime + self._state_dim], a)))))
+                qs.append(np.dot(self._w[a], self._features(samples[i, s_prime: s_prime + self._state_dim])))
             t.append((samples[i, r] + self._gamma * max(qs)) if samples[i, -1] == 0 else samples[i, r])
         return np.array(t)
 
-    def update_weights(self, w):
-        assert w.shape == self._w.shape
-        self._w = w
+
+    def update_weights(self, w, action=None):
+        """
+        Update the weights of the regressors
+        :param w: vector of weights or list of vectors of weights
+        :param action: specific action to which update the regressor's parameters
+        """
+        if action is None:
+            for i in range(len(w)):
+                assert w[i].shape == self._w[i].shape
+            self._w = w
+        else:
+            assert w.shape == self._w[action].shape
+            self._w[action] = w
 
     def compute_all_actions(self, state):
         q = list()
@@ -52,10 +64,10 @@ class LinearQFunction:
         return np.array(q)
 
     def compute_features(self, samples):
-        return self._features(samples[:, 0: self._state_dim + self._action_dim])
+        return self._features(samples[:, 0: self._state_dim])
 
     def __call__(self, state, action):
-        return np.dot(self._w, self._features(np.hstack((state, action))))
+        return np.dot(self._w[action], self._features(state))
 
 
 if __name__ == '__main__':
