@@ -69,19 +69,19 @@ class WalledGridworld(gym.Env):
 
         # UP
         if int(a) == 0:
-            print("UP")
+            # print("UP")
             self.current_position[1] += self.step_length
         # RIGHT
         elif int(a) == 1:
-            print("RIGHT")
+            # print("RIGHT")
             self.current_position[0] += self.step_length
         # DOWN
         elif int(a) == 2:
-            print("DOWN")
+            # print("DOWN")
             self.current_position[1] -= self.step_length
         # LEFT
         elif int(a) == 3:
-            print("LEFT")
+            # print("LEFT")
             self.current_position[0] -= self.step_length
 
         # Add noise

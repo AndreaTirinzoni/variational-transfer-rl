@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 """
 Implementation of a simple RL algorithm based on an e-greedy policy and a linearly parameterized Q function
-without the prior distribution.
+
 """
-def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False):
+def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False, n_fit=20, prior_parameters=None):
     pol = policy.eGreedyPolicy(Q, Q.actions, epsilon)
     r = list()
     n_act = len(Q.actions)
@@ -23,11 +23,14 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False)
         samples = _stack(samples, new_samples)
         feat = _stack(feat, [Q.compute_features(new_samples[a][:, 1:]) for a in range(n_act)])
 
-        for k in range(20):
+        for k in range(n_fit):
             targets = [Q.compute_bellman_target(samples[a][:, 1:]) for a in range(n_act)]
             for a in range(n_act):
                 if feat[a].shape[0] > 0:
-                    w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior=False)
+                    if prior_parameters is None:
+                         w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior=False)
+                    else:
+                        w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior_parameters[0][a], prior_parameters[1][a], prior=True)
                     Q.update_weights(w, a)
 
 
@@ -37,6 +40,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False)
             print("===============================================")
             print("Iteration " + str(i))
             print("Reward: " + str(rew))
+            print("===============================================")
     if render:
         mdp._render(close=True)
     return r
@@ -77,9 +81,9 @@ if __name__ == '__main__':
     features = grbf.GaussianRBF(mean, variance, K=k, dims=world.state_dim)
     q = Q.LinearQFunction(range(acts), features, np.zeros(k), state_dim=world.state_dim, action_dim=world.action_dim)
     episodes = 20
-    r = simple_RL(world, q, epsilon=0.05, K=episodes, render=True, verbose=True, batch_size=1)
+    r = simple_RL(world, q, epsilon=0.05, K=episodes, render=False, verbose=True, batch_size=1)
 
-    print(q.compute_all_actions(np.array((3.5, 3.5))))
-
-    # plt.plot(np.arange(episodes), np.asarray(r))
-    # plt.show()
+    print(len(r))
+    plt.figure()
+    plt.plot(np.arange(episodes), np.asarray(r))
+    plt.show()
