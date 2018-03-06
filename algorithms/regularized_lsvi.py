@@ -5,7 +5,7 @@ class RegularizedLSVI:
     Implementation of a regularized (by a normal prior over the parameters of Q) value iteration method.
     """
     @staticmethod
-    def solve(features, target, mean=None, covariance=None, prior=True, lamb=0.1):
+    def solve(features, target, mean=None, covariance=None, prior=True, lamb=0.00001):
         """
         :param features: matrix of feature vectors
         :param mean: np.ndarray mean of the prior gaussian over the parameters
@@ -19,9 +19,13 @@ class RegularizedLSVI:
             assert features.shape[1] == mean.size
             assert covariance.shape == (mean.size, mean.size)
             assert target.shape[0] == features.shape[0]
-            prec = np.linalg.inv(covariance)
+            # prec = np.linalg.inv(covariance)
+            # print("Identity: ")
+            # print(np.dot(prec, covariance))
+            # print(np.linalg.eig(prec))
+            # print(1/np.finfo(np.float64).eps)
 
         X = np.dot(features.T, features)
         Y = (np.dot(features.T, target) + np.dot(prec, mean)) if prior else np.dot(features.T, target)
-        w = np.dot(np.linalg.inv(X + prec) if prior else np.linalg.inv(X + lamb*np.eye(X.shape[0])), Y)
+        w = np.dot(np.linalg.inv(X + prec + lamb*np.eye(X.shape[0])) if prior else np.linalg.inv(X + lamb*np.eye(X.shape[0])), Y)
         return w
