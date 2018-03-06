@@ -23,7 +23,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False)
         samples = _stack(samples, new_samples)
         feat = _stack(feat, [Q.compute_features(new_samples[a][:, 1:]) for a in range(n_act)])
 
-        for k in range(10):
+        for k in range(20):
             targets = [Q.compute_bellman_target(samples[a][:, 1:]) for a in range(n_act)]
             for a in range(n_act):
                 if feat[a].shape[0] > 0:
@@ -34,6 +34,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False)
         rew = sum(map(lambda a: np.sum(a[:, 1+mdp.state_dim+mdp.action_dim]), new_samples))/batch_size
         r.append(rew)
         if verbose:
+            print("===============================================")
             print("Iteration " + str(i))
             print("Reward: " + str(rew))
     if render:
@@ -69,16 +70,16 @@ def _stack(l1, l2):
 if __name__ == '__main__':
     n = 5
     acts = 4
-    k = n*n
-    world = env.WalledGridworld(np.array((n, n)), door_x=n/2)
-    mean = np.array([[x, y] for x in range(0, n) for y in range(0, n)])
+    k = (n+1)*(n+1)
+    world = env.WalledGridworld(np.array((n, n)))
+    mean = np.array([[x, y] for x in range(0, n+1) for y in range(0, n+1)])
     variance = (np.ones(k)/3)**2
     features = grbf.GaussianRBF(mean, variance, K=k, dims=world.state_dim)
     q = Q.LinearQFunction(range(acts), features, np.zeros(k), state_dim=world.state_dim, action_dim=world.action_dim)
     episodes = 20
-    r = simple_RL(world, q, epsilon=0.2, K=episodes, render=True, verbose=True, batch_size=1)
+    r = simple_RL(world, q, epsilon=0.05, K=episodes, render=True, verbose=True, batch_size=1)
 
-    print(q.compute_all_actions(np.array((5,5))))
+    print(q.compute_all_actions(np.array((3.5, 3.5))))
 
     # plt.plot(np.arange(episodes), np.asarray(r))
     # plt.show()
