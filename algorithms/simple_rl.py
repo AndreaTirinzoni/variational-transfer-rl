@@ -70,12 +70,15 @@ if __name__ == '__main__':
     n = 5
     acts = 4
     k = n*n
-    world = env.WalledGridworld(np.array((n, n)))
+    world = env.WalledGridworld(np.array((n, n)), door_x=n/2)
     mean = np.array([[x, y] for x in range(0, n) for y in range(0, n)])
     variance = (np.ones(k)/3)**2
     features = grbf.GaussianRBF(mean, variance, K=k, dims=world.state_dim)
     q = Q.LinearQFunction(range(acts), features, np.zeros(k), state_dim=world.state_dim, action_dim=world.action_dim)
-    episodes = 50
+    episodes = 20
     r = simple_RL(world, q, epsilon=0.2, K=episodes, render=True, verbose=True, batch_size=1)
-    plt.plot(np.arange(episodes), np.asarray(r))
-    plt.show()
+
+    print(q.compute_all_actions(np.array((5,5))))
+
+    # plt.plot(np.arange(episodes), np.asarray(r))
+    # plt.show()

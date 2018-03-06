@@ -9,7 +9,11 @@ class eGreedyPolicy:
 
     def sample_action(self, s):
         q_a = self._q.compute_all_actions(s)
+        print("state: " + str(s))
+        print("Q(s,a) = " + str(q_a))
         max_a = np.argmax(q_a)
+        print("Greedy action: " + str(max_a))
+
         t = np.random.rand(1)
         if t < 1-self._e:
             return self._actions[max_a]

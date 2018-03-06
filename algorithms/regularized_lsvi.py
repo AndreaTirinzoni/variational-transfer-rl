@@ -5,7 +5,7 @@ class RegularizedLSVI:
     Implementation of a regularized (by a normal prior over the parameters of Q) value iteration method.
     """
     @staticmethod
-    def solve(features, target, mean=None, covariance=None, prior=True, lamb=0.001):
+    def solve(features, target, mean=None, covariance=None, prior=True, lamb=0.1):
         """
         :param features: matrix of feature vectors
         :param mean: np.ndarray mean of the prior gaussian over the parameters

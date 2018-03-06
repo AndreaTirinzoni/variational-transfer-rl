@@ -5,7 +5,7 @@ import utils
 
 class LinearQFunction:
 
-    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=1):
+    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99):
         """
         :param actions: tuple with the possible actions available
         :param features: feature object
@@ -37,8 +37,9 @@ class LinearQFunction:
         a = self._state_dim
         for i in range(samples.shape[0]):
             qs = list()
+            fts = self._features(samples[i, s_prime: s_prime + self._state_dim])
             for a in self.actions:
-                qs.append(np.dot(self._w[a], self._features(samples[i, s_prime: s_prime + self._state_dim])))
+                qs.append(np.dot(self._w[a], fts))
             t.append((samples[i, r] + self._gamma * max(qs)) if samples[i, -1] == 0 else samples[i, r])
         return np.array(t)
 
