@@ -123,8 +123,10 @@ class WalledGridworld(gym.Env):
             return False
 
         x = -np.dot(np.linalg.inv(A), b)
-        in1 = min(p11[0], p12[0]) <= x[0] <= max(p11[0], p12[0]) and min(p11[1], p12[1]) <= x[1] <= max(p11[1], p12[1])
-        in2 = min(p21[0], p22[0]) <= x[0] <= max(p21[0], p22[0]) and min(p21[1], p22[1]) <= x[1] <= max(p21[1], p22[1])
+        in1 = min(p11[0], p12[0]) - 1e-5 <= x[0] <= max(p11[0], p12[0]) + 1e-5 and \
+              min(p11[1], p12[1]) - 1e-5 <= x[1] <= max(p11[1], p12[1]) + 1e-5
+        in2 = min(p21[0], p22[0]) - 1e-5 <= x[0] <= max(p21[0], p22[0]) + 1e-5 and \
+              min(p21[1], p22[1]) - 1e-5 <= x[1] <= max(p21[1], p22[1]) + 1e-5
         return in1 and in2
 
     def _render(self, mode='human', close=False, a=None):
