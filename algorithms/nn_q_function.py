@@ -88,9 +88,23 @@ class NNQ:
         self._nn.fit(sa, y)
 
     def get_weights(self):
-        return self._nn.get_weights()
+        """
+        :return: A flat vector with all NN weights
+        """
+        weights = self._nn.get_weights()
+        weights = [w.flatten() for w in weights]
+        return np.concatenate(weights)
 
-    def update_weights(self, w):
-        # TODO: how to update weights given a vector?
-        pass
+    def update_weights(self, weights):
+        """
+        Sets the NN weights given a flat vector
+        :param weights: A vector with the NN weights
+        """
+        old_weights = self._nn.get_weights()
+        sizes = np.array([w.size for w in old_weights])
+        new_weights = np.split(weights, np.cumsum(sizes)[:-1])
+        shapes = [w.shape for w in old_weights]
+        for i in range(len(new_weights)):
+            new_weights[i] = np.reshape(new_weights[i],shapes[i])
+        self._nn.set_weights(new_weights)
 
