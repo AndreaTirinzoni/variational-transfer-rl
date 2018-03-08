@@ -38,10 +38,12 @@ class NNQ:
 
         self._fitted = False
 
-        # TODO: set NN weights based on prior
-
         self._prior_mean = prior_mean
         self._prior_cov = prior_cov
+
+        # TODO: Should we allow sampling from the prior?
+        if prior_mean is not None:
+            self.update_weights(prior_mean)
 
     def compute_bellman_target(self, r, s_prime, absorbing):
         """
