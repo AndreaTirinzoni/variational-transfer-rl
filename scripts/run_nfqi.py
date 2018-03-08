@@ -17,6 +17,8 @@ def plot_Q(Q):
             V[1].append(vals[1])
             V[2].append(vals[2])
             V[3].append(vals[3])
+    for v in V:
+        v[-1][0] = 0.0
     V = [np.flip(np.array(v).reshape(X.size, X.size), axis=0) for v in V]
     fig, ax = plt.subplots(2, 2)
     ax[0, 0].imshow(V[0], cmap="hot", interpolation="gaussian")
