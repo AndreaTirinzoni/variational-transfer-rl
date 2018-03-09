@@ -37,7 +37,6 @@ class NNQ:
         # Binarize the actions
         tmp = np.eye(self.n_actions)
         self.bin_actions = [tmp[i,:] for i in range(self.n_actions)]
-        print(self.bin_actions)
         self._state_dim = state_dim
         self._gamma = gamma
 
