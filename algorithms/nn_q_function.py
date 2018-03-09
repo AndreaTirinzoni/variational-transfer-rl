@@ -2,10 +2,27 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers.core import Dense,Activation
 from keras.optimizers import Adam
+import tensorflow as tf
+
+
+def get_regularizer(mu, sigma_inv, reg_lambda):
+    if mu is None or sigma_inv is None:
+        return None
+
+    assert mu.shape[0] == sigma_inv.shape[0] and mu.shape[0] == sigma_inv.shape[1]
+
+    mu_tf = tf.constant(mu, dtype=tf.float32)
+    sigma_inv_tf = tf.constant(sigma_inv, dtype=tf.float32)
+
+    def reg(weight_matrix):
+        diff = tf.subtract(tf.reshape(weight_matrix, [-1]), mu_tf)
+        return reg_lambda * tf.matmul(tf.matmul(tf.expand_dims(diff,0), sigma_inv_tf), tf.expand_dims(diff,-1))
+    return reg
+
 
 class NNQ:
 
-    def __init__(self, actions, state_dim, gamma=0.99, layers=(32,32), activation="relu", prior_mean=None, prior_cov=None):
+    def __init__(self, actions, state_dim, gamma=0.99, layers=(32,32), activation="relu", prior_mean=None, prior_cov=None, reg_lambda = 1.0):
         """
         :param actions: list of discrete actions
         :param state_dim: the state dimension (scalar > 0)
@@ -24,16 +41,41 @@ class NNQ:
         self._state_dim = state_dim
         self._gamma = gamma
 
+        # Compute the size of each weight vector
+        sizes = []
+        sizes.append((state_dim + self.n_actions) * layers[0])
+        sizes.append(layers[0])
+        for l in range(len(layers) - 1):
+            sizes.append(layers[l] * layers[l + 1])
+            sizes.append(layers[l + 1])
+        sizes.append(layers[-1])
+        sizes.append(1)
+
+        if prior_mean is not None and prior_cov is not None:
+            # Split the prior for different layers
+            means = np.split(prior_mean, np.cumsum(sizes)[:-1])
+            prior_cov = np.diag(prior_cov)
+            covs = np.split(prior_cov, np.cumsum(sizes)[:-1])
+            inv_covs = [np.linalg.inv(np.diag(c)) for c in covs]
+        else:
+            means = [None for _ in sizes]
+            inv_covs = [None for _ in sizes]
+
         # Build the NN
         self._nn = Sequential()
-        self._nn.add(Dense(layers[0], input_dim=state_dim+self.n_actions))
+        self._nn.add(Dense(layers[0], input_dim=state_dim+self.n_actions,
+                           kernel_regularizer=get_regularizer(means[0],inv_covs[0],reg_lambda),
+                           bias_regularizer=get_regularizer(means[1],inv_covs[1],reg_lambda)))
         self._nn.add(Activation(activation))
+        idx = 2
         for l in range(len(layers)-1):
-            self._nn.add(Dense(layers[l+1]))
+            self._nn.add(Dense(layers[l+1], kernel_regularizer=get_regularizer(means[idx],inv_covs[idx],reg_lambda),
+                               bias_regularizer=get_regularizer(means[idx+1],inv_covs[idx+1],reg_lambda)))
             self._nn.add(Activation(activation))
-        self._nn.add(Dense(1))
+            idx += 2
+        self._nn.add(Dense(1, kernel_regularizer=get_regularizer(means[idx],inv_covs[idx],reg_lambda),
+                           bias_regularizer=get_regularizer(means[idx+1],inv_covs[idx+1],reg_lambda)))
         self._nn.add(Activation('linear'))
-        # TODO: Add regularization
         self._nn.compile(loss='mean_squared_error', optimizer=Adam())
 
         self._fitted = False
