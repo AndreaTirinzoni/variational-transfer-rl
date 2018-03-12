@@ -67,26 +67,77 @@ def solve_task(mdp, Q, epsilon=0.2, n_iter=20, n_fit=1, batch_size=1, render=Fal
     return rewards
 
 
+
 if __name__ == "__main__":
 
+    #size = 5
+    #n_actions = 4
+    #mdp = env.WalledGridworld(np.array((size, size)), door_x=2.5)
+    #Q = NNQ(range(n_actions), 2, gamma=mdp.gamma)
+    #n_iter = 20
+    #batch_size = 10
+    #n_fit = 1
+    #epsilon = 0.2
+    #render = False
+    #verbose = True
+
+    #rewards = solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,render,verbose)
+    #print(rewards)
+    #rewards = np.array(rewards)
+    #iters = np.arange(rewards.shape[0])
+    #plt.plot(iters,rewards)
+    #plt.show()
+
+    # Global parameters
     size = 5
     n_actions = 4
-    mdp = env.WalledGridworld(np.array((size, size)), door_x=2.5)
-    Q = NNQ(range(n_actions), 2, gamma=mdp.gamma)
-    n_iter = 20
-    batch_size = 10
+    n_source = 5
+    n_target = 1
+    n_iter = 50
+    batch_size = 1
     n_fit = 1
     epsilon = 0.2
     render = False
     verbose = True
+    fit_source = False
 
-    plt.ion()
-    plt.figure()
-    rewards = solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,render,verbose)
-    print(rewards)
-    rewards = np.array(rewards)
-    iters = np.arange(rewards.shape[0])
-    plt.plot(iters,rewards)
+    if fit_source:
+        # Generate the source tasks
+        doors = np.random.uniform(0.5,4.5,size=(n_source,))
+        print("Source tasks: {0}".format(doors))
+        source_mdps = [env.WalledGridworld(np.array((size, size)), door_x=d) for d in doors]
+        source_Q = [NNQ(range(n_actions), 2, gamma=mdp.gamma, layers=(16,16,16)) for mdp in source_mdps]
+
+        # Solve the source tasks
+        source_rews = [solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,render,verbose) for mdp,Q in zip(source_mdps,source_Q)]
+
+        # Compute prior
+        weights = np.array([Q.get_weights() for Q in source_Q])
+        mean = np.mean(weights, axis=0)
+        covariance = np.cov(weights.T, bias=True)
+        utils.save_object((mean,covariance), "prior")
+
+    # Load prior
+    prior = utils.load_object("prior")
+    mean = prior[0]
+    covariance = prior[1]
+
+    # Generate the target task
+    doors = np.random.uniform(0.5,4.5,size=(n_target,))
+    print("Target tasks: {0}".format(doors))
+    target_mdps = [env.WalledGridworld(np.array((size, size)), door_x=d) for d in doors]
+    target_Q = [NNQ(range(n_actions), 2, gamma=mdp.gamma, layers=(16,16,16), prior_mean=mean, prior_cov=covariance) for mdp in target_mdps]
+
+    # Solve target tasks
+    target_rews = [solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,True,verbose) for mdp,Q in zip(target_mdps,target_Q)]
+
+    # Plot performance
+    target_rews = np.array(target_rews)
+    means = np.mean(target_rews, axis = 0)
+    stds = np.std(target_rews, axis = 0)
+    plt.errorbar(np.arange(target_rews.shape[0]),means,stds)
     plt.show()
+
+
 
 
