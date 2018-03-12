@@ -13,6 +13,7 @@ def plot_Q(Q):
     for x in X:
         for y in X:
             vals = Q.compute_all_actions(np.array([x, y]))
+            vals = vals.reshape(4,1)
             V[0].append(vals[0])
             V[1].append(vals[1])
             V[2].append(vals[2])
@@ -66,22 +67,26 @@ def solve_task(mdp, Q, epsilon=0.2, n_iter=20, n_fit=1, batch_size=1, render=Fal
     return rewards
 
 
-size = 5
-n_actions = 4
-mdp = env.WalledGridworld(np.array((size, size)), door_x=2.5)
-Q = NNQ(range(n_actions), 2, gamma=mdp.gamma)
-n_iter = 20
-batch_size = 10
-n_fit = 1
-epsilon = 0.2
-render = False
-verbose = True
+if __name__ == "__main__":
 
-rewards = solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,render,verbose)
-print(rewards)
-rewards = np.array(rewards)
-iters = np.arange(rewards.shape[0])
-plt.plot(iters,rewards)
-plt.show()
+    size = 5
+    n_actions = 4
+    mdp = env.WalledGridworld(np.array((size, size)), door_x=2.5)
+    Q = NNQ(range(n_actions), 2, gamma=mdp.gamma)
+    n_iter = 20
+    batch_size = 10
+    n_fit = 1
+    epsilon = 0.2
+    render = False
+    verbose = True
+
+    plt.ion()
+    plt.figure()
+    rewards = solve_task(mdp,Q,epsilon,n_iter,n_fit,batch_size,render,verbose)
+    print(rewards)
+    rewards = np.array(rewards)
+    iters = np.arange(rewards.shape[0])
+    plt.plot(iters,rewards)
+    plt.show()
 
 

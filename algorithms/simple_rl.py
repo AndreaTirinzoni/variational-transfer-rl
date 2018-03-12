@@ -6,6 +6,8 @@ import algorithms.linear_q_function as Q
 import algorithms.regularized_lsvi as lsvi
 import features.grbf as grbf
 import matplotlib.pyplot as plt
+from scripts.run_nfqi import plot_Q
+
 
 """
 Implementation of a simple RL algorithm based on an e-greedy policy and a linearly parameterized Q function
@@ -13,6 +15,7 @@ Implementation of a simple RL algorithm based on an e-greedy policy and a linear
 """
 def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False, n_fit=20, prior_parameters=None):
     pol = policy.eGreedyPolicy(Q, Q.actions, epsilon)
+    pol_g = policy.eGreedyPolicy(Q, Q.actions, 0)
     r = list()
     n_act = len(Q.actions)
     samples = _generate_episodes(mdp, pol, n_act, batch_size, render=render)
@@ -33,8 +36,8 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False,
                         w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior_parameters[0][a], prior_parameters[1][a], prior=True)
                     Q.update_weights(w, a)
 
-
-        rew = sum(map(lambda a: np.sum(a[:, 1+mdp.state_dim+mdp.action_dim]), new_samples))/batch_size
+        plot_Q(Q)
+        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=10)
         r.append(rew)
         if verbose:
             print("===============================================")

@@ -32,6 +32,7 @@ class GaussianRBF:
             dif = np.dot(dif, dif)
             val.append(np.exp(-dif/(2*self._var[k])))
         f = np.asarray(val, order='F')
+        f = f/np.sum(f)
         return f
 
     def __call__(self, x):
