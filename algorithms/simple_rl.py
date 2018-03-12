@@ -37,7 +37,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False,
                     Q.update_weights(w, a)
 
         plot_Q(Q)
-        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=10)
+        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=10, initial_states=np.array([0., 0.]))
         r.append(rew)
         if verbose:
             print("===============================================")
@@ -75,7 +75,7 @@ def _stack(l1, l2):
 
 
 if __name__ == '__main__':
-    n = 5
+    n = 10
     acts = 4
     k = (n+1)*(n+1)
     world = env.WalledGridworld(np.array((n, n)))
@@ -84,9 +84,8 @@ if __name__ == '__main__':
     features = grbf.GaussianRBF(mean, variance, K=k, dims=world.state_dim)
     q = Q.LinearQFunction(range(acts), features, np.zeros(k), state_dim=world.state_dim, action_dim=world.action_dim)
     episodes = 20
-    r = simple_RL(world, q, epsilon=0.05, K=episodes, render=False, verbose=True, batch_size=1)
+    r = simple_RL(world, q, epsilon=0.2, K=episodes, render=False, verbose=True, batch_size=1)
 
-    print(len(r))
     plt.figure()
     plt.plot(np.arange(episodes), np.asarray(r))
     plt.show()
