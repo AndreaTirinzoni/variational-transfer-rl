@@ -6,12 +6,13 @@ from algorithms.nn_q_function import NNQ
 import matplotlib.pyplot as plt
 
 
-def plot_Q(Q):
+def plot_Q(Q, size=(5,5)):
 
     V = [[], [], [], []]
-    X = np.arange(0.0, 5.1, 0.1)
+    X = np.arange(0.0, size[0]+.1, 0.1)
+    Y = np.arange(0.0, size[1]+.1, 0.1)
     for x in X:
-        for y in X:
+        for y in Y:
             vals = Q.compute_all_actions(np.array([x, y]))
             vals = vals.reshape(4,1)
             V[0].append(vals[0])

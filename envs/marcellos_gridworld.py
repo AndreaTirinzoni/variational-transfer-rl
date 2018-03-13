@@ -58,7 +58,7 @@ class MarcellosGridworld(gym.Env):
     def reset(self, state=None):
         if state is None:
             self.current_position = np.array([0., 0.])
-            self.current_position = np.random.uniform(10, size=(2,))
+            self.current_position = np.random.uniform(self.size[0], size=(2,))
         else:
             self.current_position = np.array(state)
 

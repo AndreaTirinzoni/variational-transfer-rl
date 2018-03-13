@@ -22,7 +22,7 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False,
     feat = [Q.compute_features(samples[a][:, 1:]) for a in range(n_act)]
 
     for i in range(K):
-        new_samples = _generate_episodes(mdp, pol, n_act, batch_size, render=render)
+        new_samples = _generate_episodes(mdp, pol, n_act, batch_size, render=False)
         samples = _stack(samples, new_samples)
         feat = _stack(feat, [Q.compute_features(new_samples[a][:, 1:]) for a in range(n_act)])
 
@@ -36,16 +36,18 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False,
                         w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior_parameters[0][a], prior_parameters[1][a], prior=True)
                     Q.update_weights(w, a)
 
-        plot_Q(Q)
-        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=10, initial_states=np.array([0., 0.]))
+        if render:
+            mdp._render(close=True)
+
+        plot_Q(Q, size=tuple(mdp.size))
+        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
         r.append(rew)
         if verbose:
             print("===============================================")
             print("Iteration " + str(i))
             print("Reward: " + str(rew))
             print("===============================================")
-    if render:
-        mdp._render(close=True)
+
     return r
 
 
