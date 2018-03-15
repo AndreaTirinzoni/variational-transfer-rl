@@ -12,8 +12,8 @@ def transfer_rl(mdp, Q, prior_parameters, epsilon=0, K=1, batch_size=1, verbose=
     # Sample weights to initialize Q
     w = list()
     for a in Q.actions:
-        w.append(np.random.multivariate_normal(prior_parameters[0][a], prior_parameters[1][a]))
-        # w.append(prior_parameters[0][a])
+        # w.append(np.random.multivariate_normal(prior_parameters[0][a], prior_parameters[1][a]))
+        w.append(prior_parameters[0][a])
     print(prior_parameters[0][0])
     print(prior_parameters[1][0])
     Q.update_weights(w)

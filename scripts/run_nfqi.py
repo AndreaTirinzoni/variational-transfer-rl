@@ -9,11 +9,13 @@ import matplotlib.pyplot as plt
 def plot_Q(Q, size=(5,5)):
 
     V = [[], [], [], []]
+    Vmax = []
     X = np.arange(0.0, size[0]+.1, 0.1)
     Y = np.arange(0.0, size[1]+.1, 0.1)
     for x in X:
         for y in Y:
-            vals = Q.compute_all_actions(np.array([x, y]))
+            vals = Q.compute_all_actions(np.array([y, x]))
+            Vmax.append(np.max(vals))
             vals = vals.reshape(4,1)
             V[0].append(vals[0])
             V[1].append(vals[1])
@@ -31,6 +33,11 @@ def plot_Q(Q, size=(5,5)):
     ax[1, 0].set_title("DOWN")
     ax[1, 1].imshow(V[3], cmap="hot", interpolation="gaussian")
     ax[1, 1].set_title("LEFT")
+
+    plt.figure()
+    plt.title("Value Function")
+    plt.imshow(np.flip(np.array(Vmax).reshape(X.size, Y.size), axis=0), cmap="hot", interpolation="gaussian")
+
     plt.show()
 
 
