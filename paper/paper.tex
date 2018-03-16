@@ -227,6 +227,22 @@ The diagonal of the Hessian can also be computed straightforwardly:
 (\kappa + 1)\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k,\bm{w}_k}^2 Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} - \kappa\frac{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)\right)^2}{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)}\right)^2}
 \end{align}
 
+Finally, we show how to compute the gradient and the Hessian of $||\widetilde{B}(\bm{w})||_D^2$ with respect to $\bm{w}$ when we use a linear model $Q_{\bm{w}}(s,a) = \bm{w}^T\bm{\phi}(s,a)$. Let $y_i(\bm{w}) = r_i + \gamma\mm_{a'}\bm{w}^T\bm{\phi}(s_i',a')$. The gradient can be computed as:
+\begin{align}
+\nabla_{\bm{w}_k} ||\widetilde{B}(\bm{w})||_D^2 =\ & 
+\frac{1}{N}\sum_{i=1}^N \nabla_{\bm{w}_k} \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)^2 \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \nabla_{\bm{w}_k}y_i(\bm{w}) - \nabla_{\bm{w}_k}\bm{w}^T\bm{\phi}(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\nabla_{\bm{w}_k}\mm_{a'}\bm{w}^T\bm{\phi}(s_i',a') - \phi_k(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right)
+\end{align}
+Similarly, the diagonal of the Hessian is:
+\begin{align}
+\nabla_{\bm{w}_k,\bm{w}_k}^2 ||\widetilde{B}(\bm{w})||_D^2 =\ & 
+\frac{1}{N}\sum_{i=1}^N \nabla_{\bm{w}_k,\bm{w}_k}^2 \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)^2 \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \nabla_{\bm{w}_k} \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right)^2 \\ \ \ & - \frac{2\kappa}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right) \frac{\left(\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))\right)^2}{\left(\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}\right)^2}
+\end{align}
+
 \section{Related Works}
 
 List of any paper that relates to our approach together with a brief description:
