@@ -31,6 +31,7 @@
 
 \newcommand{\argmin}{\operatornamewithlimits{argmin}}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\mm}{\operatornamewithlimits{mm}}
 
 \title{Active Transfer Learning}
 
@@ -90,7 +91,7 @@
 \paragraph{Markov Decision Processes}
 We define a Markov decision process (MDP) as a tuple $\mathcal{M} = \langle \mathcal{S},\mathcal{A},\mathcal{P},\mathcal{R},p_0,\gamma\rangle$, where $\mathcal{S}$ is the state-space, $\mathcal{A}$ is a finite set of actions, $\mathcal{P}(\cdot | s,a)$ is the distribution of the next state $s'$ given that action $a$ is taken in state $s$, $\mathcal{R}: \mathcal{S}\times\mathcal{A}\rightarrow\mathbb{R}$ is the reward function, $p_0$ is the initial-state distribution, and $\gamma\in [0,1)$ is the discount factor. We assume the reward function to be uniformly bounded by a constant $R_{max}>0$. A deterministic policy $\pi : \mathcal{S} \rightarrow \mathcal{A}$ is a mapping from states to actions. At the beginning of each episode of interaction, the initial state $s_0$ is drawn from $p_0$. Then, the agent takes the action $a_0 = \pi(s_0)$, receives a reward $\mathcal{R}(s_0,a_0)$, transitions to the next state $s_1 \sim \mathcal{P}(\cdot | s_0,a_0)$, and the process is repeated. The goal is to find the policy maximizing the long-term return over a possibly infinite horizon: $\max_{\pi}J(\pi)=\mathbb{E}[\sum_{t=0}^{\infty} \gamma^t r_t \mid \mathcal{M},\pi]$. To this end, we define the optimal value function $Q^*(s,a)$ as the expected return obtained by taking action $a$ in state $s$ and following an optimal policy thereafter. Then, an optimal policy $\pi^*$ is a policy that is greedy with respect to the optimal value function, i.e., $\pi^*(s) = \argmax_a Q^*(s,a)$ for all states $s$. It can be shown (e.g., \cite{puterman1994markov}) that $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$ defined by $TQ(s,a) = \mathcal{R}(s,a) + \gamma\mathbb{E}_{\mathcal{P}}[\max_{a'}Q(s',a')]$ for any value function $Q$. From now on, we adopt the term $Q$-function to denote any plausible value function, i.e., any function $Q : \mathcal{S}\times\mathcal{A} \rightarrow \mathbb{R}$ uniformly bounded by $\frac{R_{max}}{1-\gamma}$.
 
-We define the Bellman error (or Bellman residual) of a $Q$-function $Q$ as $B(Q) \triangleq TQ - Q$. Notice that a $Q$-function $Q$ is optimal if, and only if, $||B(Q)||_{\infty} = 0$.
+We define the Bellman residual of a $Q$-function $Q$ as $B(Q) \triangleq TQ - Q$. Notice that a $Q$-function $Q$ is optimal if, and only if, $B(Q)(s,a) = 0$ for all $s,a$.
 
 \paragraph{Multitask Settings}
 
@@ -100,62 +101,30 @@ We represent tasks $\tau$ as MDPs with shared state and action spaces, but with 
 
 We start by noticing that the task distribution $\mathcal{D}$ clearly induces a distribution over optimal $Q$-functions. Then, our goal is to estimate such distribution from the set of source tasks and use it as a prior for speeding up the learning process in the target task.
 
-We assume states and actions to be drawn from a fixed joint distribution $\mu$. We define the set of $Q$-functions of our interest as the set $\mathcal{Q}^{\epsilon}$ of all $Q$ functions whose Bellman error $B(Q)$ is in some $\epsilon$-ball defined by the $l_p$-norm $|| \cdot ||_{p,\mu}$:
+Consider solving the target task given a dataset $D$ of $N$ samples. The posterior distribution over optimal $Q$-functions is:
 \begin{equation}
-\mathcal{Q}^{\epsilon} = \left\{ Q\in\mathcal{Q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right\}
+P(Q \mid D) \propto P(D \mid Q)P(Q),
 \end{equation}
-Given a dataset of $N$ samples $D = \langle s_i,a_i,r_i,s_i' \rangle_{i=1}^N$, we can approximate the $l_p$-norm of the Bellman error of a $Q$-function $Q$ as:
+where $P(D \mid Q)$ is the likelihood of observing the dataset $D$ given that $Q$ is optimal and $P(Q)$ is the prior distribution induced by $\mathcal{D}$. Computing the likelihood requires knowing the transition and reward models of the current task (i.e., the MDP model), which are not available in practice. However, since we are conditioned on the fact that $Q$ is optimal, we can derive a simple approximation. We consider the empirical Bellman error $||B(Q)||_{p,D}^p$ under the $l_p$-norm defined as:
 \begin{equation}
 ||B(Q)||_{p,D}^p = \frac{1}{N}\sum_{i=1}^N \left\lvert r_i + \gamma\max_{a'}Q(s_i',a') - Q(s_i,a_i) \right\rvert^p
 \end{equation}
-
-\begin{theorem}
-Let $Q$ be a $Q$-function with empirical Bellman error, computed on a dataset $D$ of $N$ i.i.d. samples, given by $||B(Q)||_{p,D}^p = \hat{q}$. Then, for any $\epsilon >= 0$:
+Assuming states and actions to be drawn from a fixed joint distribution $\mu$, we have $||B(Q)||_{p,\mu}^p = 0$ whenever $Q$ is optimal. Then, the probability of observing a dataset $D$ clearly decreases exponentially as $||B(Q)||_{p,D}^p$, for  an optimal $Q$, increases. This can be seen, for instance, by applying Hoeffding's inequality. Thus, a natural way to model the likelihood $P(D \mid Q)$ is:
 \begin{equation}
-P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \leq exp\left( -\frac{2N\max\{\epsilon-\hat{q},0\}^2}{\left(\frac{2R_{max}}{1-\gamma}\right)^{2p}} \right)
+P(D \mid Q) \propto e^{-\lambda N ||B(Q)||_{p,D}^p}
 \end{equation}
-\end{theorem}
-\begin{proof}
-Assume $\hat{q}>\epsilon$. Then:
-\begin{align*}
-P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) =\ & 
-P\left(|| B(Q) ||_{p,\mu}^p \leq \epsilon \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \\ =\ &
-P\left(|| B(Q) ||_{p,\mu}^p - \hat{q} \leq \epsilon - \hat{q} \mid ||B(Q)||_{p,D}^p = \hat{q}\right)
-\end{align*}
-Notice that $\mathbb{E}[\hat{q}] = || B(Q) ||_{p,\mu}^p$ and that $\epsilon - \hat{q} < 0$ by assumption. Then, we can apply Hoeffding's inequality to write:
-\begin{equation*}
-P\left(Q\in\mathcal{Q}^{\epsilon} \mid ||B(Q)||_{p,D}^p = \hat{q}\right) \leq exp\left( -\frac{2N(\epsilon-\hat{q})^2}{\left(\frac{2R_{max}}{1-\gamma}\right)^{2p}} \right)
-\end{equation*}
-Finally, when $\hat{q} \leq \epsilon$, the probability can be straightforwardly upper-bounded by $1$. Combining the two results concludes the proof.
-\end{proof}
-\begin{theorem}
-Let $Q$ be a $Q$-function with empirical Bellman error, computed on a dataset $D$ of $N$ i.i.d. samples, given by $||B(Q)||_{p,D}^p = \hat{q}$. Then, for any $\epsilon >= 0$:
-\begin{equation*}
-P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid Q\in\mathcal{Q}^{\epsilon} \right) \leq \frac{\epsilon}{\hat{q}}
-\end{equation*}
-\begin{proof}
-\begin{align*}
-P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid Q\in\mathcal{Q}^{\epsilon} \right) =\ &
-P\left( ||B(Q)||_{p,D}^p = \hat{q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right)\\ \leq\ &
-P\left( ||B(Q)||_{p,D}^p \geq \hat{q} \mid || B(Q) ||_{p,\mu}^p \leq \epsilon \right)\\ \leq\ &
-\frac{E[||B(Q)||_{p,D}^p]}{\hat{q}}\\ \leq\ &
-\frac{\epsilon}{\hat{q}}
-\end{align*}
-The first inequality is straightforward, the second one is from Markov's inequality, while the third one is due to the fact that $Q\in\mathcal{Q}^{\epsilon}$.
-\end{proof}
-\end{theorem}
+where $\lambda$ is a constant hyperparameter. Intuitively, this indicates that $D$ is more likely when it induces low empirical Bellman error under an optimal $Q$-function. Furthermore, as the number of available samples $N$ increases, the distribution becomes more peaked at zero since the empirical Bellman error converges to the true Bellman error. In the limit $N \rightarrow \infty$:
+\begin{equation}
+P(D \mid Q) \propto I_{\left\{ ||B(Q)||_{p,D}^p = 0 \right\}}
+\end{equation}
 
 \subsection{Regularized Bellman Residual Minimization with Gaussian Priors}
 
-Consider solving the target task given a dataset $D$ of $N$ samples. The posterior distribution over optimal $Q$-functions is:
-\begin{equation}
-P(Q^* \mid D) \propto P(D \mid Q^*)P(Q^*)
-\end{equation}
-Bounding the likelihood $P(D \mid Q^*)$ ({\color{red}FIND A BETTER DERIVATION}) and taking the maximum of the log-posterior, we obtain the following optimization problem:
+Taking the maximum of the log-posterior, we obtain the following optimization problem:
 \begin{equation}
 \min_{Q\in\mathcal{Q}} ||B(Q)||_{p,D}^p - \log P(Q) 
 \end{equation}
-Then, let us specify a particular hypothesis space $\mathcal{Q}$. We consider $Q$-functions $Q_{\bm{w}}$ parameterized by the vector $\bm{w}$. Our optimization problem becomes:
+Let us specify a particular hypothesis space $\mathcal{Q}$. We consider $Q$-functions $Q_{\bm{w}}$ parameterized by the vector $\bm{w}$. Our optimization problem becomes:
 \begin{equation}
 \min_{\bm{w}} ||B(\bm{w})||_{p,D}^p - \log P(\bm{w}) 
 \end{equation}
@@ -175,7 +144,88 @@ We assume a linear model for the $Q$-functions: $Q_{\bm{w}}(s,a) = \bm{w}^T\bm{\
 \begin{equation}
 \bm{w}^* = \left( \bm{A}^T\bm{A} + \bm{\Sigma}^{-1} \right)^{-1} \left( \bm{A}^T\bm{b} + \bm{\Sigma}^{-1}\bm{\mu} \right) 
 \end{equation}
-where $\bm{A}$ is an $N\times K$ matrix containing the feature vectors at each data point $(s_i,a_i)$ and $\bm{b}$ is an $N$-dimensional vector containing their targets $y_i$.
+where $\bm{A}$ is an $N\times K$ matrix containing the feature vectors at each data point $(s_i,a_i)$ and $\bm{b}$ is an $N$-dimensional vector containing their targets $y_i$. The resulting algorithm is a regularized version of LSVI.
+
+\paragraph{Neural network}
+
+We model $Q_{\bm{w}}(s,a)$ as a neural network with parameters $\bm{w}$. Then, the gradient of the objective function of Eq. \eqref{eq:optim} can be easily computed by standard backpropagation. The resulting algorithm is a regularized version of NFQI.
+
+\subsection{Variational Inference for Efficient Exploration}
+
+A major drawback of the maximum-a-posteriori (MAP) approach is that it does not explicitly estimate the posterior distribution $P(Q \mid D)$. Thus, given a dataset $D$, the algorithm consistently chooses the same MAP $Q$-function, and the only way to allow learning is to introduce a simple form of exploration (e.g., $\epsilon$-greedy or softmax), whose drawbacks are well-known. The advantages of a more time-coherent exploration strategy such as posterior sampling (or Thompson sampling) have already been proved by many existing works (CITE). In particular, direct posterior sampling of $Q$-functions (also known as value function randomization), when a distribution is available, have been proven to be very effective and scalable. Thus, we known extend our previous approach to explicitly estimate $P(Q \mid D)$, so as to allow efficient exploration of the target task. The main complication is that, as mentioned earlier, we cannot compute the likelihood $P(D \mid Q)$ explicitly, but we only have access to a model that is proportional to it. Then, estimating the posterior distribution is clearly intractable since it requires computing the marginal likelihood $P(D) = \int P(D \mid Q) dQ$. Thus, we resort variational inference (CITE) to approximate the intractable posterior with a simpler distribution from which we are able to sample.
+
+The main idea behind variational inference is to approximate the posterior $P(Q | D)$ with a simpler distribution $q_{\bm{\phi}}(Q)$, parameterized by the vector $\bm{\phi}$, from which we can easily get samples. The best approximation is chosen in terms of the Kullback-Leibler (KL) divergence between the two distributions, that is:
+\begin{equation}
+\min_{\bm{\phi}} KL\left(q_{\bm{\phi}}(Q)\ ||\ P(Q \mid D)\right)
+\end{equation}
+It is well-known that minimizing the KL divergence is equivalent to maximizing the so-called \textit{evidence lower bound} (ELBO), which is defined as:
+\begin{equation}
+\text{ELBO}(\bm{\phi}) = \mathbb{E}_{Q \sim q_{\bm{\phi}}}\left[ \log P(D | Q) \right] - KL\left(q_{\bm{\phi}}(Q)\ ||\ P(Q)\right)
+\end{equation}
+As before, we assume a parametric form $Q_{\bm{w}}$ for representing $Q$-functions. Thus, we reduce distributions over functions to distributions over vectors $\bm{w} \in \mathbb{R}^K$. Given a specific form for the approximate posterior $q_{\bm{\phi}(\bm{w})}$ and the prior $P(\bm{w})$, our inference problem reduces to:
+\begin{equation} \label{eq:vi}
+\min_{\bm{\phi}} \mathbb{E}_{\bm{w} \sim q_{\bm{\phi}}}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] + KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right)
+\end{equation}
+Intuitively, the approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low empirical Bellman error (first term), and staying close to the prior distribution that is learned from the set of source tasks (second term). The factor $N$ multiplying $||B(\bm{w})||_{D}^2$ makes sure that, as the number of samples goes to infinity, only the first term is considered in the optimization. In such case, all probability mass go over the (approximate) fixed-point of the optimal Bellman operator. On the other hand, for small values of $N$, there is less evidence that the empirical Bellman error closely estimate the true one, thus giving more importance to staying close to the prior.
+
+Depending on the choice of the prior and approximate posterior distributions, the optimization problem of Eq. \eqref{eq:vi} might still be very hard to solve. We now propose some suitable choices that make the problem efficiently solvable.
+
+\paragraph*{Gaussian distributions}
+
+We model both the prior and the approximate posterior as Gaussian distributions: $P(\bm{w}) = \mathcal{N}(\bar{\bm{\mu}},\bar{\bm{\Sigma}})$ and $q_{\bm{\phi}}(\bm{w}) = \mathcal{N}(\bm{\mu},\bm{\Sigma})$, respectively. For the sake of simplicity, we assume $\bm{\Sigma} = \text{diag}(\sigma_1^2,\dots,\sigma_K^2)$ and $\bar{\bm{\Sigma}} = \text{diag}(\bar{\sigma}_1^2,\dots,\bar{\sigma}_K^2)$. Notice, in this case, that the parameter vector $\bm{\phi}$ is $[\mu_1,\dots,\mu_K,\sigma_1^2,\dots,\sigma_K^2]$. The KL divergence between the two distributions can be computed in closed form as:
+\begin{equation}
+KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bar{\bm{\Sigma}} \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bar{\bm{\Sigma}}^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bar{\bm{\mu}})^T \bar{\bm{\Sigma}}^{-1} (\bm{\mu} - \bar{\bm{\mu}}) -K \right)
+\end{equation}
+To solve the optimization problem of Eq. \eqref{eq:vi} we adopt stochastic backpropagation (CITE). Thus, we need to compute the gradient of the objective function $\mathcal{L}(\bm{\phi})$ of Eq. \eqref{eq:vi} with respect to each component of $\bm{\phi}$. This can be easily done for the second term:
+\begin{equation}
+\nabla_{\bm{\mu}} KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \bar{\bm{\Sigma}}^{-1} (\bm{\mu} - \bar{\bm{\mu}})
+\end{equation}
+\begin{equation}
+\nabla_{\sigma_k^2} KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \frac{1}{2}\left( \frac{1}{\bar{\sigma}_k^2} - \frac{1}{\sigma_k^2} \right)
+\end{equation}
+For the first term, we have to compute the gradient of an expectation with respect to the parameters of the Gaussian distribution under which the expectation is taken. For the mean, we can resort to Thm. X of (CITE Bonnet 1964):
+\begin{equation}
+\nabla_{\mu_k} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N \nabla_{w_k} ||B(\bm{w})||_{D}^2 \right]
+\end{equation}
+For the covariance, we can resort to Thm. Y of (CITE Price 1958):
+\begin{equation}
+\nabla_{\sigma_k^2} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] = \frac{1}{2}\mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N \nabla_{w_k,w_k}^2 ||B(\bm{w})||_{D}^2 \right]
+\end{equation}
+We refer the reader to (CITE Deepmind) for a simple proofs of these two theorems.
+
+It only remains to compute the gradient and Hessian of the empirical Bellman error $||B(\bm{w})||_{D}^2$ with respect to $\bm{w}$. Recall that:
+\begin{equation}
+||B(\bm{w})||_{D}^2 = \frac{1}{N}\sum_{i=1}^N \left( r_i + \gamma\max_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i) \right)^2
+\end{equation}
+A major complication is that computing the gradient with respect to $\bm{w}$ requires differentiating through the maximum operator. In iterative approaches such as Fitted Q-Iteration (FQI) or Deep Q-Networks (DQNs), this is typically solved by computing the Bellman target using the previous weights and adapting the current weights so that the resulting Q-functions matches the target. In such case, no differentiation through the maximum operator is required. However, in our case there is no previous weight: we simply want to now what is the Bellman error of any given weight $\bm{w}$ and we are thus required to differentiate through the maximum operator when updating the approximate posterior, which is not possible in practice. To solve this issue, we replace the max with the \textit{mellowmax} operator defined by:
+\begin{equation}
+\mm_a Q_{\bm{w}}(s,a) = \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}
+\end{equation}
+where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions. The mellowmax operator has several appealing properties that make it suitable for our settings: (i) it converges to the maximum as $\kappa \rightarrow \infty$, (ii) it has a unique fixed point, and (iii) it is \textit{differentiable}. Replacing max with the mellowmax operator, we obtain a new approximation to the Bellman residual:
+\begin{equation}
+\widetilde{B}(\bm{w})(s,a) \triangleq \mathcal{R}(s,a) + \gamma\mathbb{E}_{\mathcal{P}}[\mm_{a'}Q_{\bm{w}}(s',a')] - Q_{\bm{w}}(s,a)
+\end{equation}
+and to the empirical Bellman error:
+\begin{equation}
+||\widetilde{B}(\bm{w})||_{D}^2 = \frac{1}{N}\sum_{i=1}^N \left( r_i + \gamma\mm_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i) \right)^2
+\end{equation}
+Of fundamental importance, this last quantity is now differentiable with respect to $\bm{w}$.
+
+Differentiating trough the mellowmax operator with respect to $\bm{w}$ is now very simple:
+\begin{align}
+\nabla_{\bm{w}_k}\mm_a Q_{\bm{w}}(s,a) =\ & 
+\nabla_{\bm{w}_k} \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \\ =\ &
+\frac{1}{\kappa}\frac{1}{\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}\frac{1}{|\mathcal{A}|}\sum_a \nabla_{\bm{w}_k} e^{\kappa Q_{\bm{w}}(s,a)} \\ =\ &
+\frac{1}{\kappa}\frac{1}{\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \kappa \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a) \\ =\ &
+\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}
+\end{align}
+The diagonal of the Hessian can also be computed straightforwardly:
+\begin{align}
+\nabla_{\bm{w}_k,\bm{w}_k}^2 \mm_a Q_{\bm{w}}(s,a) =\ &
+\nabla_{\bm{w}_k}\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} \\ =\ &
+\frac{\nabla_{\bm{w}_k}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} + \nabla_{\bm{w}_k}\left( \frac{1}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} \right)\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a) \\ =\ &
+(\kappa + 1)\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k,\bm{w}_k}^2 Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} - \kappa\frac{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)\right)^2}{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)}\right)^2}
+\end{align}
 
 \section{Related Works}
 
