@@ -5,20 +5,22 @@ import utils
 
 class LinearQFunction:
 
-    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99):
+    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99, regressor_per_action=True):
         """
         :param actions: tuple with the possible actions available
         :param features: feature object
         :param gamma: discount factor
-        :param params: initial parameters
+        :param params: initial parameters (np.ndarray n_features x n_actions or n_features x 1)
         :param state_dim: dimension of the state vector
         :param action_dim: dimension of the action vector
+        :param regressor_per_action: boolean flag to have or not a regressor per action available
 
         """
+
         self.actions = actions
         self._features = features
         self._gamma = gamma
-        self._w = [params for i in range(len(actions))]
+        self._w = params
         self._state_dim = state_dim
         self._action_dim = action_dim
 
@@ -35,28 +37,25 @@ class LinearQFunction:
         r = self._state_dim + self._action_dim
         t = list()
         a = self._state_dim
-        for i in range(samples.shape[0]):
-            qs = list()
-            fts = self._features(samples[i, s_prime: s_prime + self._state_dim])
-            for a in self.actions:
-                qs.append(np.dot(self._w[a], fts))
-            t.append((samples[i, r] + self._gamma * max(qs)) if samples[i, -1] == 0 else samples[i, r])
-        return np.array(t)
+
+        fts = self._features(samples[:, s_prime: s_prime + self._state_dim])
+        qs = np.max(np.dot(fts, self._w), axis=1)
+        t = samples[:, r] + self._gamma * qs * (1-samples[:, -1])
+        return t
 
 
     def update_weights(self, w, action=None):
         """
         Update the weights of the regressors
-        :param w: vector of weights or list of vectors of weights
+        :param w: matrix of weights (one regressor per column)
         :param action: specific action to which update the regressor's parameters
         """
         if action is None:
-            for i in range(len(w)):
-                assert w[i].shape == self._w[i].shape
+            assert w.shape == self._w.shape
             self._w = w
         else:
-            assert w.shape == self._w[action].shape
-            self._w[action] = w
+            assert w.shape == self._w[:, action].shape
+            self._w[:, action] = w
 
     def compute_all_actions(self, state):
         q = list()
@@ -74,22 +73,21 @@ class LinearQFunction:
 if __name__ == '__main__':
 
     actions = range(4)
-    weights = [1, 1]
+    weights = np.zeros((2, 4))
 
     mean = np.array([[1, 2], [3, 0]])
     var = np.array([3, 8])
 
     f = rbf.GaussianRBF(mean, var)
 
-    q = LinearQFunction(actions, f, weights)
+    q = LinearQFunction(actions, f, weights, state_dim=2, action_dim=1)
 
-    samples = np.random.random((100, 4))
+    samples = np.random.random((100, 5))
     term = np.random.random_integers(0, 2, (100, 1))
 
     samples = np.hstack((samples, term))
-    for k in range(samples.shape[0]):
-        samples[k, 1] = np.random.randint(0, 5)
-        samples[k, 2] = np.random.randint(-10, 10)
+    samples[:, 2] = np.random.randint(0, 5, (samples.shape[0]))
+
 
     targets = q.compute_bellman_target(samples)
 

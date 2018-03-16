@@ -57,6 +57,8 @@ class GaussianRBF:
 
         return np.asarray(features)
 
+    def number_of_actions(self):
+        return self._K
 
 if __name__ == '__main__':
     mean = np.array([[1, 2], [3, 4]])
