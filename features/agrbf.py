@@ -61,6 +61,9 @@ class AGaussianRBF:
         return np.asarray(features)
 
 
+    def number_of_features(self):
+        return self._K
+
 if __name__ == '__main__':
     mean = np.array([[1, 2], [3, 4]])
     covar = np.vstack((np.eye(2), np.eye(2)))

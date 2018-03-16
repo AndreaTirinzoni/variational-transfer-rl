@@ -6,6 +6,7 @@ import utils
 class LinearQFunction:
 
     def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99, regressor_per_action=True):
+
         """
         :param actions: tuple with the possible actions available
         :param features: feature object
@@ -16,13 +17,24 @@ class LinearQFunction:
         :param regressor_per_action: boolean flag to have or not a regressor per action available
 
         """
+        if params is not None:
+            if regressor_per_action:
+                assert params.shape == (features.number_of_features(), len(actions))
+            else:
+                assert params.shape == (features.number_of_features(),)
+
+        else:
+            if regressor_per_action:
+                self._w = np.zeros((features.number_of_features(), len(actions)))
+            else:
+                self._w = np.zeros((features.number_of_features(),))
 
         self.actions = actions
         self._features = features
         self._gamma = gamma
-        self._w = params
         self._state_dim = state_dim
         self._action_dim = action_dim
+        self._isRxA = regressor_per_action
 
 
     def compute_bellman_target(self, samples):
@@ -35,9 +47,7 @@ class LinearQFunction:
 
         s_prime = self._state_dim + self._action_dim + 1
         r = self._state_dim + self._action_dim
-        t = list()
         a = self._state_dim
-
         fts = self._features(samples[:, s_prime: s_prime + self._state_dim])
         qs = np.max(np.dot(fts, self._w), axis=1)
         t = samples[:, r] + self._gamma * qs * (1-samples[:, -1])

@@ -57,7 +57,7 @@ class GaussianRBF:
 
         return np.asarray(features)
 
-    def number_of_actions(self):
+    def number_of_features(self):
         return self._K
 
 if __name__ == '__main__':
