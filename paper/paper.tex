@@ -25,6 +25,8 @@
 \usepackage{amsthm}
 \usepackage{bm}
 \usepackage{todonotes}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
@@ -32,6 +34,9 @@
 \newcommand{\argmin}{\operatornamewithlimits{argmin}}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
 \newcommand{\mm}{\operatornamewithlimits{mm}}
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
 
 \title{Active Transfer Learning}
 
@@ -226,6 +231,55 @@ The diagonal of the Hessian can also be computed straightforwardly:
 \frac{\nabla_{\bm{w}_k}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} + \nabla_{\bm{w}_k}\left( \frac{1}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} \right)\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a) \\ =\ &
 (\kappa + 1)\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k,\bm{w}_k}^2 Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} - \kappa\frac{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)\right)^2}{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)}\right)^2}
 \end{align}
+
+Finally, we show how to compute the gradient and the Hessian of $||\widetilde{B}(\bm{w})||_D^2$ with respect to $\bm{w}$ when we use a linear model $Q_{\bm{w}}(s,a) = \bm{w}^T\bm{\phi}(s,a)$. Let $y_i(\bm{w}) = r_i + \gamma\mm_{a'}\bm{w}^T\bm{\phi}(s_i',a')$. The gradient can be computed as:
+\begin{align}
+\nabla_{\bm{w}_k} ||\widetilde{B}(\bm{w})||_D^2 =\ & 
+\frac{1}{N}\sum_{i=1}^N \nabla_{\bm{w}_k} \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)^2 \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \nabla_{\bm{w}_k}y_i(\bm{w}) - \nabla_{\bm{w}_k}\bm{w}^T\bm{\phi}(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\nabla_{\bm{w}_k}\mm_{a'}\bm{w}^T\bm{\phi}(s_i',a') - \phi_k(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right)
+\end{align}
+Similarly, the diagonal of the Hessian is:
+\begin{align}
+\nabla_{\bm{w}_k,\bm{w}_k}^2 ||\widetilde{B}(\bm{w})||_D^2 =\ & 
+\frac{1}{N}\sum_{i=1}^N \nabla_{\bm{w}_k,\bm{w}_k}^2 \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)^2 \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \nabla_{\bm{w}_k} \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right)\left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right) \\ =\ &
+\frac{2}{N}\sum_{i=1}^N \left( \gamma\frac{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))}{\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}} - \phi_k(s_i,a_i)) \right)^2 \\ \ \ & - \frac{2\kappa}{N}\sum_{i=1}^N \left( y_i(\bm{w}) - \bm{w}^T\bm{\phi}(s_i,a_i) \right) \frac{\left(\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')} \phi_k(s_i',a'))\right)^2}{\left(\sum_{a'} e^{\kappa \bm{w}^T\bm{\phi}(s_i',a')}\right)^2}
+\end{align}
+
+We are now ready to present our algorithm for transfer-based exploration via posterior sampling. This is shown in Alg. \ref{alg:transfer}.
+
+\begin{algorithm}
+\begin{algorithmic}
+\REQUIRE Prior mean $\bar{\bm{\mu}}$, prior covariance $\bar{\bm{\Sigma}}$, likelihood weight $\lambda$, mellowmax parameter $\kappa$, learning rate $\eta$, feature vector $\bm{\phi}$
+\ENSURE Greedy policy $\pi$
+\\\hrulefill
+
+\STATE{Initialize posterior: $\bm{\mu} \leftarrow \bar{\bm{\mu}}, \bm{\Sigma} \leftarrow \bar{\bm{\Sigma}}$}
+\STATE{Initialize dataset: $D = \emptyset$}
+\REPEAT
+
+\STATE{Sample $Q$-function: $\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})$}
+\STATE{Sample initial state: $s_0 \sim p_0$}
+
+\FOR{$h=0,\dots,H$}
+\STATE{Take action $a_h = \argmax_a \bm{w}^T\bm{\phi}(s_h,a)$}
+\STATE{Observe transition $s_{h+1} \sim \mathcal{P}(\cdot | s_h,a_h)$}
+\STATE{Collect reward $r_h = \mathcal{R}(s_h,a_h)$}
+\STATE{Add sample to the dataset: $D \leftarrow D \cup \langle s_h,a_h,r_h,s_{h+1} \rangle$}
+\STATE{Compute ELBO: $\mathcal{L}(\bm{\mu},\bm{\Sigma}) = \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N ||\widetilde{B}(\bm{w})||_{D}^2 \right] + KL(\mathcal{N}(\bm{\mu},\bm{\Sigma})\ ||\ \mathcal{N}(\bar{\bm{\mu}},\bar{\bm{\Sigma}}))$}
+\STATE{Compute gradients $\nabla_{\bm{\mu}}\mathcal{L}(\bm{\mu},\bm{\Sigma})$ and $\nabla_{\bm{\Sigma}}\mathcal{L}(\bm{\mu},\bm{\Sigma})$}
+\STATE{Update posterior parameters: $\bm{\mu} \leftarrow \bm{\mu} - \eta\nabla_{\bm{\mu}}\mathcal{L}(\bm{\mu},\bm{\Sigma})$ and $\bm{\Sigma} \leftarrow \bm{\Sigma} - \eta\nabla_{\bm{\Sigma}}\mathcal{L}(\bm{\mu},\bm{\Sigma})$}
+\ENDFOR
+
+
+\UNTIL{done}
+\STATE{Sample final parameters: $\bm{w}^* \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})$ (or take the MAP: $\bm{w}^* = \bm{\mu}$)}
+\RETURN{Greedy policy: $\pi(s) = \argmax_a \bm{w}^* \bm{\phi}(s,a)$}
+\end{algorithmic}
+\caption{Variational Exploration under Gaussian Approximation} \label{alg:transfer}
+\end{algorithm}
 
 \section{Related Works}
 
