@@ -35,6 +35,8 @@ def simple_RL(mdp, Q, epsilon=0, K=1, batch_size=1, render=False, verbose=False,
             targets = [Q.compute_bellman_target(samples[a][:, 1:]) for a in range(n_act)]
             for a in range(n_act):
                 if feat[a].shape[0] > 0:
+                    print(a)
+                    print(np.shape(feat[a]))
                     if prior_parameters is None:
                          w = lsvi.RegularizedLSVI.solve(feat[a], targets[a], prior=False)
                     else:

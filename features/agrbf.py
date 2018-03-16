@@ -2,23 +2,27 @@ import numpy as np
 """
 Isotropic Gaussian RBF Features
 """
-class GaussianRBF:
+class AGaussianRBF:
 
-    def __init__(self, mean, variance, K=2, dims=2):
+    def __init__(self, mean, covar, K=2, dims=2):
         """
         :param mean: (np.ndarray) mean vector Kxdim
-        :param variance: (np.ndarray)  variance vector Kx1
+        :param covar: (np.ndarray)  Covariances vector (Kxdim)xdim
         :param K: number of basis functions
         :param dims: dimension of the input
 
         """
         assert mean.shape == (K, dims)
-        assert variance.shape == (K,)
+        assert covar.shape == (K * dims, K)
 
         self._K = K
         self._mean = mean
         self._dims = dims
-        self._var = variance
+        self._precision = np.zeros(covar.shape)
+        for k in range(self._K):
+            self._precision[k*dims:(k+1)*dims, :] = np.linalg.inv(covar[k*dims:(k+1)*dims, :])
+
+
 
     def _compute(self, point):
 
@@ -31,8 +35,7 @@ class GaussianRBF:
 
         for k in range(self._K):
             dif = self._mean[k, :] - point
-            dif = np.dot(dif, dif)
-            val.append(np.exp(-dif/(2*self._var[k])))
+            val.append(np.exp(1/2*(dif @ self._precision[k*self._dims:(k+1)*self._dims, :] @ dif)))
         f = np.asarray(val, order='F')
         f = f/np.sum(f)
         return f
@@ -60,12 +63,13 @@ class GaussianRBF:
 
 if __name__ == '__main__':
     mean = np.array([[1, 2], [3, 4]])
-    var = np.array([3, 8])
+    covar = np.vstack((np.eye(2), np.eye(2)))
 
-    rbf = GaussianRBF(mean, var)
+    rbf = AGaussianRBF(mean, covar)
 
     data = np.random.random((100, 2))
 
     matrix = rbf(data)
-    print(matrix)
     print(rbf(np.array([1, 2])))
+    print(matrix)
+
