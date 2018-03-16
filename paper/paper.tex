@@ -31,6 +31,7 @@
 
 \newcommand{\argmin}{\operatornamewithlimits{argmin}}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\mm}{\operatornamewithlimits{mm}}
 
 \title{Active Transfer Learning}
 
@@ -196,8 +197,35 @@ It only remains to compute the gradient and Hessian of the empirical Bellman err
 \begin{equation}
 ||B(\bm{w})||_{D}^2 = \frac{1}{N}\sum_{i=1}^N \left( r_i + \gamma\max_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i) \right)^2
 \end{equation}
+A major complication is that computing the gradient with respect to $\bm{w}$ requires differentiating through the maximum operator. In iterative approaches such as Fitted Q-Iteration (FQI) or Deep Q-Networks (DQNs), this is typically solved by computing the Bellman target using the previous weights and adapting the current weights so that the resulting Q-functions matches the target. In such case, no differentiation through the maximum operator is required. However, in our case there is no previous weight: we simply want to now what is the Bellman error of any given weight $\bm{w}$ and we are thus required to differentiate through the maximum operator when updating the approximate posterior, which is not possible in practice. To solve this issue, we replace the max with the \textit{mellowmax} operator defined by:
+\begin{equation}
+\mm_a Q_{\bm{w}}(s,a) = \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}
+\end{equation}
+where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions. The mellowmax operator has several appealing properties that make it suitable for our settings: (i) it converges to the maximum as $\kappa \rightarrow \infty$, (ii) it has a unique fixed point, and (iii) it is \textit{differentiable}. Replacing max with the mellowmax operator, we obtain a new approximation to the Bellman residual:
+\begin{equation}
+\widetilde{B}(\bm{w})(s,a) \triangleq \mathcal{R}(s,a) + \gamma\mathbb{E}_{\mathcal{P}}[\mm_{a'}Q_{\bm{w}}(s',a')] - Q_{\bm{w}}(s,a)
+\end{equation}
+and to the empirical Bellman error:
+\begin{equation}
+||\widetilde{B}(\bm{w})||_{D}^2 = \frac{1}{N}\sum_{i=1}^N \left( r_i + \gamma\mm_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i) \right)^2
+\end{equation}
+Of fundamental importance, this last quantity is now differentiable with respect to $\bm{w}$.
 
-
+Differentiating trough the mellowmax operator with respect to $\bm{w}$ is now very simple:
+\begin{align}
+\nabla_{\bm{w}_k}\mm_a Q_{\bm{w}}(s,a) =\ & 
+\nabla_{\bm{w}_k} \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \\ =\ &
+\frac{1}{\kappa}\frac{1}{\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}\frac{1}{|\mathcal{A}|}\sum_a \nabla_{\bm{w}_k} e^{\kappa Q_{\bm{w}}(s,a)} \\ =\ &
+\frac{1}{\kappa}\frac{1}{\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}\frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \kappa \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a) \\ =\ &
+\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}}
+\end{align}
+The diagonal of the Hessian can also be computed straightforwardly:
+\begin{align}
+\nabla_{\bm{w}_k,\bm{w}_k}^2 \mm_a Q_{\bm{w}}(s,a) =\ &
+\nabla_{\bm{w}_k}\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} \\ =\ &
+\frac{\nabla_{\bm{w}_k}\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} + \nabla_{\bm{w}_k}\left( \frac{1}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} \right)\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a) \\ =\ &
+(\kappa + 1)\frac{\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k,\bm{w}_k}^2 Q_{\bm{w}}(s,a)}{\sum_a e^{\kappa Q_{\bm{w}}(s,a)}} - \kappa\frac{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)} \nabla_{\bm{w}_k} Q_{\bm{w}}(s,a)\right)^2}{\left(\sum_a e^{\kappa Q_{\bm{w}}(s,a)}\right)^2}
+\end{align}
 
 \section{Related Works}
 
