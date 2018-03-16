@@ -2,7 +2,7 @@
 \BOOKMARK [1][-]{section.2}{Preliminaries}{}% 2
 \BOOKMARK [1][-]{section.3}{Approach}{}% 3
 \BOOKMARK [2][-]{subsection.3.1}{Regularized Bellman Residual Minimization with Gaussian Priors}{section.3}% 4
-\BOOKMARK [2][-]{subsection.3.2}{Variational Inference for Gaussian Distributions}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Variational Inference for Efficient Exploration}{section.3}% 5
 \BOOKMARK [1][-]{section.4}{Related Works}{}% 6
 \BOOKMARK [1][-]{section.5}{Experiments}{}% 7
 \BOOKMARK [1][-]{section.6}{Conclusion}{}% 8

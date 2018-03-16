@@ -149,9 +149,55 @@ where $\bm{A}$ is an $N\times K$ matrix containing the feature vectors at each d
 
 We model $Q_{\bm{w}}(s,a)$ as a neural network with parameters $\bm{w}$. Then, the gradient of the objective function of Eq. \eqref{eq:optim} can be easily computed by standard backpropagation. The resulting algorithm is a regularized version of NFQI.
 
-\subsection{Variational Inference for Gaussian Distributions}
+\subsection{Variational Inference for Efficient Exploration}
 
-TODO
+A major drawback of the maximum-a-posteriori (MAP) approach is that it does not explicitly estimate the posterior distribution $P(Q \mid D)$. Thus, given a dataset $D$, the algorithm consistently chooses the same MAP $Q$-function, and the only way to allow learning is to introduce a simple form of exploration (e.g., $\epsilon$-greedy or softmax), whose drawbacks are well-known. The advantages of a more time-coherent exploration strategy such as posterior sampling (or Thompson sampling) have already been proved by many existing works (CITE). In particular, direct posterior sampling of $Q$-functions (also known as value function randomization), when a distribution is available, have been proven to be very effective and scalable. Thus, we known extend our previous approach to explicitly estimate $P(Q \mid D)$, so as to allow efficient exploration of the target task. The main complication is that, as mentioned earlier, we cannot compute the likelihood $P(D \mid Q)$ explicitly, but we only have access to a model that is proportional to it. Then, estimating the posterior distribution is clearly intractable since it requires computing the marginal likelihood $P(D) = \int P(D \mid Q) dQ$. Thus, we resort variational inference (CITE) to approximate the intractable posterior with a simpler distribution from which we are able to sample.
+
+The main idea behind variational inference is to approximate the posterior $P(Q | D)$ with a simpler distribution $q_{\bm{\phi}}(Q)$, parameterized by the vector $\bm{\phi}$, from which we can easily get samples. The best approximation is chosen in terms of the Kullback-Leibler (KL) divergence between the two distributions, that is:
+\begin{equation}
+\min_{\bm{\phi}} KL\left(q_{\bm{\phi}}(Q)\ ||\ P(Q \mid D)\right)
+\end{equation}
+It is well-known that minimizing the KL divergence is equivalent to maximizing the so-called \textit{evidence lower bound} (ELBO), which is defined as:
+\begin{equation}
+\text{ELBO}(\bm{\phi}) = \mathbb{E}_{Q \sim q_{\bm{\phi}}}\left[ \log P(D | Q) \right] - KL\left(q_{\bm{\phi}}(Q)\ ||\ P(Q)\right)
+\end{equation}
+As before, we assume a parametric form $Q_{\bm{w}}$ for representing $Q$-functions. Thus, we reduce distributions over functions to distributions over vectors $\bm{w} \in \mathbb{R}^K$. Given a specific form for the approximate posterior $q_{\bm{\phi}(\bm{w})}$ and the prior $P(\bm{w})$, our inference problem reduces to:
+\begin{equation} \label{eq:vi}
+\min_{\bm{\phi}} \mathbb{E}_{\bm{w} \sim q_{\bm{\phi}}}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] + KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right)
+\end{equation}
+Intuitively, the approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low empirical Bellman error (first term), and staying close to the prior distribution that is learned from the set of source tasks (second term). The factor $N$ multiplying $||B(\bm{w})||_{D}^2$ makes sure that, as the number of samples goes to infinity, only the first term is considered in the optimization. In such case, all probability mass go over the (approximate) fixed-point of the optimal Bellman operator. On the other hand, for small values of $N$, there is less evidence that the empirical Bellman error closely estimate the true one, thus giving more importance to staying close to the prior.
+
+Depending on the choice of the prior and approximate posterior distributions, the optimization problem of Eq. \eqref{eq:vi} might still be very hard to solve. We now propose some suitable choices that make the problem efficiently solvable.
+
+\paragraph*{Gaussian distributions}
+
+We model both the prior and the approximate posterior as Gaussian distributions: $P(\bm{w}) = \mathcal{N}(\bar{\bm{\mu}},\bar{\bm{\Sigma}})$ and $q_{\bm{\phi}}(\bm{w}) = \mathcal{N}(\bm{\mu},\bm{\Sigma})$, respectively. For the sake of simplicity, we assume $\bm{\Sigma} = \text{diag}(\sigma_1^2,\dots,\sigma_K^2)$ and $\bar{\bm{\Sigma}} = \text{diag}(\bar{\sigma}_1^2,\dots,\bar{\sigma}_K^2)$. Notice, in this case, that the parameter vector $\bm{\phi}$ is $[\mu_1,\dots,\mu_K,\sigma_1^2,\dots,\sigma_K^2]$. The KL divergence between the two distributions can be computed in closed form as:
+\begin{equation}
+KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bar{\bm{\Sigma}} \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bar{\bm{\Sigma}}^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bar{\bm{\mu}})^T \bar{\bm{\Sigma}}^{-1} (\bm{\mu} - \bar{\bm{\mu}}) -K \right)
+\end{equation}
+To solve the optimization problem of Eq. \eqref{eq:vi} we adopt stochastic backpropagation (CITE). Thus, we need to compute the gradient of the objective function $\mathcal{L}(\bm{\phi})$ of Eq. \eqref{eq:vi} with respect to each component of $\bm{\phi}$. This can be easily done for the second term:
+\begin{equation}
+\nabla_{\bm{\mu}} KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \bar{\bm{\Sigma}}^{-1} (\bm{\mu} - \bar{\bm{\mu}})
+\end{equation}
+\begin{equation}
+\nabla_{\sigma_k^2} KL\left(q_{\bm{\phi}}(\bm{w})\ ||\ P(\bm{w})\right) = \frac{1}{2}\left( \frac{1}{\bar{\sigma}_k^2} - \frac{1}{\sigma_k^2} \right)
+\end{equation}
+For the first term, we have to compute the gradient of an expectation with respect to the parameters of the Gaussian distribution under which the expectation is taken. For the mean, we can resort to Thm. X of (CITE Bonnet 1964):
+\begin{equation}
+\nabla_{\mu_k} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N \nabla_{w_k} ||B(\bm{w})||_{D}^2 \right]
+\end{equation}
+For the covariance, we can resort to Thm. Y of (CITE Price 1958):
+\begin{equation}
+\nabla_{\sigma_k^2} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N ||B(\bm{w})||_{D}^2 \right] = \frac{1}{2}\mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{\Sigma})}\left[ \lambda N \nabla_{w_k,w_k}^2 ||B(\bm{w})||_{D}^2 \right]
+\end{equation}
+We refer the reader to (CITE Deepmind) for a simple proofs of these two theorems.
+
+It only remains to compute the gradient and Hessian of the empirical Bellman error $||B(\bm{w})||_{D}^2$ with respect to $\bm{w}$. Recall that:
+\begin{equation}
+||B(\bm{w})||_{D}^2 = \frac{1}{N}\sum_{i=1}^N \left( r_i + \gamma\max_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i) \right)^2
+\end{equation}
+
+
 
 \section{Related Works}
 
