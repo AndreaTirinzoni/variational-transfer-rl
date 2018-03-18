@@ -4,7 +4,6 @@ import numpy as np
 Linear Regressor for Q function
 """
 
-
 class LinearQRegressor:
 
     def __init__(self, features, actions, state_dim=1, action_dim=1, initial_params=None):
@@ -32,7 +31,11 @@ class LinearQRegressor:
 
     def compute_gradient_all_actions(self, state):
         t = np.hstack((np.tile(state, (self._actions.size, 1)), self._actions))
-        return self._features(t)
+        f = self._features(t)
+        return f.reshape(state.shape[0], self._actions.size, f.shape[1])
+
+    def compute_diag_hessian_all_actions(self, state):
+        return np.zeros((state.shape[0], self._actions.size, self._features.number_of_features()))
 
     def __call__(self, state_action):
         return np.dot(self._features(state_action), self._w)
