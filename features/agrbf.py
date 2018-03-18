@@ -1,6 +1,6 @@
 import numpy as np
 """
-Isotropic Gaussian RBF Features
+Anisotropic Gaussian RBF Features
 """
 class AGaussianRBF:
 
@@ -14,14 +14,12 @@ class AGaussianRBF:
         """
         assert mean.shape == (K, dims)
         assert covar.shape == (K * dims, K)
-
-        self._K = K
         self._mean = mean
+        self._K = K
         self._dims = dims
-        self._precision = np.zeros(covar.shape)
+        self._precision = np.zeros(covar.shape).reshape(dims, dims, K)
         for k in range(self._K):
-            self._precision[k*dims:(k+1)*dims, :] = np.linalg.inv(covar[k*dims:(k+1)*dims, :])
-
+            self._precision[:, :, k] = np.linalg.inv(covar[k*dims:(k+1)*dims, :])
 
 
     def _compute(self, point):
@@ -31,11 +29,10 @@ class AGaussianRBF:
         :param point: np.ndarray (dim)
         :return: feature vector: np.ndarray
         """
-        val = []
 
         for k in range(self._K):
             dif = self._mean[k, :] - point
-            val.append(np.exp(1/2*(dif @ self._precision[k*self._dims:(k+1)*self._dims, :] @ dif)))
+            val = np.exp(1/2*(dif @ self._precision[:, :] @ dif))
         f = np.asarray(val, order='F')
         f = f/np.sum(f)
         return f
@@ -66,6 +63,7 @@ class AGaussianRBF:
 
 if __name__ == '__main__':
     mean = np.array([[1, 2], [3, 4]])
+    print(mean)
     covar = np.vstack((np.eye(2), np.eye(2)))
 
     rbf = AGaussianRBF(mean, covar)

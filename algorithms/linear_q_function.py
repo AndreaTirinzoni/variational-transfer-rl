@@ -5,7 +5,7 @@ import utils
 
 class LinearQFunction:
 
-    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99, regressor_per_action=True):
+    def __init__(self, actions, features, params=None, state_dim=1, action_dim=1, gamma=0.99):
 
         """
         :param actions: tuple with the possible actions available
@@ -13,34 +13,25 @@ class LinearQFunction:
         :param gamma: discount factor
         :param params: initial parameters (np.ndarray n_features x n_actions or n_features x 1)
         :param state_dim: dimension of the state vector
-        :param action_dim: dimension of the action vector
         :param regressor_per_action: boolean flag to have or not a regressor per action available
 
         """
         if params is not None:
-            if regressor_per_action:
-                assert params.shape == (features.number_of_features(), len(actions))
-            else:
-                assert params.shape == (features.number_of_features(),)
-
+            assert params.shape == (features.number_of_features(), len(actions))
+            self._w = params
         else:
-            if regressor_per_action:
-                self._w = np.zeros((features.number_of_features(), len(actions)))
-            else:
-                self._w = np.zeros((features.number_of_features(),))
+            self._w = np.zeros((features.number_of_features(), len(actions)))
 
         self.actions = actions
         self._features = features
         self._gamma = gamma
         self._state_dim = state_dim
         self._action_dim = action_dim
-        self._isRxA = regressor_per_action
 
 
     def compute_bellman_target(self, samples):
         """
         Computes target as a sampled application of the Bellman optimal operator
-
         :param samples: samples of the form (s,a,r,s',terminating), one per row (Nx5)
         :return:
         """
@@ -68,16 +59,14 @@ class LinearQFunction:
             self._w[:, action] = w
 
     def compute_all_actions(self, state):
-        q = list()
-        for a in self.actions:
-            q.append(self.__call__(state, a))
-        return np.array(q)
+         return np.dot(self._features(state), self._w.T)
+
 
     def compute_features(self, samples):
         return self._features(samples[:, 0: self._state_dim])
 
     def __call__(self, state, action):
-        return np.dot(self._w[action], self._features(state))
+        return np.dot(self._w[:, action], self._features(state))
 
 
 if __name__ == '__main__':
@@ -97,7 +86,6 @@ if __name__ == '__main__':
 
     samples = np.hstack((samples, term))
     samples[:, 2] = np.random.randint(0, 5, (samples.shape[0]))
-
 
     targets = q.compute_bellman_target(samples)
 
