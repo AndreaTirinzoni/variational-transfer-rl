@@ -1,7 +1,7 @@
 import numpy as np
 import utils
 import algorithms.e_greedy_policy as egreedy
-import algorithms.Distributions as dist
+import VariationalTransfer.Distributions as dist
 
 
 """
