@@ -35,7 +35,6 @@ class LinearQFunction:
         :param samples: samples of the form (s,a,r,s',terminating), one per row (Nx5)
         :return:
         """
-
         s_prime = self._state_dim + self._action_dim + 1
         r = self._state_dim + self._action_dim
         a = self._state_dim
@@ -60,7 +59,6 @@ class LinearQFunction:
 
     def compute_all_actions(self, state):
          return np.dot(self._features(state), self._w.T)
-
 
     def compute_features(self, samples):
         return self._features(samples[:, 0: self._state_dim])
