@@ -122,3 +122,10 @@ class LinearQMellowBellman(MellowBellmanOperator):
             qs = q_values.reshape(q_values.shape[0] * q_values.shape[1], q_values.shape[2])
             qs = np.exp(self._kappa * np.dot(qs, weights.T)) # TODO: Add normalization to avoid overflow
             return qs.reshape(q_values.shape[0], q_values.shape[1], weights.shape[0])
+
+
+if __name__ == '__main__':
+    import VariationalTransfer.LinearQRegressor as linQ
+    import features.agrbf as rbf
+
+    q = linQ.LinearQRegressor()

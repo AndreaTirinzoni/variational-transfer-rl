@@ -13,7 +13,7 @@ class AGaussianRBF:
 
         """
         assert mean.shape == (K, dims)
-        assert covar.shape == (K * dims, K)
+        assert covar.shape == (K * dims, dims)
         self._mean = mean
         self._K = K
         self._dims = dims
