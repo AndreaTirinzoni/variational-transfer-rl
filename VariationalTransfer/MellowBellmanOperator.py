@@ -1,6 +1,9 @@
 import numpy as np
 import algorithms
 
+"""
+Optimal Bellman Operator with Mellowmax
+"""
 class MellowBellmanOperator(algorithms.BellmanOperator):
     def __init__(self, Q, gamma=0.99, kappa=1e6):
         super(MellowBellmanOperator, self).__init__(Q, gamma)
@@ -58,6 +61,10 @@ class MellowBellmanOperator(algorithms.BellmanOperator):
     def get_Q(self):
         return self._Q
 
+
+"""
+Mellow Bellman Operator optimized for Linear Q regressor
+"""
 class LinearQMellowBellman(MellowBellmanOperator):
     
     def compute_gradient_diag_hessian(self, mdp_samples, weights=None):
@@ -102,7 +109,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
             q_gradient = q_gradient[:,:,:,np.newaxis]
             qs = qs.reshape(qs.shape[0], qs.shape[1], 1, qs.shape[2])
             diag_hess = self._kappa * (np.sum(qs * q_gradient**2, axis=1)/qs_sum \
-                                       - (np.sum(qs * q_gradient, axis=1)/qs_sum)**2)       #TODO fix
+                                       - (np.sum(qs * q_gradient, axis=1)/qs_sum)**2)
             grad = np.sum(qs * q_gradient, axis=1)/qs_sum
             return grad, diag_hess
 
