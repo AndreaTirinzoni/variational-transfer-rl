@@ -56,8 +56,8 @@ class VarTransferGaussian:
     def _compute_evidence_gradient(self, data, nsamples=1):
         samples = self._posterior.sample(nsamples)
         grad, diag_hessian = self._bellman.compute_gradient_diag_hessian(data, samples)
-        grad = np.average(grad, axis=1)
-        diag_hessian = np.average(diag_hessian, axis=1)
+        grad = self._likelihood * data.shape[0] * np.average(grad, axis=1)
+        diag_hessian = 0.5 * self._likelihood * data.shape[0] * np.average(diag_hessian, axis=1)
         return np.hstack((grad, diag_hessian))
 
     def _learning_rate(self):
