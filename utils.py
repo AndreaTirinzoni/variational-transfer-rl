@@ -47,7 +47,7 @@ def _single_eval(mdp, policy, criterion, initial_state, render):
         a = policy.sample_action(s)
         if render:
             mdp._render(a=a)
-            sleep(0.05)
+            sleep(0.01)
         s, r, done, _ = mdp.step(a)
         score += r * gamma ** t
         t += 1

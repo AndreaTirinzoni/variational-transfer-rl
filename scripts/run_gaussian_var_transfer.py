@@ -1,14 +1,66 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import envs.walled_gridworld as wgw
-import VariationalTransfer as vt
+import VariationalTransfer.LinearQRegressor as linq
+import VariationalTransfer.BellmanOperator as bellmanop
 import features.agrbf as rbf
 import utils
+import algorithms.e_greedy_policy as policy
+import algorithms.regularized_lsvi as lsvi
+from scripts.run_nfqi import plot_Q
+
+
+"""
+    FQI with linear regressor for Q(s,a) 
+"""
+def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=False, n_fit=20, bellman_operator=None):
+    pol = policy.eGreedyPolicy(Q, Q.actions, epsilon)
+    pol_g = policy.eGreedyPolicy(Q, Q.actions, 0)
+    r = list()
+    n_act = len(Q.actions)
+
+    rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
+    r.append(rew)
+    plot_Q(Q, size=tuple(mdp.size))
+
+    samples = utils.generate_episodes(mdp, pol, batch_size, render=False)
+    feat = Q.compute_features(samples[:, 1:])
+
+    if bellman_operator is None:
+        bellman = bellmanop.BellmanOperator(Q)
+    else:
+        bellman_operator.set_Q(Q)
+        bellman = bellman_operator
+
+    for i in range(n_iter):
+        new_samples = utils.generate_episodes(mdp, pol, batch_size, render=False)
+        samples = np.vstack((samples, new_samples))
+        feat = np.vstack((feat, Q.compute_features(new_samples[:, 1:])))
+
+        for k in range(n_fit):
+            targets = bellman(samples[:, 1:])
+            w = lsvi.RegularizedLSVI.solve(feat, targets, prior=False)
+            Q.update_weights(w)
+
+        if render:
+            mdp._render(close=True)
+
+        plot_Q(Q, size=tuple(mdp.size))
+        rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
+        r.append(rew)
+        if verbose:
+            print("===============================================")
+            print("Iteration " + str(i))
+            print("Reward: " + str(rew))
+            print("===============================================")
+
+    return r
+
+
 
 if __name__ == "__main__":
 
     n = 5
-    N = 36
+    N = 25
     acts = 4
     state_dim = 2
     action_dim = 1
@@ -30,10 +82,15 @@ if __name__ == "__main__":
     # features
     features = rbf.AGaussianRBF(mean, covar, K=k, dims=state_dim+action_dim)
     sources = list()
+    q_functions = list()
 
     # Source tasks
     for i in range(n+1):
-        sources.append(wgw.WalledGridworld(np.array((n, n)), door_x=i-0.5))
+        sources.append(wgw.WalledGridworld(np.array((n, n)), door_x=i+.5))
+        q_functions.append(linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim))
+        linearFQI(sources[i], q_functions[i], epsilon=0.2, n_iter=20, render=False, verbose=True)
+
+
 
     # Create Target task
     world = wgw.WalledGridworld(np.array([n, n]), door_x=np.random.ranf(1)[0]*(n-0.5) + 0.5)

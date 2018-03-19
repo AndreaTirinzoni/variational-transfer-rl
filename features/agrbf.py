@@ -29,13 +29,12 @@ class AGaussianRBF:
         :param point: np.ndarray (dim)
         :return: feature vector: np.ndarray
         """
-
+        features = list()
         for k in range(self._K):
             dif = self._mean[k, :] - point
-            val = np.exp(1/2*(dif @ self._precision[:, :] @ dif))
-        f = np.asarray(val, order='F')
-        f = f/np.sum(f)
-        return f
+            val = np.exp(-1/2 * (dif @ self._precision[:, :, k] @ dif))
+            features.append(val)
+        return np.array(features)
 
     def __call__(self, x):
         if x.ndim == 2:

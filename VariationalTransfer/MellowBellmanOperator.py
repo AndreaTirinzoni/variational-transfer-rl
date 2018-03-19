@@ -5,7 +5,7 @@ import algorithms
 Optimal Bellman Operator with Mellowmax
 """
 class MellowBellmanOperator(algorithms.BellmanOperator):
-    def __init__(self, Q, gamma=0.99, kappa=1e6):
+    def __init__(self, Q=None, gamma=0.99, kappa=1e6):
         super(MellowBellmanOperator, self).__init__(Q, gamma)
         self._kappa = kappa
 
@@ -27,7 +27,7 @@ class MellowBellmanOperator(algorithms.BellmanOperator):
         return bellman_grad, bellman_hess
 
     def _mellow_max(self, q_values):
-        qs = self._normalized_mm_exp(q_values)
+        qs = np.sum(self._normalized_mm_exp(q_values), axis=1)
         return np.log(qs/q_values.shape[1])/self._kappa
 
     def _normalized_mm_exp(self, q_values, c=0):
@@ -57,9 +57,6 @@ class MellowBellmanOperator(algorithms.BellmanOperator):
              - self._kappa * (np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1)/qs_sum)**2
         grad = np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1)/qs_sum
         return grad, diag_hess
-
-    def get_Q(self):
-        return self._Q
 
 
 """
