@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 from time import sleep
+import matplotlib.pyplot as plt
 
 
 def evaluate_policy(mdp, policy, criterion='discounted', n_episodes=1, initial_states=None, render=False):
@@ -156,3 +157,62 @@ def load_object(file_name):
 
     with open(file_name + ".pkl", 'rb') as file:
         return pickle.load(file)
+
+
+def plot_Q(Q, size=(5,5)):
+
+    V = [[], [], [], []]
+    Vmax = []
+    pi = []
+    X = np.arange(0.0, size[0]+.1, 0.1)
+    Y = np.arange(0.0, size[1]+.1, 0.1)
+
+    for x in X:
+        for y in Y:
+            vals = Q.compute_all_actions(np.array([y, x]))
+            Vmax.append(np.max(vals))
+            pi.append(np.argmax(vals))
+            vals = vals.reshape(4,1)
+            V[0].append(vals[0])
+            V[1].append(vals[1])
+            V[2].append(vals[2])
+            V[3].append(vals[3])
+
+    for v in V:
+        v[-1][0] = 0.0
+    Vmax[-1] = 0.0
+    V = [np.flip(np.array(v).reshape(X.size, X.size), axis=0) for v in V]
+
+    fig, ax = plt.subplots(3, 2)
+    f00 = ax[0, 0].imshow(V[0], cmap="hot", interpolation="gaussian")
+    ax[0, 0].set_title("UP (black)")
+    ax[0, 0].axes.get_yaxis().set_visible(False)
+    ax[0, 0].axes.get_xaxis().set_visible(False)
+    f01 = ax[0, 1].imshow(V[1], cmap="hot", interpolation="gaussian")
+    ax[0, 1].set_title("RIGHT (red)")
+    ax[0, 1].axes.get_yaxis().set_visible(False)
+    ax[0, 1].axes.get_xaxis().set_visible(False)
+    f10 = ax[1, 0].imshow(V[2], cmap="hot", interpolation="gaussian")
+    ax[1, 0].set_title("DOWN (orange)")
+    ax[1, 0].axes.get_yaxis().set_visible(False)
+    ax[1, 0].axes.get_xaxis().set_visible(False)
+    f11 = ax[1, 1].imshow(V[3], cmap="hot", interpolation="gaussian")
+    ax[1, 1].set_title("LEFT (white)")
+    ax[1, 1].axes.get_yaxis().set_visible(False)
+    ax[1, 1].axes.get_xaxis().set_visible(False)
+    f20 = ax[2, 0].imshow(np.flip(np.array(Vmax).reshape(X.size, Y.size), axis=0), cmap="hot", interpolation="gaussian")
+    ax[2, 0].set_title("Value Function")
+    ax[2, 0].axes.get_yaxis().set_visible(False)
+    ax[2, 0].axes.get_xaxis().set_visible(False)
+    f21 = ax[2, 1].imshow(np.flip(np.array(pi).reshape(X.size, Y.size), axis=0), cmap="hot", interpolation="nearest")
+    ax[2, 1].set_title("Policy")
+    ax[2, 1].axes.get_yaxis().set_visible(False)
+    ax[2, 1].axes.get_xaxis().set_visible(False)
+
+    fig.colorbar(f00, ax=ax[0, 0])
+    fig.colorbar(f01, ax=ax[0, 1])
+    fig.colorbar(f10, ax=ax[1, 0])
+    fig.colorbar(f11, ax=ax[1, 1])
+    fig.colorbar(f20, ax=ax[2, 0])
+    fig.colorbar(f21, ax=ax[2, 1])
+    plt.show()
