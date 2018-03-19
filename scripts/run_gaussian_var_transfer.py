@@ -93,11 +93,14 @@ if __name__ == "__main__":
         q_functions.append(linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim))
         linearFQI(sources[i], q_functions[i], epsilon=0.2, n_iter=20, render=False, verbose=True)
 
+    weights = np.array([q._w for q in q_functions])
+    prior_mean = np.average(weights, axis=0)
+    prior_variance = np.average((weights-prior_mean) * (weights-prior_mean), axis=0)
 
-    # # Create Target task
-    # world = wgw.WalledGridworld(np.array([n, n]), door_x=np.random.ranf(1)[0]*(n-0.5) + 0.5)
-    # q = linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim)
-    # prior = dist.AnisotropicNormalPosterior(np.zeros(k), np.ones(k))
-    # bellman = mmbellman.LinearQMellowBellman(q, gamma=world.gamma)
-    # var = vartrans.VarTransferGaussian(world, bellman, prior, 1e-3, 1e-3)
-    # var.solve_task(verbose=True)
+    # Create Target task
+    world = wgw.WalledGridworld(np.array([n, n]), door_x=np.random.ranf(1)[0]*(n-0.5) + 0.5)
+    q = linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim)
+    prior = dist.AnisotropicNormalPosterior(prior_mean, prior_variance)
+    bellman = mmbellman.LinearQMellowBellman(q, gamma=world.gamma)
+    var = vartrans.VarTransferGaussian(world, bellman, prior, 1e-3, 1e-3)
+    var.solve_task(verbose=True, render=True)
