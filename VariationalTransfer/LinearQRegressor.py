@@ -36,7 +36,9 @@ class LinearQRegressor:
         return self._features(state_action)
 
     def compute_gradient_all_actions(self, state):
-        t = np.hstack((np.tile(state, (self.actions.size, 1)), self.actions))
+        s = state[:, np.newaxis].T if state.ndim == 1 else state
+        nstate = s.shape[0]
+        t = np.hstack((np.repeat(s, self.actions.size, axis=0), np.tile(self.actions, (nstate, 1))))
         f = self._features(t)
         return f.reshape(state.shape[0], self.actions.size, f.shape[1])
 

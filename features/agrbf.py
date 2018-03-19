@@ -26,15 +26,19 @@ class AGaussianRBF:
 
         """
         Computes a feature vector for the point given
-        :param point: np.ndarray (dim)
+        :param point: np.ndarray (n x dim)
         :return: feature vector: np.ndarray
         """
-        features = list()
-        for k in range(self._K):
-            dif = self._mean[k, :] - point
-            val = np.exp(-1/2 * (dif @ self._precision[:, :, k] @ dif))
-            features.append(val)
-        return np.array(features)
+        shape_mean = (int(point.size/self._dims), 1)
+        shape_prec = (1,1, shape_mean[0])
+        dif = np.tile(self._mean, shape_mean) - np.repeat(point, int(self._K), axis=0)
+        dif2 = dif.T[:, np.newaxis, :]
+        prec = np.tile(self._precision, shape_prec)
+        temp = np.sum(dif2 * prec, axis=0).T
+        temp = np.exp(-0.5 * np.sum(temp * dif, axis=1).reshape(shape_mean[0], self._K))
+        res = temp/np.sum(temp, axis=1)[:, np.newaxis]
+
+        return res
 
     def __call__(self, x):
         if x.ndim == 2:
@@ -50,12 +54,7 @@ class AGaussianRBF:
         :return: feature matrix (np.ndarray) with feature vector for each row.
         """
         assert data.shape[1] == self._dims
-        features = []
-        for x in range(data.shape[0]):
-            features.append(self._compute(data[x, :]))
-
-        return np.asarray(features)
-
+        return self._compute(data)
 
     def number_of_features(self):
         return self._K

@@ -20,8 +20,11 @@ class ParametricDistribution:
 
 class AnisotropicNormalPosterior(ParametricDistribution):
     def __init__(self, mean=np.array([0]), covariance_diagonal=np.array([1])):
-        super(AnisotropicNormalPosterior, self).__init__(np.vstack((mean, covariance_diagonal)))
+        super(AnisotropicNormalPosterior, self).__init__(np.hstack((mean, covariance_diagonal)))
         self._dim = mean.size
 
     def sample(self, nsamples=1):
-        return np.random.multivariate_normal(self._params[0:self._dim], np.diag(self._params[self._dim:-1]), nsamples)
+        midpoint = int(self._params.size/2)
+        covar = np.diag(self._params[midpoint: ])
+        mean = self._params[0:midpoint]
+        return np.random.multivariate_normal(mean, covar, nsamples)

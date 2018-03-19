@@ -2,6 +2,9 @@ import numpy as np
 import envs.walled_gridworld as wgw
 import VariationalTransfer.LinearQRegressor as linq
 import VariationalTransfer.BellmanOperator as bellmanop
+import VariationalTransfer.MellowBellmanOperator as mmbellman
+import VariationalTransfer.VarTransfer as vartrans
+import VariationalTransfer.Distributions as dist
 import features.agrbf as rbf
 import utils
 import algorithms.e_greedy_policy as policy
@@ -20,7 +23,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
 
     rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
     r.append(rew)
-    plot_Q(Q, size=tuple(mdp.size))
+    utils.plot_Q(Q, size=tuple(mdp.size))
 
     samples = utils.generate_episodes(mdp, pol, batch_size, render=False)
     feat = Q.compute_features(samples[:, 1:])
@@ -44,7 +47,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
         if render:
             mdp._render(close=True)
 
-        plot_Q(Q, size=tuple(mdp.size))
+        utils.plot_Q(Q, size=tuple(mdp.size))
         rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
         r.append(rew)
         if verbose:
@@ -60,7 +63,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
 if __name__ == "__main__":
 
     n = 5
-    N = 25
+    N = 36
     acts = 4
     state_dim = 2
     action_dim = 1
@@ -68,11 +71,11 @@ if __name__ == "__main__":
 
     x = np.linspace(0, n, np.sqrt(N))
     y = np.linspace(0, n, np.sqrt(N))
-    a = np.linspace(0, acts, acts)
+    a = np.linspace(0, acts-1, acts)
     mean_x, mean_y, mean_a = np.meshgrid(x,y,a)
     mean = np.hstack((mean_x.reshape(k,1), mean_y.reshape(k,1), mean_a.reshape(k,1)))
 
-    state_var = (n/(x.shape[0]*3))**2
+    state_var = (n/((x.shape[0]-1)*3))**2
     action_var = 0.1**2
     covar = np.eye(state_dim + action_dim)
     covar[0:state_dim, 0:state_dim] *= state_var
@@ -91,6 +94,10 @@ if __name__ == "__main__":
         linearFQI(sources[i], q_functions[i], epsilon=0.2, n_iter=20, render=False, verbose=True)
 
 
-
-    # Create Target task
-    world = wgw.WalledGridworld(np.array([n, n]), door_x=np.random.ranf(1)[0]*(n-0.5) + 0.5)
+    # # Create Target task
+    # world = wgw.WalledGridworld(np.array([n, n]), door_x=np.random.ranf(1)[0]*(n-0.5) + 0.5)
+    # q = linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim)
+    # prior = dist.AnisotropicNormalPosterior(np.zeros(k), np.ones(k))
+    # bellman = mmbellman.LinearQMellowBellman(q, gamma=world.gamma)
+    # var = vartrans.VarTransferGaussian(world, bellman, prior, 1e-3, 1e-3)
+    # var.solve_task(verbose=True)
