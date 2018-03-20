@@ -47,7 +47,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
         if render:
             mdp._render(close=True)
 
-        utils.plot_Q(Q, size=tuple(mdp.size))
+        # utils.plot_Q(Q, size=tuple(mdp.size))
         rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
         r.append(rew)
         if verbose:
@@ -88,10 +88,10 @@ if __name__ == "__main__":
     q_functions = list()
 
     # Source tasks
-    for i in range(n+1):
+    for i in range(n):
         sources.append(wgw.WalledGridworld(np.array((n, n)), door_x=i+.5))
         q_functions.append(linq.LinearQRegressor(features, np.arange(acts), state_dim, action_dim))
-        linearFQI(sources[i], q_functions[i], epsilon=0.2, n_iter=20, render=False, verbose=True)
+        linearFQI(sources[i], q_functions[i], epsilon=0.2, n_iter=25, render=False, verbose=True)
 
     weights = np.array([q._w for q in q_functions])
     prior_mean = np.average(weights, axis=0)
@@ -103,4 +103,4 @@ if __name__ == "__main__":
     prior = dist.AnisotropicNormalPosterior(prior_mean, prior_variance)
     bellman = mmbellman.LinearQMellowBellman(q, gamma=world.gamma)
     var = vartrans.VarTransferGaussian(world, bellman, prior, 1e-3, 1e-3)
-    var.solve_task(verbose=True, render=True)
+    var.solve_task(verbose=True, render=False)

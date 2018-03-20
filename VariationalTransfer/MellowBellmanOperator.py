@@ -5,7 +5,7 @@ import VariationalTransfer.BellmanOperator as bo
 Optimal Bellman Operator with Mellowmax
 """
 class MellowBellmanOperator(bo.BellmanOperator):
-    def __init__(self, Q=None, gamma=0.99, kappa=1e1):
+    def __init__(self, Q=None, gamma=0.99, kappa=5):
         super(MellowBellmanOperator, self).__init__(Q, gamma)
         self._kappa = kappa
 
@@ -32,7 +32,6 @@ class MellowBellmanOperator(bo.BellmanOperator):
         return np.log(qs/q_values.shape[1])/self._kappa + np.max(q_values)
 
     def _normalized_mm_exp(self, q_values, c=0):
-        # TODO: add normalization to avoid overflow
         return np.exp(self._kappa * (q_values-c))
 
     def _gradient_mellow_max(self, q_values, q_gradient):
@@ -90,9 +89,13 @@ class LinearQMellowBellman(MellowBellmanOperator):
             feats = self._Q.compute_gradient(mdp_samples[:, 0: self._Q.get_statedim() + self._Q.get_actiondim()])
             Q = feats @ weights.T
             nacts = self._Q.actions.size
-            c = np.max(feats_sprime, axis=1)
+
+            # Compute normalization constants
+            q = np.dot(feats_sprime.reshape(feats_sprime.shape[0] * feats_sprime.shape[1], feats_sprime.shape[2]), \
+                                            weights.T)
+            c = np.max(q.reshape(feats_sprime.shape[0], feats_sprime.shape[1], weights.shape[0]), axis=1)
             mmQ = self._normalized_mm_exp(feats_sprime, c, weights=weights)
-            c = np.dot(c, weights.T)
+            # c = np.dot(c, weights.T)
             mmQ = np.log(np.sum(mmQ, axis=1)/nacts)/self._kappa + c
             mmQ = mmQ.reshape(Q.shape)
 
@@ -103,7 +106,12 @@ class LinearQMellowBellman(MellowBellmanOperator):
             return super._gradient_and_diag_hess_mellow_max(states)
         else:
             q_gradient = self._Q.compute_gradient_all_actions(states) # features
-            c = np.max(q_gradient, axis=1)
+
+            # Compute normalization constants
+            q = np.dot(q_gradient.reshape(q_gradient.shape[0] * q_gradient.shape[1], q_gradient.shape[2]), \
+                       weights.T)
+            c = np.max(q.reshape(q_gradient.shape[0], q_gradient.shape[1], weights.shape[0]), axis=1)
+
             qs = self._normalized_mm_exp(q_gradient, c=c, weights=weights)
             qs_sum = np.sum(qs, axis=1)
             qs_sum = qs_sum.reshape(qs_sum.shape[0], 1, qs_sum.shape[1])
@@ -120,15 +128,9 @@ class LinearQMellowBellman(MellowBellmanOperator):
         else:
             # q_values are only features
             nacts = self._Q.actions.size
-            t = q_values - c[:, np.newaxis]
-            qs = t.reshape(q_values.shape[0] * q_values.shape[1], q_values.shape[2])
+            # t = q_values - c[:, np.newaxis]
+            qs = q_values.reshape(q_values.shape[0] * q_values.shape[1], q_values.shape[2])
             q = np.dot(qs, weights.T)
-            qs = np.exp(self._kappa * q)
+            qs = np.exp(self._kappa * (q - np.repeat(c, q_values.shape[1], axis=0)))
             return qs.reshape(q_values.shape[0], q_values.shape[1], weights.shape[0])
 
-
-if __name__ == '__main__':
-    import VariationalTransfer.LinearQRegressor as linQ
-    import features.agrbf as rbf
-
-    q = linQ.LinearQRegressor()
