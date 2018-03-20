@@ -15,6 +15,15 @@ class MellowBellmanOperator(bo.BellmanOperator):
         qs = self._mellow_max(mdp_samples[:, s_prime: s_prime + self._state_dim])
         return mdp_samples[:, r] + self._gamma * qs * (1 - mdp_samples[:, -1])
 
+    def bellman_residual(self, mdp_samples):
+        s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
+        r = self._Q.get_statedim() + self._Q.get_actiondim()
+        q_values = self._Q.compute_all_actions(mdp_samples[:, s_prime:s_prime+self._Q.get_statedim()])
+        c = np.max(q_values, axis=1)
+        mmQ = self._mellow_max(q_values, c)
+        return mdp_samples[:, r] + mmQ - self._Q(mdp_samples[:, 0:r])
+
+
     def compute_gradient_diag_hessian(self, mdp_samples):
         r = self._Q.get_statedim() + self._Q.get_actiondim()
         s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
@@ -81,7 +90,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
 
     def bellman_residual(self, mdp_samples, weights=None):
         if weights is None:
-            return super.bellman_residuals(mdp_samples)
+            return super(LinearQMellowBellman, self).bellman_residuals(mdp_samples)
         else:
             s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
             r = self._Q.get_statedim() + self._Q.get_actiondim()

@@ -33,7 +33,7 @@ class VarTransferGaussian:
                 elbo.append(self._compute_ELBO())
                 grad = self._compute_evidence_gradient(samples[:, 1:], nsamples_for_estimation) + self._compute_KL_gradient(samples[:, 1:])
                 self._posterior.grad_step(self._learning_rate() * grad)
-            rew = utils.evaluate_policy(self._mdp, pol_g, render=render)
+            rew = utils.evaluate_policy(self._mdp, pol_g, render=render, initial_states=np.array([0, 0])) #TODO add parameter.
             performance.append(rew)
 
             if verbose:

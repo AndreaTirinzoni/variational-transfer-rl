@@ -47,7 +47,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
         if render:
             mdp._render(close=True)
 
-        # utils.plot_Q(Q, size=tuple(mdp.size))
+        utils.plot_Q(Q, size=tuple(mdp.size))
         rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
         r.append(rew)
         if verbose:
