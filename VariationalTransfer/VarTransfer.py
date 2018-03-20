@@ -30,10 +30,10 @@ class VarTransferGaussian:
             new_samples = utils.generate_episodes(self._mdp, pol_g, n_episodes=batch_size, render=False)
             samples = np.vstack((samples, new_samples))
             for _ in range(n_fit):
-                elbo.append(self._compute_ELBO())
+                elbo.append(self._compute_ELBO(samples, nsamples_for_estimation))
                 grad = self._compute_evidence_gradient(samples[:, 1:], nsamples_for_estimation) + self._compute_KL_gradient(samples[:, 1:])
                 self._posterior.grad_step(self._learning_rate() * grad)
-            rew = utils.evaluate_policy(self._mdp, pol_g, render=render, initial_states=np.array([0, 0])) #TODO add parameter.
+            rew = utils.evaluate_policy(self._mdp, pol_g, render=render, initial_states=np.array([0., 0.])) #TODO add parameter.
             performance.append(rew)
 
             if verbose:
@@ -60,8 +60,25 @@ class VarTransferGaussian:
         return np.hstack((grad_mean, grad_covar))
 
 
-    def _compute_ELBO(self):
-        return 0    # TODO implement ELBO
+    def _compute_ELBO(self, data, nsamples):
+        samples = self._posterior.sample(nsamples)
+        br = self._bellman.bellman_residual(data, weights=samples)
+        br = self._likelihood * np.average(np.sum(br**2, axis=0))
+
+        prior_params = self._prior.get_params()
+        midpoint = int(prior_params.size / 2)
+        prior_mean = prior_params[0:midpoint]
+        prior_covar = prior_params[midpoint:]
+
+        posterior_params = self._posterior.get_params()
+        midpoint = int(posterior_params.size / 2)
+        posterior_mean = posterior_params[0:midpoint]
+        posterior_covar = posterior_params[midpoint:]
+
+        kl = .5 * (np.log(np.prod(prior_covar)/np.prod(posterior_covar) + np.sum(posterior_covar/prior_covar) \
+                          + np.dot((prior_mean - posterior_mean) / prior_covar, (prior_mean - posterior_mean))))
+
+        return br + kl
 
     def _compute_evidence_gradient(self, data, nsamples=1):
         samples = self._posterior.sample(nsamples)
