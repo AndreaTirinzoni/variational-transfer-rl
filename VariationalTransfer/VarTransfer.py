@@ -75,8 +75,9 @@ class VarTransferGaussian:
         posterior_mean = posterior_params[0:midpoint]
         posterior_covar = posterior_params[midpoint:]
 
-        kl = .5 * (np.log(np.prod(prior_covar)/np.prod(posterior_covar) + np.sum(posterior_covar/prior_covar) \
-                          + np.dot((prior_mean - posterior_mean) / prior_covar, (prior_mean - posterior_mean))))
+        kl = .5 * (np.log(np.prod(prior_covar)/np.prod(posterior_covar)) + np.sum(posterior_covar/prior_covar) \
+                          + np.dot((prior_mean - posterior_mean) / prior_covar, (prior_mean - posterior_mean)) \
+                   + midpoint)
 
         return br + kl
 

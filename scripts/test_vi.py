@@ -32,8 +32,8 @@ assert covar.shape == (3*K,3)
 # features
 features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
 
-prior_mean = np.zeros((K,1))
-prior_variance = np.ones((K,1))
+prior_mean = np.zeros(K)
+prior_variance = np.ones(K)
 
 # Create Target task
 mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=2.5)
