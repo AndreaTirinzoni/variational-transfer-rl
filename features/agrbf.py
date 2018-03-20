@@ -44,7 +44,7 @@ class AGaussianRBF:
         if x.ndim == 2:
             return self._compute_feature_matrix(x)
         elif x.ndim == 1:
-            return self._compute(x)
+            return self._compute(x[np.newaxis])
 
 
     def _compute_feature_matrix(self, data):
@@ -66,8 +66,8 @@ if __name__ == '__main__':
 
     rbf = AGaussianRBF(mean, covar)
 
-    data = np.random.random((100, 2))
-
+    data = np.array([[1,2], [3,4], [1.5, 3]])
+    data = np.tile(data, (3,1))
     matrix = rbf(data)
     print(rbf(np.array([1, 2])))
     print(matrix)
