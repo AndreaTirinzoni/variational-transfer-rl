@@ -28,3 +28,7 @@ class AnisotropicNormalPosterior(ParametricDistribution):
         covar = np.diag(self._params[midpoint: ])
         mean = self._params[0:midpoint]
         return np.random.multivariate_normal(mean, covar, nsamples)
+
+    def set_params(self, params):
+        super(AnisotropicNormalPosterior, self).set_params(params)
+        self._dim = int(params.size/2)
