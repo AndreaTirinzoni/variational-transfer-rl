@@ -19,10 +19,8 @@ class MellowBellmanOperator(bo.BellmanOperator):
         s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
         r = self._Q.get_statedim() + self._Q.get_actiondim()
         q_values = self._Q.compute_all_actions(mdp_samples[:, s_prime:s_prime+self._Q.get_statedim()])
-        c = np.max(q_values, axis=1)
-        mmQ = self._mellow_max(q_values, c)
+        mmQ = self._mellow_max(q_values)
         return mdp_samples[:, r] + self._gamma * mmQ * (1 - mdp_samples[:, -1]) - self._Q(mdp_samples[:, 0:r])
-
 
     def compute_gradient_diag_hessian(self, mdp_samples):
         r = self._Q.get_statedim() + self._Q.get_actiondim()
@@ -37,11 +35,12 @@ class MellowBellmanOperator(bo.BellmanOperator):
         return bellman_grad, bellman_hess
 
     def _mellow_max(self, q_values):
-        qs = np.sum(self._normalized_mm_exp(q_values, np.max(q_values)), axis=1)
-        return np.log(qs/q_values.shape[1])/self._kappa + np.max(q_values)
+        c = np.max(q_values, axis=1)
+        qs = np.sum(self._normalized_mm_exp(q_values, c), axis=1)
+        return np.log(qs/q_values.shape[1])/self._kappa + c
 
     def _normalized_mm_exp(self, q_values, c=0):
-        return np.exp(self._kappa * (q_values-c))
+        return np.exp(self._kappa * (q_values-c[:, np.newaxis]))
 
     def _gradient_mellow_max(self, q_values, q_gradient):
         qs = self._normalized_mm_exp(q_values, np.max(q_values))
@@ -80,6 +79,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
             r = self._Q.get_statedim() + self._Q.get_actiondim()
             s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
             br = self.bellman_residual(mdp_samples, weights)
+            print(np.average(np.average(br**2, axis=0)))
             br = br.reshape(br.shape[0], 1, br.shape[1])
             mm_gradient, mm_diag_hess = self._gradient_and_diag_hess_mellow_max(mdp_samples[:, s_prime:s_prime + self._Q.get_statedim()], weights=weights)
             q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r])
@@ -90,7 +90,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
 
     def bellman_residual(self, mdp_samples, weights=None):
         if weights is None:
-            return super(LinearQMellowBellman, self).bellman_residuals(mdp_samples)
+            return super(LinearQMellowBellman, self).bellman_residual(mdp_samples)
         else:
             s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
             r = self._Q.get_statedim() + self._Q.get_actiondim()
@@ -111,7 +111,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
 
     def _gradient_and_diag_hess_mellow_max(self, states, weights=None):
         if weights is None:
-            return super._gradient_and_diag_hess_mellow_max(states)
+            return super(LinearQMellowBellman, self)._gradient_and_diag_hess_mellow_max(states)
         else:
             q_gradient = self._Q.compute_gradient_all_actions(states) # features
 
@@ -132,7 +132,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
 
     def _normalized_mm_exp(self, q_values, c=0, weights=None):
         if weights is None:
-            return super._normalized_mm_ex(q_values, c)
+            return super(LinearQMellowBellman, self)._normalized_mm_exp(q_values, c)
         else:
             # q_values are only features
             nacts = self._Q.actions.size

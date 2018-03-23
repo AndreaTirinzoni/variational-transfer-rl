@@ -22,7 +22,7 @@ class LinearQRegressor:
         assert weights.shape == self._w.shape
         self._w = weights
 
-    def compute_all_actions(self, state):
+    def compute_all_actions(self, state, done=None):
 
         s = state[:, np.newaxis].T if state.ndim == 1 else state
         n_state = s.shape[0]
@@ -30,7 +30,10 @@ class LinearQRegressor:
         a = np.tile(self.actions, (n_state, 1))
         t = np.hstack((s, a))
         f = self._features(t)
-        return np.dot(f, self._w).reshape(n_state, self.actions.size)
+        q = np.dot(f, self._w).reshape(n_state, self.actions.size)
+        if done is not None:
+            q *= 1 - done[:, np.newaxis]
+        return q
 
     def compute_gradient(self, state_action):
         return self._features(state_action)
