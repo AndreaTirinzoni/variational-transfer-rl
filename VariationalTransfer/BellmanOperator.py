@@ -76,7 +76,7 @@ class LinearQBellmanOperator(BellmanOperator):
             br = self.bellman_residual(mdp_samples, weights)
             b_grad = -self._Q.compute_gradient(mdp_samples[:, 0:r])
             grad = 2 * np.average(br[:, np.newaxis] * b_grad[:, :, np.newaxis], axis=0)
-            diag_hess = b_grad**2
+            diag_hess = 2 * np.average(b_grad**2, axis=0)[:, np.newaxis]
 
             return grad, diag_hess
 
