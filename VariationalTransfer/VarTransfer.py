@@ -30,16 +30,24 @@ class VarTransferGaussian:
             new_samples = utils.generate_episodes(self._mdp, pol_g, n_episodes=batch_size, render=False)
             samples = np.vstack((samples, new_samples))
             for _ in range(n_fit):
-                elbo.append(self._compute_ELBO())
-                grad = self._compute_evidence_gradient(samples[:, 1:], nsamples_for_estimation) + self._compute_KL_gradient(samples[:, 1:])
+                grad = self._compute_evidence_gradient(samples[:, 1:], nsamples_for_estimation) + 0 * self._compute_KL_gradient(samples[:, 1:])
                 self._posterior.grad_step(self._learning_rate() * grad)
-            rew = utils.evaluate_policy(self._mdp, pol_g, render=render)
+
+            Q.update_weights(self._posterior.get_mean())
+            rew = utils.evaluate_policy(self._mdp, pol_g, render=render, initial_states=np.array([0., 0.])) #TODO add parameter.
             performance.append(rew)
+            elbo.append(self._compute_ELBO(samples[:, 1:], nsamples_for_estimation))
 
             if verbose:
+                utils.plot_Q(Q, tuple(self._mdp.size))
                 print("===============================================")
                 print("Iteration " + str(i))
-                print("Reward: " + str(rew))
+                print("Reward Mean Q: " + str(rew))
+                ws = self._posterior.sample(200)
+                br = self._bellman.bellman_residual(samples[:, 1:], weights=ws)
+                print("Bellman Residual Avg: " + str(np.average(np.average(br**2, axis=1))))
+                print("Bellman Residual: " + str(np.average(self._bellman.bellman_residual(samples[:, 1:])**2)))
+                print("ELBO: " + str(elbo[len(elbo)-1]))
                 print("===============================================")
 
         return np.array(performance), np.array(elbo)
@@ -60,8 +68,26 @@ class VarTransferGaussian:
         return np.hstack((grad_mean, grad_covar))
 
 
-    def _compute_ELBO(self):
-        return 0    # TODO implement ELBO
+    def _compute_ELBO(self, data, nsamples):
+        samples = self._posterior.sample(nsamples)
+        br = self._bellman.bellman_residual(data, weights=samples)
+        br = self._likelihood * np.average(np.sum(br**2, axis=0))
+
+        prior_params = self._prior.get_params()
+        midpoint = int(prior_params.size / 2)
+        prior_mean = prior_params[0:midpoint]
+        prior_covar = prior_params[midpoint:]
+
+        posterior_params = self._posterior.get_params()
+        K = int(posterior_params.size / 2)
+        posterior_mean = posterior_params[0:K]
+        posterior_covar = posterior_params[K:]
+
+        kl = .5 * (np.log(np.prod(prior_covar)/np.prod(posterior_covar)) + np.sum(posterior_covar/prior_covar) \
+                          + np.dot((prior_mean - posterior_mean) / prior_covar, (prior_mean - posterior_mean)) \
+                   - K)
+
+        return br + kl
 
     def _compute_evidence_gradient(self, data, nsamples=1):
         samples = self._posterior.sample(nsamples)
@@ -71,6 +97,8 @@ class VarTransferGaussian:
         return np.hstack((grad, diag_hessian))
 
     def _learning_rate(self):
-        return self._l_rate
+        lr = np.zeros(self._prior.get_params().size)
+        lr[0:int(lr.size/2)] += self._l_rate
+        return lr
 
 

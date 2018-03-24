@@ -4,6 +4,7 @@ from envs.walled_gridworld import WalledGridworld
 from VariationalTransfer.LinearQRegressor import  LinearQRegressor
 from VariationalTransfer.Distributions import AnisotropicNormalPosterior
 from VariationalTransfer.MellowBellmanOperator import LinearQMellowBellman
+from VariationalTransfer.BellmanOperator import LinearQBellmanOperator
 from VariationalTransfer.VarTransfer import VarTransferGaussian
 
 gw_size = 5
@@ -32,14 +33,14 @@ assert covar.shape == (3*K,3)
 # features
 features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
 
-prior_mean = np.zeros((K,1))
-prior_variance = np.ones((K,1))
+prior_mean = np.zeros(K)
+prior_variance = np.ones(K)*0.1
 
 # Create Target task
 mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=2.5)
 q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
 prior = AnisotropicNormalPosterior(prior_mean, prior_variance)
 x=prior.sample(nsamples=5)
-bellman = LinearQMellowBellman(q, gamma=mdp.gamma)
-var = VarTransferGaussian(mdp, bellman, prior, learning_rate=1e-3, likelihood_weight=10)
-var.solve_task(batch_size=1, verbose=True, render=True)
+bellman = LinearQBellmanOperator(q, gamma=mdp.gamma)
+var = VarTransferGaussian(mdp, bellman, prior, learning_rate=1e-4, likelihood_weight=5)
+var.solve_task(n_fit=5, batch_size=1, verbose=True, render=True)
