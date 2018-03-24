@@ -36,7 +36,7 @@ class BellmanOperator:
         q_hessian = self._Q.compute_diag_hessian(mdp_samples[:, 0:r])
         b_grad = -q_gradient
         bellman_grad = 2 * np.average(br * b_grad, axis=0)
-        bellman_hess = 2 * np.average(br * q_hessian, axis=0)
+        bellman_hess = 2 * np.average(q_gradient**2 + br * q_hessian, axis=0)
         return bellman_grad, bellman_hess
 
     def set_Q(self, Q):
@@ -76,7 +76,7 @@ class LinearQBellmanOperator(BellmanOperator):
             br = self.bellman_residual(mdp_samples, weights)
             b_grad = -self._Q.compute_gradient(mdp_samples[:, 0:r])
             grad = 2 * np.average(br[:, np.newaxis] * b_grad[:, :, np.newaxis], axis=0)
-            diag_hess = np.zeros(grad.shape)
+            diag_hess = b_grad**2
 
             return grad, diag_hess
 
