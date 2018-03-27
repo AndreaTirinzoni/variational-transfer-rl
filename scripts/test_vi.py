@@ -37,10 +37,10 @@ features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
 prior_mean = np.zeros(K)
 prior_variance = np.ones(K)*0.1
 
-prior_mean, prior_variance = utils.load_object("source_mgw5x5_20")
+prior_mean, prior_variance = utils.load_object("sources_gridworld_5")
 
 # Create Target task
-mdp = MarcellosGridworld(np.array([gw_size, gw_size]), door_x=(4.5, 0.5))
+mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=0.5)
 q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
 prior = AnisotropicNormalPosterior(prior_mean, prior_variance)
 x=prior.sample(nsamples=5)
@@ -49,7 +49,13 @@ bellman = LinearQBellmanOperator(q, gamma=mdp.gamma)
 var = VarTransferGaussian(mdp, bellman, prior, learning_rate=1e-4, likelihood_weight=100)
 
 r = list()
-for _ in range(10):
-    rew = var.solve_task(max_iter=100, n_fit=1, batch_size=1, verbose=True, render=False)
+elbos = list()
+brs = list()
+for _ in range(15):
+    rew, elbo, br = var.solve_task(max_iter=30, n_fit=1, batch_size=1, verbose=True, render=False)
     r.append(rew)
+    elbos.append(elbo)
+    brs.append(br)
     var.reset()
+
+utils.save_object((r, elbos, brs), "WGW_Results")

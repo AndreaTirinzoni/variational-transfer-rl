@@ -53,7 +53,7 @@ class VarTransferGaussian:
 
 
             if verbose:
-                utils.plot_Q(Q, tuple(self._mdp.size))
+                # utils.plot_Q(Q, tuple(self._mdp.size))
                 print("===============================================")
                 print("Iteration " + str(i))
                 print("Reward Mean Q: " + str(rew))
