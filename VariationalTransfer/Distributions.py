@@ -12,16 +12,17 @@ class ParametricDistribution:
         self._params = params
 
     def get_params(self):
-        return self._params
+        return np.array(self._params)
 
     def sample(self):
         raise NotImplementedError
 
 
 class AnisotropicNormalPosterior(ParametricDistribution):
-    def __init__(self, mean=np.array([0]), covariance_diagonal=np.array([1])):
+    def __init__(self, mean=np.array([0]), covariance_diagonal=np.array([1]), min_var=0.01):
         super(AnisotropicNormalPosterior, self).__init__(np.hstack((mean, covariance_diagonal)))
         self._dim = mean.size
+        self._min_var = min_var
 
     def sample(self, nsamples=1):
         midpoint = int(self._params.size/2)
@@ -35,3 +36,11 @@ class AnisotropicNormalPosterior(ParametricDistribution):
 
     def get_mean(self):
         return self._params[0: self._dim]
+
+    def get_variance(self):
+        return self._params[self._dim: ]
+
+    def grad_step(self, step):
+        self._params = self._params - step
+        idx = np.asarray(np.where(self._params < self._min_var))
+        self._params[idx[idx >= self._dim]] = self._min_var
