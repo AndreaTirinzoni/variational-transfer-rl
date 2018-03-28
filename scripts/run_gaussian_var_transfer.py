@@ -15,7 +15,7 @@ import algorithms.regularized_lsvi as lsvi
 """
     FQI with linear regressor for Q(s,a) 
 """
-def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=False, n_fit=20, bellman_operator=None):
+def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=False, n_fit=20, bellman_operator=None, r_seed=None):
     pol = policy.eGreedyPolicy(Q, Q.actions, epsilon)
     pol_g = policy.eGreedyPolicy(Q, Q.actions, 0)
     r = list()
@@ -34,6 +34,9 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
         bellman_operator.set_Q(Q)
         bellman = bellman_operator
 
+    if r_seed is not None:
+        np.random.seed(r_seed)
+
     for i in range(n_iter):
         new_samples = utils.generate_episodes(mdp, pol, batch_size, render=False)
         samples = np.vstack((samples, new_samples))
@@ -46,7 +49,6 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
 
         if render:
             mdp._render(close=True)
-
 
         rew, _, _, _ = utils.evaluate_policy(mdp, pol_g, n_episodes=5, initial_states=np.array([0., 0.]), render=render)
         r.append(rew)
