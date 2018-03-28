@@ -36,8 +36,10 @@ def train_gridworld(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5, n_
         worlds.append(WalledGridworld(size=np.array((gw_size, gw_size)), door_x=x))
         q_functions.append(LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim))
 
+    seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
     Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_functions[i], epsilon=epsilon, \
-                                           n_iter=n_iter, render=False, verbose=False) for _ in range(n_sources))
+                                           n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in
+                        range(n_sources))
 
     weights = np.array([q._w for q in q_functions])
     prior_mean = np.average(weights, axis=0)
@@ -75,9 +77,9 @@ def train_marcellos_gw(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5,
         worlds.append(MarcellosGridworld(size=np.array((gw_size, gw_size)), door_x=(x,y)))
         q_functions.append(LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim))
 
-
+    seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
     Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_functions[i], epsilon=epsilon, \
-                                           n_iter=n_iter, render=False, verbose=False) for _ in range(n_sources))
+                                           n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in range(n_sources))
 
     weights = np.array([q._w for q in q_functions])
     prior_mean = np.average(weights, axis=0)
@@ -88,5 +90,5 @@ def train_marcellos_gw(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5,
 
 if __name__ == "__main__":
 
-    train_gridworld("source_wgw5x5_20", n_sources=30, n_iter=50)
-    train_marcellos_gw("source_mgw5x5_20", n_sources=30, n_iter=100)
+    # train_gridworld("source_wgw5x5_20", n_sources=30, n_iter=50)
+    train_marcellos_gw("source_mgw5x5_50", n_sources=50, n_iter=100)
