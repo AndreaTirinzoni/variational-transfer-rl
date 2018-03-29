@@ -2,11 +2,10 @@ import numpy as np
 from features.agrbf import AGaussianRBF
 from envs.walled_gridworld import WalledGridworld
 from envs.marcellos_gridworld import MarcellosGridworld
-from VariationalTransfer.LinearQRegressor import  LinearQRegressor
-from scripts.run_gaussian_var_transfer import linearFQI
+from VariationalTransfer.LinearQRegressor import LinearQRegressor
+from algorithms.LinearFQI import linearFQI
 import utils
 from joblib import Parallel, delayed
-
 
 def train_gridworld(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5, n_iter=50, epsilon=0.2):
     state_dim = 2
@@ -30,21 +29,21 @@ def train_gridworld(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5, n_
 
     features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
     worlds = list()
-    q_functions = list()
+    q_function = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
     for i in range(n_sources):
         x = np.random.ranf(1)[0] * (gw_size - 1) + 0.5
         worlds.append(WalledGridworld(size=np.array((gw_size, gw_size)), door_x=x))
-        q_functions.append(LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim))
 
     seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
-    Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_functions[i], epsilon=epsilon, \
-                                           n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in
-                        range(n_sources))
+    results = Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_function, epsilon=epsilon, \
+                                                     n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i
+                                  in range(n_sources))
 
-    weights = np.array([q._w for q in q_functions])
+    weights = np.array([r[1]._w for r in results])
     prior_mean = np.average(weights, axis=0)
-    prior_variance = np.average((weights - prior_mean) * (weights - prior_mean), axis=0)
-    utils.save_object((prior_mean, prior_variance), filename)
+    W = (weights - prior_mean).T
+    prior_variance = np.average(W[:, np.newaxis, :] * W[np.newaxis, :, :], axis=2)
+    utils.save_object((prior_mean, prior_variance, W), filename)
 
     return prior_mean, prior_variance
 
@@ -70,25 +69,25 @@ def train_marcellos_gw(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5,
 
     features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
     worlds = list()
-    q_functions = list()
+    q_function = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
     for i in range(n_sources):
         x = np.random.ranf(1)[0] * (gw_size - 1) + 0.5
         y = np.random.ranf(1)[0] * (gw_size - 1) + 0.5
-        worlds.append(MarcellosGridworld(size=np.array((gw_size, gw_size)), door_x=(x,y)))
-        q_functions.append(LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim))
+        worlds.append(MarcellosGridworld(size=np.array((gw_size, gw_size)), door_x=(x, y)))
 
     seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
-    Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_functions[i], epsilon=epsilon, \
+    results = Parallel(n_jobs=20)(delayed(linearFQI)(worlds[i], q_function, epsilon=epsilon, \
                                            n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in range(n_sources))
 
-    weights = np.array([q._w for q in q_functions])
+    weights = np.array([r[1]._w for r in results])
     prior_mean = np.average(weights, axis=0)
-    prior_variance = np.average((weights - prior_mean) * (weights - prior_mean), axis=0)
-    utils.save_object((prior_mean, prior_variance), filename)
+
+    W = (weights - prior_mean).T
+    prior_variance = np.average(W[:, np.newaxis,:] * W[np.newaxis,:,:], axis=2)
+    utils.save_object((prior_mean, prior_variance, W), filename)
 
     return prior_mean, prior_variance
 
 if __name__ == "__main__":
-
-    # train_gridworld("source_wgw5x5_20", n_sources=30, n_iter=50)
-    train_marcellos_gw("source_mgw5x5_50", n_sources=50, n_iter=100)
+    train_gridworld("source_wgw5x5_300", n_sources=300, n_iter=60)
+    train_marcellos_gw("source_mgw5x5_400", n_sources=500, n_iter=100)
