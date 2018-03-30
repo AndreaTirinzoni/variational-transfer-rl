@@ -200,6 +200,7 @@ parser.add_argument("--gw_size", default=gw_size)
 parser.add_argument("--n_basis", default=n_basis)
 parser.add_argument("--n_jobs", default=n_jobs)
 parser.add_argument("--n_runs", default=n_runs)
+parser.add_argument("--file_name", default="mm")
 
 args = parser.parse_args()
 kappa = args.kappa
@@ -213,10 +214,13 @@ gw_size = args.gw_size
 n_basis = args.n_basis
 n_jobs = args.n_jobs
 n_runs = args.n_runs
+file_name = args.file_name
 
 if n_jobs == 1:
-    results = [run for _ in range(n_runs)]
+    results = [run() for _ in range(n_runs)]
 elif n_jobs > 1:
     seeds = [np.random.randint(1000000) for _ in range(n_runs)]
     results = Parallel(n_jobs=n_jobs)(delayed(run)(seed) for seed in seeds)
+
+utils.save_object(results, file_name)
 
