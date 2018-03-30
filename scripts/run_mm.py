@@ -4,6 +4,7 @@ from envs.walled_gridworld import WalledGridworld
 from VariationalTransfer.LinearQRegressor import LinearQRegressor
 from algorithms.e_greedy_policy import eGreedyPolicy
 import utils
+import argparse
 
 # Global parameters
 kappa = 100.
@@ -12,9 +13,9 @@ xi = 1.0
 eta = 0.1
 batch_size = 1
 gradient_batch = 1000
-epsilon = 0.2
+epsilon = 1
 max_iter = 100
-n_fit = 1
+n_fit = 50
 gw_size = 5
 n_actions = 4
 state_dim = 2
@@ -29,7 +30,7 @@ m_t = 0
 v_t = 0
 t = 0
 eps = 10e-8
-alpha = 0.001
+alpha = 0.01
 beta_1 = 0.9
 beta_2 = 0.999
 
@@ -56,7 +57,7 @@ def gradient_mm(Q, states, done):
 
     q_values = Q.compute_all_actions(states, done)
     assert q_values.shape == (states.shape[0],n_actions)
-    q_gradient = Q.compute_gradient_all_actions(states)
+    q_gradient = Q.compute_gradient_all_actions(states) * (1 - done)[:, np.newaxis, np.newaxis]
     assert q_gradient.shape == (states.shape[0],n_actions,K)
     qs = mm_exp(q_values, np.max(q_values, axis=1))
     assert qs.shape == (states.shape[0],n_actions)
@@ -110,6 +111,28 @@ def adam(w, grad):
     return w - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--kappa", default=kappa)
+parser.add_argument("--xi", default=xi)
+parser.add_argument("--batch_size", default=batch_size)
+parser.add_argument("--gradient_batch", default=gradient_batch)
+parser.add_argument("--max_iter", default=max_iter)
+parser.add_argument("--n_fit", default=n_fit)
+parser.add_argument("--alpha", default=alpha)
+parser.add_argument("--gw_size", default=gw_size)
+parser.add_argument("--n_basis", default=n_basis)
+args = parser.parse_args()
+kappa = args.kappa
+xi = args.xi
+batch_size = args.batch_size
+gradient_batch = args.gradient_batch
+max_iter = args.max_iter
+n_fit = args.max_fit
+alpha = args.alpha
+gw_size = args.gw_size
+n_basis = args.n_basis
+
+
 x = np.linspace(0, gw_size, n_basis)
 y = np.linspace(0, gw_size, n_basis)
 a = np.linspace(0, n_actions - 1, n_actions)
@@ -140,6 +163,13 @@ pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
 
 samples = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
 
+# Results
+iterations = []
+n_samples = []
+rewards = []
+l_2 = []
+l_inf = []
+
 for i in range(max_iter):
     new_samples = utils.generate_episodes(mdp, pi, n_episodes=batch_size, render=False)
     samples = np.vstack((samples, new_samples))
@@ -149,13 +179,23 @@ for i in range(max_iter):
         #Q._w = Q._w - eta * grad
         Q._w = adam(Q._w, grad)
     utils.plot_Q(Q)
+
     rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0.,0.]) for _ in range(10)])
+    br = bellman_residual(Q, samples[:, 1:]) ** 2
+    l_2_err = np.average(br)
+    l_inf_err = np.max(br)
+
+    iterations.append(i)
+    n_samples.append(samples.shape[0])
+    rewards.append(rew)
+    l_2.append(l_2_err)
+    l_inf.append(l_inf_err)
 
     if verbose:
         print("===============================================")
         print("Iteration " + str(i))
         print("Reward: " + str(rew))
-        print("L2 Error: " + str(np.average(bellman_residual(Q, samples[:, 1:]) ** 2)))
-        print("L_inf Error: " + str(np.max(bellman_residual(Q, samples[:, 1:]) ** 2)))
+        print("L2 Error: " + str(l_2_err))
+        print("L_inf Error: " + str(l_inf_err))
         print("===============================================")
 
