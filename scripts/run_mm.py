@@ -5,13 +5,14 @@ from VariationalTransfer.LinearQRegressor import LinearQRegressor
 from algorithms.e_greedy_policy import eGreedyPolicy
 import utils
 import argparse
+from joblib import Parallel, delayed
 
 # Global parameters
 kappa = 100.
 gamma = 0.99
 xi = 1.0
 eta = 0.1
-batch_size = 1
+batch_size = 10
 gradient_batch = 1000
 epsilon = 1
 max_iter = 100
@@ -24,6 +25,8 @@ n_basis = 6
 K = n_basis ** 2 * n_actions
 render = False
 verbose = True
+n_jobs = 1
+n_runs = 1
 
 # Adam params
 m_t = 0
@@ -111,6 +114,80 @@ def adam(w, grad):
     return w - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps)
 
 
+def run(seed=None):
+
+    if seed is not None:
+        np.random.seed(seed)
+
+    x = np.linspace(0, gw_size, n_basis)
+    y = np.linspace(0, gw_size, n_basis)
+    a = np.linspace(0, n_actions - 1, n_actions)
+    mean_x, mean_y, mean_a = np.meshgrid(x, y, a)
+    mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 1)))
+    assert mean.shape == (K, 3)
+
+    state_var = (gw_size / (n_basis - 1) / 3) ** 2
+    action_var = 0.01 ** 2
+    covar = np.eye(state_dim + action_dim)
+    covar[0:state_dim, 0:state_dim] *= state_var
+    covar[-1, -1] *= action_var
+    assert covar.shape == (3, 3)
+    covar = np.tile(covar, (K, 1))
+    assert covar.shape == (3 * K, 3)
+
+    # Features
+    features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
+
+    # Create Target task
+    mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=2.5)
+    Q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
+
+    # Learning
+    pi = eGreedyPolicy(Q, Q.actions, epsilon=epsilon)
+    pi_g = eGreedyPolicy(Q, Q.actions, epsilon=0)
+    pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
+
+    samples = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
+
+    # Results
+    iterations = []
+    n_samples = []
+    rewards = []
+    l_2 = []
+    l_inf = []
+
+    for i in range(max_iter):
+        new_samples = utils.generate_episodes(mdp, pi, n_episodes=batch_size, render=False)
+        samples = np.vstack((samples, new_samples))
+        for _ in range(n_fit):
+            np.random.shuffle(samples)
+            grad = gradient(Q, samples[:gradient_batch, 1:])
+            # Q._w = Q._w - eta * grad
+            Q._w = adam(Q._w, grad)
+        utils.plot_Q(Q)
+
+        rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
+        br = bellman_residual(Q, samples[:, 1:]) ** 2
+        l_2_err = np.average(br)
+        l_inf_err = np.max(br)
+
+        iterations.append(i)
+        n_samples.append(samples.shape[0])
+        rewards.append(rew)
+        l_2.append(l_2_err)
+        l_inf.append(l_inf_err)
+
+        if verbose:
+            print("===============================================")
+            print("Iteration " + str(i))
+            print("Reward: " + str(rew))
+            print("L2 Error: " + str(l_2_err))
+            print("L_inf Error: " + str(l_inf_err))
+            print("===============================================")
+
+    return [iterations, n_samples, rewards, l_2, l_inf]
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=kappa)
 parser.add_argument("--xi", default=xi)
@@ -121,81 +198,25 @@ parser.add_argument("--n_fit", default=n_fit)
 parser.add_argument("--alpha", default=alpha)
 parser.add_argument("--gw_size", default=gw_size)
 parser.add_argument("--n_basis", default=n_basis)
+parser.add_argument("--n_jobs", default=n_jobs)
+parser.add_argument("--n_runs", default=n_runs)
+
 args = parser.parse_args()
 kappa = args.kappa
 xi = args.xi
 batch_size = args.batch_size
 gradient_batch = args.gradient_batch
 max_iter = args.max_iter
-n_fit = args.max_fit
+n_fit = args.n_fit
 alpha = args.alpha
 gw_size = args.gw_size
 n_basis = args.n_basis
+n_jobs = args.n_jobs
+n_runs = args.n_runs
 
-
-x = np.linspace(0, gw_size, n_basis)
-y = np.linspace(0, gw_size, n_basis)
-a = np.linspace(0, n_actions - 1, n_actions)
-mean_x, mean_y, mean_a = np.meshgrid(x, y, a)
-mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 1)))
-assert mean.shape == (K,3)
-
-state_var = (gw_size / (n_basis - 1) / 3) ** 2
-action_var = 0.01 ** 2
-covar = np.eye(state_dim + action_dim)
-covar[0:state_dim, 0:state_dim] *= state_var
-covar[-1, -1] *= action_var
-assert covar.shape == (3,3)
-covar = np.tile(covar, (K, 1))
-assert covar.shape == (3*K,3)
-
-# Features
-features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
-
-# Create Target task
-mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=2.5)
-Q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
-
-# Learning
-pi = eGreedyPolicy(Q, Q.actions, epsilon=epsilon)
-pi_g = eGreedyPolicy(Q, Q.actions, epsilon=0)
-pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
-
-samples = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
-
-# Results
-iterations = []
-n_samples = []
-rewards = []
-l_2 = []
-l_inf = []
-
-for i in range(max_iter):
-    new_samples = utils.generate_episodes(mdp, pi, n_episodes=batch_size, render=False)
-    samples = np.vstack((samples, new_samples))
-    for _ in range(n_fit):
-        np.random.shuffle(samples)
-        grad = gradient(Q, samples[:gradient_batch, 1:])
-        #Q._w = Q._w - eta * grad
-        Q._w = adam(Q._w, grad)
-    utils.plot_Q(Q)
-
-    rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0.,0.]) for _ in range(10)])
-    br = bellman_residual(Q, samples[:, 1:]) ** 2
-    l_2_err = np.average(br)
-    l_inf_err = np.max(br)
-
-    iterations.append(i)
-    n_samples.append(samples.shape[0])
-    rewards.append(rew)
-    l_2.append(l_2_err)
-    l_inf.append(l_inf_err)
-
-    if verbose:
-        print("===============================================")
-        print("Iteration " + str(i))
-        print("Reward: " + str(rew))
-        print("L2 Error: " + str(l_2_err))
-        print("L_inf Error: " + str(l_inf_err))
-        print("===============================================")
+if n_jobs == 1:
+    results = [run for _ in range(n_runs)]
+elif n_jobs > 1:
+    seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+    results = Parallel(n_jobs=n_jobs)(delayed(run)(seed) for seed in seeds)
 
