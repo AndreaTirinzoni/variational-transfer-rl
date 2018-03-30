@@ -76,6 +76,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
         if weights is None:
             return super(LinearQMellowBellman, self).compute_gradient_diag_hessian(mdp_samples)
         else:
+            rate = 0.1
             r = self._Q.get_statedim() + self._Q.get_actiondim()
             s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
             br = self.bellman_residual(mdp_samples, weights)
@@ -83,9 +84,9 @@ class LinearQMellowBellman(MellowBellmanOperator):
             br = br.reshape(br.shape[0], 1, br.shape[1])
             mm_gradient, mm_diag_hess = self._gradient_and_diag_hess_mellow_max(mdp_samples[:, s_prime:s_prime + self._Q.get_statedim()], weights=weights)
             q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r])
-            b_grad = self._gamma * mm_gradient - q_gradient[:, :, np.newaxis]
+            b_grad = rate * (self._gamma * mm_gradient) - q_gradient[:, :, np.newaxis]
             bellman_grad = 2 * np.average(br * b_grad, axis=0)
-            bellman_hess = 2 * np.average(self._gamma * br * mm_diag_hess + b_grad ** 2, axis=0)
+            bellman_hess = 2 * np.average(rate * (self._gamma * br * mm_diag_hess) + b_grad ** 2, axis=0)
             return bellman_grad, bellman_hess
 
     def bellman_residual(self, mdp_samples, weights=None):

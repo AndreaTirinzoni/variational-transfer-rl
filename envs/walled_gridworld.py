@@ -56,6 +56,7 @@ class WalledGridworld(gym.Env):
             x = np.random.ranf(1)[0]*self.size[0]
             y = np.random.ranf(1)[0]*self.size[1]
             self.current_position = np.array([x, y])
+            # self.current_position = np.array([0., 0.])
         else:
             self.current_position = np.array(state)
 
