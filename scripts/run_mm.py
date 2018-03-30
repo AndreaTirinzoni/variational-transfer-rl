@@ -8,8 +8,10 @@ import utils
 # Global parameters
 kappa = 100.
 gamma = 0.99
+xi = 1.0
 eta = 0.1
 batch_size = 1
+gradient_batch = 1000
 epsilon = 0.2
 max_iter = 100
 n_fit = 1
@@ -22,34 +24,46 @@ K = n_basis ** 2 * n_actions
 render = False
 verbose = True
 
+# Adam params
+m_t = 0
+v_t = 0
+t = 0
+eps = 10e-8
+alpha = 0.001
+beta_1 = 0.9
+beta_2 = 0.999
+
+
 def gradient(Q, data):
 
     r = Q.get_statedim() + Q.get_actiondim()
     s_prime = r + 1
     br = bellman_residual(Q, data)
     assert br.shape == (data.shape[0],)
-    mm_gradient = gradient_mm(Q, data[:, s_prime:s_prime+Q.get_statedim()])
-    assert mm_gradient.shape == (data.shape[0], 144)
+    mm_gradient = gradient_mm(Q, data[:, s_prime:s_prime+Q.get_statedim()], data[:, -1])
+    assert mm_gradient.shape == (data.shape[0], K)
     q_gradient = Q.compute_gradient(data[:, 0:r])
-    assert q_gradient.shape == (data.shape[0], 144)
-    b_grad = gamma * mm_gradient - q_gradient
-    assert b_grad.shape == (data.shape[0], 144)
+    assert q_gradient.shape == (data.shape[0], K)
+    b_grad = xi * gamma * mm_gradient - q_gradient
+    assert b_grad.shape == (data.shape[0], K)
     bellman_grad = 2 * np.average(br[:, np.newaxis] * b_grad, axis=0)
-    assert bellman_grad.shape == (144,)
+    assert bellman_grad.shape == (K,)
 
     return bellman_grad
 
-def gradient_mm(Q, states):
-    q_values = Q.compute_all_actions(states)
-    assert q_values.shape == (states.shape[0],4)
+
+def gradient_mm(Q, states, done):
+
+    q_values = Q.compute_all_actions(states, done)
+    assert q_values.shape == (states.shape[0],n_actions)
     q_gradient = Q.compute_gradient_all_actions(states)
-    assert q_gradient.shape == (states.shape[0],4,144)
+    assert q_gradient.shape == (states.shape[0],n_actions,K)
     qs = mm_exp(q_values, np.max(q_values, axis=1))
-    assert qs.shape == (states.shape[0],4)
+    assert qs.shape == (states.shape[0],n_actions)
     qs_sum = np.sum(qs, axis=1)
     assert qs_sum.shape == (states.shape[0],)
     grad = np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1) / qs_sum[:,np.newaxis]
-    assert grad.shape == (states.shape[0], 144)
+    assert grad.shape == (states.shape[0], K)
 
     return grad
 
@@ -58,17 +72,17 @@ def bellman_residual(Q, data):
     r = Q.get_statedim() + Q.get_actiondim()
     s_prime = r + 1
     feats_s_prime = Q.compute_gradient_all_actions(data[:, s_prime:s_prime + Q.get_statedim()])
-    assert feats_s_prime.shape == (data.shape[0],4,144)
+    assert feats_s_prime.shape == (data.shape[0],n_actions,K)
     feats = Q.compute_gradient(data[:, 0:r])
-    assert feats.shape == (data.shape[0], 144)
+    assert feats.shape == (data.shape[0], K)
     Qs = np.dot(feats, Q._w)
     assert Qs.shape == (data.shape[0],)
     Qs_prime = np.dot(feats_s_prime, Q._w)
-    assert Qs_prime.shape == (data.shape[0],4)
+    assert Qs_prime.shape == (data.shape[0],n_actions)
     mmQs = mellow_max(Qs_prime)
     assert mmQs.shape == (data.shape[0],)
 
-    return data[:, r] + gamma * mmQs - Qs
+    return data[:, r] + gamma * mmQs * (1 - data[:, -1]) - Qs
 
 
 def mellow_max(X):
@@ -83,6 +97,18 @@ def mm_exp(X, c=0):
     return np.squeeze(np.exp(kappa * (X - c[:, np.newaxis])))
 
 
+def adam(w, grad):
+    global t
+    global m_t
+    global v_t
+
+    t += 1
+    m_t = beta_1 * m_t + (1 - beta_1) * grad
+    v_t = beta_2 * v_t + (1 - beta_2) * grad ** 2
+    m_t_hat = m_t / (1 - beta_1 ** t)
+    v_t_hat = v_t / (1 - beta_2 ** t)
+    return w - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps)
+
 
 x = np.linspace(0, gw_size, n_basis)
 y = np.linspace(0, gw_size, n_basis)
@@ -92,7 +118,7 @@ mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 
 assert mean.shape == (K,3)
 
 state_var = (gw_size / (n_basis - 1) / 3) ** 2
-action_var = 0.1 ** 2
+action_var = 0.01 ** 2
 covar = np.eye(state_dim + action_dim)
 covar[0:state_dim, 0:state_dim] *= state_var
 covar[-1, -1] *= action_var
@@ -118,15 +144,18 @@ for i in range(max_iter):
     new_samples = utils.generate_episodes(mdp, pi, n_episodes=batch_size, render=False)
     samples = np.vstack((samples, new_samples))
     for _ in range(n_fit):
-        grad = gradient(Q, samples[:, 1:])
-        Q._w = Q._w - eta * grad
+        np.random.shuffle(samples)
+        grad = gradient(Q, samples[:gradient_batch, 1:])
+        #Q._w = Q._w - eta * grad
+        Q._w = adam(Q._w, grad)
     utils.plot_Q(Q)
-    rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=np.array([0.,0.]))
+    rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0.,0.]) for _ in range(10)])
 
     if verbose:
         print("===============================================")
         print("Iteration " + str(i))
         print("Reward: " + str(rew))
-        print("Error: " + str(np.average(bellman_residual(Q, samples[:, 1:]) ** 2)))
+        print("L2 Error: " + str(np.average(bellman_residual(Q, samples[:, 1:]) ** 2)))
+        print("L_inf Error: " + str(np.max(bellman_residual(Q, samples[:, 1:]) ** 2)))
         print("===============================================")
 
