@@ -36,8 +36,8 @@ def plot_curves(x_data, y_mean_data, y_std_data=None, title="", x_label="Episode
 
     for i in range(len(x_data)):
 
-        ax.plot(x_data[i], y_mean_data[i], linewidth=4, color=COLORS[i], marker=MARKERS[i], markersize=8.0,
-                linestyle=LINES[i], label=names[i] if names is not None else None)
+        ax.plot(x_data[i], y_mean_data[i], linewidth=4, color=COLORS[i], marker=None, markersize=8.0,
+                linestyle="solid", label=names[i] if names is not None else None)
         if y_std_data is not None:
             ax.fill_between(x_data[i], y_mean_data[i] - y_std_data[i], y_mean_data[i] + y_std_data[i],
                             facecolor=COLORS[i], edgecolor=COLORS[i], alpha=0.3)
@@ -51,11 +51,16 @@ def plot_curves(x_data, y_mean_data, y_std_data=None, title="", x_label="Episode
     plt.show()
 
 
-files = ["mm"]
+base = "mm_rw0_kappa10_xi"
+files = [base + s for s in ["0.0","0.2","0.5","0.8","1.0"]]
 
 x = []
 y_mean = []
 y_std = []
+y2_mean = []
+y2_std = []
+y3_mean = []
+y3_std = []
 
 for file in files:
     results = utils.load_object(file)
@@ -77,6 +82,12 @@ for file in files:
     y_mean.append(np.mean(rewards, axis=0))
     y_std.append(np.std(rewards, axis=0) / np.sqrt(rewards.shape[0]))
     l_2 = np.array(l_2)
+    y2_mean.append(np.mean(l_2, axis=0))
+    y2_std.append(np.std(l_2, axis=0) / np.sqrt(l_2.shape[0]))
     l_inf = np.array(l_inf)
+    y3_mean.append(np.mean(l_inf, axis=0))
+    y3_std.append(np.std(l_inf, axis=0) / np.sqrt(l_inf.shape[0]))
 
-plot_curves(x, y_mean, y_std, title="", x_label="Iterations", y_label="Reward", names=None, file_name=None)
+plot_curves(x, y_mean, y_std, title="", x_label="Iterations", y_label="Reward", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="rew")
+plot_curves(x, y2_mean, y2_std, title="", x_label="Iterations", y_label="L_2", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="l2")
+plot_curves(x, y3_mean, y3_std, title="", x_label="Iterations", y_label="L_INF", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="linf")
