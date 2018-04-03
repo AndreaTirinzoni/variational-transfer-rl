@@ -56,9 +56,10 @@ class NormalPosterior(ParametricDistribution):
         :param covar: covariance matrix (numpy.ndarray) [dim]
         :param min_var: value of the minimum variance allowed (limiter value for the params update)
         """
-        super(NormalPosterior, self).__init__(np.hstack(mean, np.ravel(covar.reshape)))
+        super(NormalPosterior, self).__init__(np.hstack((mean, np.ravel(covar))))
         self._dim = dim
         self._min_var = min_var
+        self._prec = None
 
     def grad_step(self, step):
         self._params = self._params - step
@@ -78,3 +79,6 @@ class NormalPosterior(ParametricDistribution):
 
     def get_covar(self):
         return np.reshape(self._params[self._dim:], (self._dim, self._dim))
+
+    def get_variance(self):
+        return self._params[self._dim: ]

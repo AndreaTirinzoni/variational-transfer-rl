@@ -39,6 +39,19 @@ class BellmanOperator:
         bellman_hess = 2 * np.average(q_gradient**2 + br * q_hessian, axis=0)
         return bellman_grad, bellman_hess
 
+    def compute_gradient_hessian(self, mdp_samples):
+        s = 0
+        a = self._Q.get_statedim()
+        r = self._Q.get_statedim() + self._Q.get_actiondim()
+        br = self.bellman_residual(mdp_samples)
+        q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r])
+        q_hessian = self._Q.compute_hessian(mdp_samples[:, 0:r])
+        b_grad = -q_gradient
+        bellman_grad = 2 * np.average(br * b_grad, axis=0)
+        F = b_grad[:, np.newaxis, :] * b_grad[np.newaxis, :, :]
+        bellman_hess = 2 * np.average(F + br.T[:, np.newaxis] * q_hessian, axis=0)
+        return bellman_grad, bellman_hess
+
     def set_Q(self, Q):
         self._Q = Q
 
@@ -80,4 +93,18 @@ class LinearQBellmanOperator(BellmanOperator):
 
             return grad, diag_hess
 
+    def compute_gradient_hessian(self, mdp_samples, weights=None):
+        if weights is None:
+            super(LinearQBellmanOperator, self).compute_gradient_hessian(mdp_samples)
+        else:
+            s = 0
+            a = self._Q.get_statedim()
+            r = self._Q.get_statedim() + self._Q.get_actiondim()
+            sprime = r + 1
+            br = self.bellman_residual(mdp_samples, weights)
+            b_grad = -self._Q.compute_gradient(mdp_samples[:, 0:r]).T
+            grad = 2 * np.average(br[:, np.newaxis] * b_grad.T[:, :, np.newaxis], axis=0)
+            hess = 2 * np.average(b_grad[:, np.newaxis, :] * b_grad[np.newaxis, :, :], axis=2)
+
+            return grad, hess[:, :, np.newaxis]
 
