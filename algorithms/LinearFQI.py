@@ -28,7 +28,7 @@ def linearFQI(mdp, Q, epsilon=0, n_iter=1, batch_size=1, render=False, verbose=F
         bellman_operator.set_Q(Q)
         bellman = bellman_operator
 
-    for _ in range(n_iter):
+    for i in range(n_iter):
         new_samples = utils.generate_episodes(mdp, pol, batch_size, render=False)
         samples = np.vstack((samples, new_samples))
         feat = np.vstack((feat, Q.compute_features(new_samples[:, 1:])))
