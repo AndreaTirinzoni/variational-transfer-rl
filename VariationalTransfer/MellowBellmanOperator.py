@@ -140,7 +140,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
                 bellman_grad = 2 * np.average(br[:, np.newaxis] * b_grad, axis=0)
                 bellman_hess = 2 * np.average((self._gamma * br[:, np.newaxis] * mm_diag_hess) + b_grad ** 2, axis=0)
             else:
-                soft_w = self._softmax(br)
+                soft_w = self._softmax(br ** 2)
                 bellman_grad = 2 * np.sum(soft_w[:, np.newaxis] * br[:, np.newaxis] * b_grad, axis=0)
                 bellman_hess = 2 * np.sum(soft_w[:, np.newaxis] * ((self._gamma * br[:, np.newaxis] * mm_diag_hess) + b_grad ** 2), axis=0)
 
@@ -161,7 +161,7 @@ class LinearQMellowBellman(MellowBellmanOperator):
                 bellman_hess = 2 * np.average((self._gamma * br[:, np.newaxis, np.newaxis] * mm_hess) \
                                               + b_grad[:, :, np.newaxis] * b_grad[:, np.newaxis], axis=0) # f x f x w
             else:
-                soft_w = self._softmax(br)
+                soft_w = self._softmax(br ** 2)
                 bellman_grad = 2 * np.sum(soft_w[:, np.newaxis] * br[:, np.newaxis] * b_grad, axis=0)  # f x w
                 bellman_hess = 2 * np.sum(soft_w[:, np.newaxis, np.newaxis] * ((self._gamma * br[:, np.newaxis, np.newaxis] * mm_hess) \
                                               + b_grad[:, :, np.newaxis] * b_grad[:, np.newaxis]), axis=0)  # f x f x w
