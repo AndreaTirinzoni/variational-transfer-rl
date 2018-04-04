@@ -23,9 +23,9 @@ class VarTransfer(metaclass=ABCMeta):
     def _adam(self, gradient, step, beta1=0.9, beta2=0.99, learning_rate=1e-3, eps=1e-8):
         self._gradient = beta1 * self._gradient + (1-beta1) * gradient
         self._gradient2 = beta2 * self._gradient2 + (1-beta2) * gradient**2
-        self._gradient /= (1.-(beta1**step))
-        self._gradient2 /= (1.-(beta2**step))
-        return learning_rate * self._gradient/np.sqrt(self._gradient2 + eps)
+        grad_hat = self._gradient/(1.-(beta1**step))
+        grad2_hat = self._gradient2/(1.-(beta2**step))
+        return learning_rate * grad_hat/np.sqrt(grad2_hat + eps)
 
     def reset(self):
         self._posterior.set_params(self._prior.get_params())
