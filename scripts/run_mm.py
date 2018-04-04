@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 kappa = 100.
 gamma = 0.99
 xi = 1.0
+tau = 0.0
 eta = 0.1
 batch_size = 1
 gradient_batch = 1000
@@ -50,7 +51,7 @@ def gradient(Q, data):
     assert q_gradient.shape == (data.shape[0], K)
     b_grad = xi * gamma * mm_gradient - q_gradient
     assert b_grad.shape == (data.shape[0], K)
-    bellman_grad = 2 * np.average(br[:, np.newaxis] * b_grad, axis=0)
+    bellman_grad = 2 * np.sum(br[:, np.newaxis] * b_grad * softmax(br ** 2)[:, np.newaxis], axis=0)
     assert bellman_grad.shape == (K,)
 
     return bellman_grad
@@ -101,6 +102,12 @@ def mm_exp(X, c=0):
     return np.squeeze(np.exp(kappa * (X - c[:, np.newaxis])))
 
 
+def softmax(X):
+    mx = np.max(X)
+    num = np.exp(tau * (X - mx))
+    return num / np.sum(num)
+
+
 def adam(w, grad):
     global t
     global m_t
@@ -118,6 +125,9 @@ def run(seed=None):
 
     if seed is not None:
         np.random.seed(seed)
+
+    global K
+    K = n_basis ** 2 * n_actions
 
     x = np.linspace(0, gw_size, n_basis)
     y = np.linspace(0, gw_size, n_basis)
@@ -155,6 +165,7 @@ def run(seed=None):
     rewards = []
     l_2 = []
     l_inf = []
+    sft = []
 
     for i in range(max_iter):
         new_samples = utils.generate_episodes(mdp, pi, n_episodes=batch_size, render=False)
@@ -170,12 +181,14 @@ def run(seed=None):
         br = bellman_residual(Q, samples[:, 1:]) ** 2
         l_2_err = np.average(br)
         l_inf_err = np.max(br)
+        sft_err = np.sum(softmax(br) * br)
 
         iterations.append(i)
         n_samples.append(samples.shape[0])
         rewards.append(rew)
         l_2.append(l_2_err)
         l_inf.append(l_inf_err)
+        sft.append(sft_err)
 
         if verbose:
             print("===============================================")
@@ -183,14 +196,16 @@ def run(seed=None):
             print("Reward: " + str(rew))
             print("L2 Error: " + str(l_2_err))
             print("L_inf Error: " + str(l_inf_err))
+            print("Softmax Error: " + str(sft_err))
             print("===============================================")
 
-    return [iterations, n_samples, rewards, l_2, l_inf]
+    return [iterations, n_samples, rewards, l_2, l_inf, sft]
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=kappa)
 parser.add_argument("--xi", default=xi)
+parser.add_argument("--tau", default=tau)
 parser.add_argument("--batch_size", default=batch_size)
 parser.add_argument("--gradient_batch", default=gradient_batch)
 parser.add_argument("--max_iter", default=max_iter)
@@ -205,6 +220,7 @@ parser.add_argument("--file_name", default="mm")
 args = parser.parse_args()
 kappa = float(args.kappa)
 xi = float(args.xi)
+tau = float(args.tau)
 batch_size = int(args.batch_size)
 gradient_batch = int(args.gradient_batch)
 max_iter = int(args.max_iter)
