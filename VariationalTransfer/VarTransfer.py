@@ -4,7 +4,7 @@ import numpy as np
 import utils
 import algorithms.e_greedy_policy as egreedy
 import VariationalTransfer.Distributions as dist
-
+import VariationalTransfer.sampled_policy as sp
 
 class VarTransfer(metaclass=ABCMeta):
 
@@ -92,12 +92,15 @@ Variational Transfer using Gaussian Distributions for the Prior and Posterior di
 """
 class VarTransferGaussian(VarTransfer):
 
-    def __init__(self, mdp, bellman_operator, prior, learning_rate=1., likelihood_weight=1e-3):
+    def __init__(self, mdp, bellman_operator, prior, learning_rate=1., likelihood_weight=1e-3, exploratory_policy=None):
         super(VarTransferGaussian, self).__init__(mdp, bellman_operator, prior, learning_rate, likelihood_weight)
         self._posterior = dist.AnisotropicNormalPosterior()
         self._posterior.set_params(prior.get_params())
         Q = self._bellman.get_Q()
-        self._policy = egreedy.eGreedyPolicy(Q, Q.actions)
+        if exploratory_policy is None:
+            self._policy = egreedy.eGreedyPolicy(Q, Q.actions)
+        else:
+            self._policy = exploratory_policy
 
     def _compute_KL_gradient(self, samples):
         prior_params = self._prior.get_params()
@@ -146,19 +149,22 @@ class VarTransferGaussian(VarTransfer):
     def _generate_episode(self, batch_size, render=False):
         self._bellman.get_Q().update_weights(self._posterior.sample(1)[0])
         return utils.generate_episodes(self._mdp, self._policy, n_episodes=batch_size, render=render)
-    
+
 
 """
 Variational Transferring with Multivariate Normal for Prior/Posterior distributions
 """
 class VarTransferFullGaussian(VarTransfer):
 
-    def __init__(self, mdp, bellman_operator, prior, learning_rate=1., likelihood_weight=1e-3):
+    def __init__(self, mdp, bellman_operator, prior, learning_rate=1., likelihood_weight=1e-3, exploratory_policy=None):
         super(VarTransferFullGaussian, self).__init__(mdp, bellman_operator, prior, learning_rate, likelihood_weight)
         Q = self._bellman.get_Q()
         self._posterior = dist.NormalPosterior(Q.get_dim())
         self._posterior.set_params(prior.get_params())
-        self._policy = egreedy.eGreedyPolicy(Q, Q.actions)
+        if exploratory_policy is None:
+            self._policy = egreedy.eGreedyPolicy(Q, Q.actions)
+        else:
+            self._policy = exploratory_policy
         self._prior_prec = np.linalg.inv(prior.get_covar())
 
     def _generate_episode(self, batch_size, render=False):
