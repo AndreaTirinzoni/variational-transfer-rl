@@ -37,12 +37,12 @@ def train_gridworld(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5, n_
 
     if n_jobs == 1:
         results = [linearFQI(worlds[i], q_function, epsilon=epsilon, \
-                                                         n_fit=n_fit, n_iter=n_iter, render=False, verbose=False) for i in range(n_sources) \
+                                                         n_fit=n_fit, n_iter=n_iter, render=False, verbose=verbose) for i in range(n_sources) \
                 for _ in range(n_sources)]
     elif n_jobs > 1:
         seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
         results = Parallel(n_jobs=n_jobs)(delayed(linearFQI)(worlds[i], q_function, epsilon=epsilon, \
-                                                             n_fit=n_fit, n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in range(n_sources))
+                                                             n_fit=n_fit, n_iter=n_iter, render=False, verbose=verbose, r_seed=seeds[i]) for i in range(n_sources))
 
     weights = np.array([r[1]._w for r in results])
     performances = [r[0] for r in results]
@@ -83,12 +83,12 @@ def train_marcellos_gw(filename, gw_size=5, n_actions=4, n_basis=6, n_sources=5,
 
     if n_jobs == 1:
         results = [linearFQI(worlds[i], q_function, epsilon=epsilon, \
-                                                         n_fit=n_fit, n_iter=n_iter, render=False, verbose=False) for i in range(n_sources) \
+                                                         n_fit=n_fit, n_iter=n_iter, render=False, verbose=verbose) for i in range(n_sources) \
                 for _ in range(n_sources)]
     elif n_jobs > 1:
         seeds = [np.random.random_integers(100000) for _ in range(n_sources)]
         results = Parallel(n_jobs=n_jobs)(delayed(linearFQI)(worlds[i], q_function, epsilon=epsilon, \
-                                                             n_fit=n_fit, n_iter=n_iter, render=False, verbose=False, r_seed=seeds[i]) for i in range(n_sources))
+                                                             n_fit=n_fit, n_iter=n_iter, render=False, verbose=verbose, r_seed=seeds[i]) for i in range(n_sources))
 
     weights = np.array([r[1]._w for r in results])
     performances = [r[0] for r in results]
