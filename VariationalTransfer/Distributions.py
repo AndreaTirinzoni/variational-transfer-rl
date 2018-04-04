@@ -63,8 +63,10 @@ class NormalPosterior(ParametricDistribution):
 
     def grad_step(self, step):
         self._params = self._params - step
-        idx = np.asarray(np.where(self._params < self._min_var))
-        self._params[idx[idx >= self._dim]] = self._min_var
+        self._clip()
+
+    def _clip(self):
+        pass #TODO
 
     def sample(self, nsamples=1):
         covar = np.reshape(self._params[self._dim:], (self._dim, self._dim))

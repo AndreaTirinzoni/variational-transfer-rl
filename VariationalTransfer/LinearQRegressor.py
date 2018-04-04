@@ -48,8 +48,11 @@ class LinearQRegressor:
     def compute_diag_hessian_all_actions(self, state):
         return np.zeros((state.shape[0], self.actions.size, self._features.number_of_features()))
 
+    def compute_hessian_all_actions(self, state):
+        return np.zeros((state.shape[0], self.actions.size, self._features.number_of_features(), self._features.number_of_features()))
+
     def compute_hessian(self, state_action):
-        return np.zeros((self._features.number_of_features(), self._features.number_of_features(), state_action.shape[0]))
+        return np.zeros((state_action.shape[0], self._features.number_of_features(), self._features.number_of_features()))
 
     def compute_diag_hessian(self, state_action):
         return np.zeros((state_action.shape[0], self._features.number_of_features()))

@@ -31,7 +31,20 @@ class MellowBellmanOperator(bo.BellmanOperator):
         q_hessian = self._Q.compute_diag_hessian(mdp_samples[:, 0:r])
         b_grad = self._gamma * mm_gradient - q_gradient
         bellman_grad = 2*np.average(br * b_grad, axis=0)
-        bellman_hess = 2*np.average(self._gamma * br * mm_diag_hess + b_grad**2, axis=0) #TODO fix this
+        bellman_hess = 2*np.average(br * (self._gamma * mm_diag_hess - q_hessian) + b_grad**2, axis=0)
+        return bellman_grad, bellman_hess
+
+    def compute_gradient_hessian(self, mdp_samples):
+        r = self._Q.get_statedim() + self._Q.get_actiondim()
+        s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
+        br = self.bellman_residual(mdp_samples) # s
+        mm_gradient, mm_hess = self._gradient_and_hessian_mellow_max(mdp_samples[:, s_prime:-1])       # s x w, s x w x w
+        q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r]) # s x w
+        q_hessian = self._Q.compute_hessian(mdp_samples[:, 0:r]) # s x w x w
+        b_grad = self._gamma * mm_gradient - q_gradient     # s x w
+        bellman_grad = 2 * np.average(br[:, np.newaxis] * b_grad, axis=0)
+        bellman_hess = 2 * np.average(br[:, np.newaxis, np.newaxis] * (self._gamma * mm_hess - q_hessian)
+                                      + b_grad[:, :, np.newaxis] * b_grad[:, np.newaxis, :], axis=0) # w x w
         return bellman_grad, bellman_hess
 
     def _mellow_max(self, q_values):
@@ -59,12 +72,30 @@ class MellowBellmanOperator(bo.BellmanOperator):
         q_values = self._Q.compute_all_actions(states)
         q_gradient = self._Q.compute_gradient_all_actions(states)
         qs = self._normalized_mm_exp(q_values, np.max(q_values))
-        qs_sum = np.sum(qs, axis=1)[np.newaxis]
+        qs_sum = np.sum(qs, axis=1)[:, np.newaxis]
         q_diag_hessian = self._Q.compute_diag_hessian_all_actions(states)
         diag_hess = np.sum(qs[:, :, np.newaxis] * (self._kappa * q_gradient**2 + q_diag_hessian), axis=1)/qs_sum \
              - self._kappa * (np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1)/qs_sum)**2
         grad = np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1)/qs_sum
         return grad, diag_hess
+
+    def _gradient_and_hessian_mellow_max(self, states):
+        q_values = self._Q.compute_all_actions(states)          # s x a
+        q_gradient = self._Q.compute_gradient_all_actions(states)   # s x a x w
+        qs = self._normalized_mm_exp(q_values, np.max(q_values, axis=1))    # s x a
+        qs_sum = np.sum(qs, axis=1)[:, np.newaxis] # s x 1
+        q_hessian = self._Q.compute_hessian_all_actions(states)       # s x a x w x w
+        grad = np.sum(qs[:, :, np.newaxis] * q_gradient, axis=1) / qs_sum  # s x w
+
+        outer_mm_grad = grad[:, :, np.newaxis] * grad[:, np.newaxis, :]  # s x w x w
+        outer_q_grad = q_gradient[:, :, :, np.newaxis] * q_gradient[:, :, np.newaxis, :] # s x a x w x w
+
+        hess = (self._kappa * np.sum(qs[:, :, np.newaxis, np.newaxis] * outer_q_grad, axis=1) \
+        + np.sum(qs[:, :, np.newaxis, np.newaxis] * q_hessian, axis=1))/qs_sum[:, :, np.newaxis] \
+        - outer_mm_grad  # s x w x w
+
+        return grad, hess
+
 
 
 """
@@ -76,17 +107,31 @@ class LinearQMellowBellman(MellowBellmanOperator):
         if weights is None:
             return super(LinearQMellowBellman, self).compute_gradient_diag_hessian(mdp_samples)
         else:
-            rate = 0.1
             r = self._Q.get_statedim() + self._Q.get_actiondim()
             s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
             br = self.bellman_residual(mdp_samples, weights)
-            print(np.average(np.average(br**2, axis=0)))
             br = br.reshape(br.shape[0], 1, br.shape[1])
             mm_gradient, mm_diag_hess = self._gradient_and_diag_hess_mellow_max(mdp_samples[:, s_prime:s_prime + self._Q.get_statedim()], weights=weights)
             q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r])
-            b_grad = rate * (self._gamma * mm_gradient) - q_gradient[:, :, np.newaxis]
+            b_grad = (self._gamma * mm_gradient) - q_gradient[:, :, np.newaxis]
             bellman_grad = 2 * np.average(br * b_grad, axis=0)
-            bellman_hess = 2 * np.average(rate * (self._gamma * br * mm_diag_hess) + b_grad ** 2, axis=0)
+            bellman_hess = 2 * np.average((self._gamma * br * mm_diag_hess) + b_grad ** 2, axis=0)
+            return bellman_grad, bellman_hess
+
+    def compute_gradient_hessian(self, mdp_samples, weights=None):
+        if weights is None:
+            return super(LinearQMellowBellman, self).compute_gradient_diag_hessian(mdp_samples)
+        else:
+            r = self._Q.get_statedim() + self._Q.get_actiondim()
+            s_prime = self._Q.get_statedim() + self._Q.get_actiondim() + 1
+            br = self.bellman_residual(mdp_samples, weights)    # s x w
+            br = br[:, np.newaxis]      # s x 1 x w
+            mm_gradient, mm_hess = self._gradient_and_hess_mellow_max(mdp_samples[:, s_prime:s_prime + self._Q.get_statedim()], weights=weights)
+            q_gradient = self._Q.compute_gradient(mdp_samples[:, 0:r])      # s x f
+            b_grad = (self._gamma * mm_gradient) - q_gradient[:, :, np.newaxis]  # s x f x w
+            bellman_grad = 2 * np.average(br * b_grad, axis=0)      # f x w
+            bellman_hess = 2 * np.average((self._gamma * br[:, np.newaxis] * mm_hess) \
+                                          + b_grad[:, :, np.newaxis] * b_grad[:, np.newaxis], axis=0) # f x f x w
             return bellman_grad, bellman_hess
 
     def bellman_residual(self, mdp_samples, weights=None):
@@ -130,6 +175,30 @@ class LinearQMellowBellman(MellowBellmanOperator):
                                        - (np.sum(qs * q_gradient, axis=1)/qs_sum)**2)
             grad = np.sum(qs * q_gradient, axis=1)/qs_sum
             return grad, diag_hess
+
+    def _gradient_and_hess_mellow_max(self, states, weights=None):
+        if weights is None:
+            return super(LinearQMellowBellman, self)._gradient_and_hessian_mellow_max(states)
+        else:
+            q_gradient = self._Q.compute_gradient_all_actions(states) # features  s x a x f
+
+            # Compute normalization constants
+            q = np.dot(q_gradient.reshape(q_gradient.shape[0] * q_gradient.shape[1], q_gradient.shape[2]), \
+                       weights.T)  # (s x a) x w
+            c = np.max(q.reshape(q_gradient.shape[0], q_gradient.shape[1], weights.shape[0]), axis=1)  # s x w
+
+            qs = self._normalized_mm_exp(q_gradient, c=c, weights=weights)      # s x a x w
+            qs_sum = np.sum(qs, axis=1) # s x w
+
+            grad = np.sum(qs[:, :, np.newaxis] * q_gradient[:, :, :, np.newaxis], axis=1)/qs_sum[:, np.newaxis]  # s x f x w
+
+            outer_mm_grad = grad[:,:, np.newaxis] * grad[:, np.newaxis] # s x f x f x w
+            outer_q_grad = q_gradient[:, :, :, np.newaxis] * q_gradient[:, :, np.newaxis]  # s x a x f x f
+
+            hess = self._kappa * np.sum(qs[:, :, np.newaxis, np.newaxis] * outer_q_grad[:, :, :, :, np.newaxis], axis=1)/qs_sum[:, np.newaxis, np.newaxis] \
+                                       - outer_mm_grad  # s x f x f x w
+
+            return grad, hess
 
     def _normalized_mm_exp(self, q_values, c=0, weights=None):
         if weights is None:
@@ -185,5 +254,5 @@ if __name__ == "__main__":
     data[:, 4] *= statey
     data[:, 5] *= statex
 
-    print(bellman.bellman_residual(data, weights))
-    print(bellman.compute_gradient_diag_hessian(data, weights))
+    print(bellman.bellman_residual(data))
+    print(bellman.compute_gradient_hessian(data, weights))
