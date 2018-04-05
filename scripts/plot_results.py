@@ -61,6 +61,8 @@ y2_mean = []
 y2_std = []
 y3_mean = []
 y3_std = []
+y4_mean = []
+y4_std = []
 
 for file in files:
     results = utils.load_object(file)
@@ -69,12 +71,14 @@ for file in files:
     rewards = []
     l_2 = []
     l_inf = []
+    sft = []
     for result in results:
         iterations.append(result[0])
         n_samples.append(result[1])
         rewards.append([r[0] for r in result[2]])
         l_2.append(result[3])
         l_inf.append(result[4])
+        sft.append(result[5])
     iterations = np.array(iterations)
     x.append(np.mean(iterations,axis=0))
     n_samples = np.array(n_samples)
@@ -87,7 +91,11 @@ for file in files:
     l_inf = np.array(l_inf)
     y3_mean.append(np.mean(l_inf, axis=0))
     y3_std.append(np.std(l_inf, axis=0) / np.sqrt(l_inf.shape[0]))
+    sft = np.array(sft)
+    y4_mean.append(np.mean(sft, axis=0))
+    y4_std.append(np.std(sft, axis=0) / np.sqrt(sft.shape[0]))
 
 plot_curves(x, y_mean, y_std, title="", x_label="Iterations", y_label="Reward", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="rew")
 plot_curves(x, y2_mean, y2_std, title="", x_label="Iterations", y_label="L_2", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="l2")
 plot_curves(x, y3_mean, y3_std, title="", x_label="Iterations", y_label="L_INF", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="linf")
+plot_curves(x, y4_mean, y4_std, title="", x_label="Iterations", y_label="Softmax Error", names=["xi = 0.0","xi = 0.2","xi = 0.5","xi = 0.8","xi = 1.0"], file_name="sft")
