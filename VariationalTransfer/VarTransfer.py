@@ -58,7 +58,7 @@ class VarTransfer(metaclass=ABCMeta):
         if adam:
             self._gradient2 = 0.
             self._gradient = 0.
-            
+
         for i in range(max_iter):
             new_samples = self._generate_episode(batch_size)
             samples = np.vstack((samples, new_samples))
