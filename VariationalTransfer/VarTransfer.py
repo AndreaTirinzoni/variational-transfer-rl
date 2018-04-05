@@ -46,7 +46,7 @@ class VarTransfer(metaclass=ABCMeta):
     def _generate_episode(self, batch_size, render=False):
         pass
 
-    def solve_task(self, max_iter=1000, n_fit=1, batch_size=20, nsamples_for_estimation=100, render=False, verbose=False):
+    def solve_task(self, max_iter=1000, n_fit=1, batch_size=20, nsamples_for_estimation=100, render=False, verbose=False, adam=False):
         samples = self._generate_episode(batch_size, render=False)
         performance = list()
         elbo = list()
@@ -54,12 +54,22 @@ class VarTransfer(metaclass=ABCMeta):
         Q = self._bellman.get_Q()
         pol_g = egreedy.eGreedyPolicy(Q, Q.actions)
 
+        t = 0
+        if adam:
+            self._gradient2 = 0.
+            self._gradient = 0.
+            
         for i in range(max_iter):
             new_samples = self._generate_episode(batch_size)
             samples = np.vstack((samples, new_samples))
             for k in range(n_fit):
                 grad = self._compute_evidence_gradient(samples[:, 1:], nsamples_for_estimation) + self._compute_KL_gradient(samples[:, 1:])
-                self._posterior.grad_step(self._step(grad))
+                if not adam:
+                    self._posterior.grad_step(self._step(grad))
+                else:
+                    self._posterior.grad_step(self._adam(grad, t))
+
+                t += 1
 
             Q.update_weights(self._posterior.get_mean())
             rew, _, _, _ = utils.evaluate_policy(self._mdp, pol_g, render=render, initial_states=np.array([0., 0.])) #TODO add parameter.

@@ -5,6 +5,7 @@ import VariationalTransfer.BellmanOperator as bo
 Optimal Bellman Operator with Mellowmax
 """
 class MellowBellmanOperator(bo.BellmanOperator):
+
     def __init__(self, Q=None, gamma=0.99, kappa=5, tau=0.):
         super(MellowBellmanOperator, self).__init__(Q, gamma)
         self._kappa = kappa
