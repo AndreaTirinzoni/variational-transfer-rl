@@ -211,7 +211,7 @@ def run(door_x, seed=None):
             # Step
             s_prime, r, done, _ = mdp.step(a)
             # Build the new sample and add it to the dataset
-            sample = np.concatenate([np.array([t]), s, np.array([a]), np.array([r]), s_prime, np.array([1 if done else 0])])[np.newaxis, :]
+            sample = np.concatenate([np.array([h]), s, np.array([a]), np.array([r]), s_prime, np.array([1 if done else 0])])[np.newaxis, :]
             dataset = np.concatenate((dataset,sample), axis=0)
 
             # Take n_fit steps of gradient
@@ -253,7 +253,10 @@ def run(door_x, seed=None):
         if verbose:
             print("Iteration {} Reward {} Fval {} L2 {} L_inf {} Sft {}".format(i,rew[0],fval,l_2_err,l_inf_err,sft_err))
 
-    return [iterations, n_samples, rewards, fval, l_2, l_inf, sft]
+    run_info = [iterations, n_samples, rewards, l_2, l_inf, sft, fval]
+    weights = np.array(mu)
+
+    return [door_x, weights, run_info]
 
 
 # Global parameters
