@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../")
+
 import numpy as np
 from features.agrbf import AGaussianRBF
 from VariationalTransfer.LinearQRegressor import LinearQRegressor
@@ -135,7 +138,7 @@ def run(door_x, seed=None):
                 break
 
         # Evaluate MAP Q-function
-        utils.plot_Q(Q)
+        #utils.plot_Q(Q)
         rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
         br = bellman_residual(Q, dataset) ** 2
         l_2_err = np.average(br)

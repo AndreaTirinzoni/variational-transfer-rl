@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../")
+
 import numpy as np
 from features.agrbf import AGaussianRBF
 from VariationalTransfer.LinearQRegressor import LinearQRegressor
@@ -25,8 +28,8 @@ def clip(params):
     """Makes sure the Cholensky factor L is well-defined"""
     mu, L = unpack(params)
     # Clip the diagonal to 0.01
-    mask = np.logical_and(L < 0.01, np.eye(K, dtype=bool))
-    L[mask] = 0.01
+    mask = np.logical_and(L < 0.0001, np.eye(K, dtype=bool))
+    L[mask] = 0.0001
     # Make sure L is lower triangular
     L[np.triu_indices(K, 1)] = 0
     return pack(mu, L)
@@ -171,9 +174,11 @@ def run(door_x, seed=None):
     # Take only the first n_source weights
     ws = ws[:n_source, :]
     mu_bar = np.mean(ws, axis=0)
-    Sigma_bar = np.cov(ws.T) + np.eye(K) * 0.01
-    Sigma_bar_inv = np.linalg.inv(Sigma_bar)
-    params = pack(mu_bar, np.linalg.cholesky(Sigma_bar))
+    Sigma_bar = np.cov(ws.T)
+    # We use higher regularization for the prior to prevent the ELBO from diverging
+    Sigma_bar_inv = np.linalg.inv(Sigma_bar + np.eye(K) * 0.01)
+    # We initialize the parameters at the prior with smaller regularization (just to make sure Sigma_bar is pd)
+    params = pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * 0.0001))
 
     # Initialize policies
     pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
@@ -233,7 +238,7 @@ def run(door_x, seed=None):
         # Evaluate MAP Q-function
         mu, _ = unpack(params)
         Q._w = mu
-        utils.plot_Q(Q)
+        #utils.plot_Q(Q)
         rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
         br = np.squeeze(bellman_residual(dataset, mu[np.newaxis, :], Q) ** 2)
         l_2_err = np.average(br)
