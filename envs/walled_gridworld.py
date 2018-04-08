@@ -56,7 +56,7 @@ class WalledGridworld(gym.Env):
             x = np.random.ranf(1)[0]*self.size[0]
             y = np.random.ranf(1)[0]*self.size[1]
             self.current_position = np.array([x, y])
-            # self.current_position = np.array([0., 0.])
+            self.current_position = np.array([0., 0.])
         else:
             self.current_position = np.array(state)
 
@@ -102,10 +102,10 @@ class WalledGridworld(gym.Env):
         # Compute reward
         if np.linalg.norm(self.current_position - self.goal) < self.goal_radius:
             absorbing = True
-            reward = 0.0
+            reward = 1.0
         else:
             absorbing = False
-            reward = -1.0
+            reward = 0.0
 
         return self.get_state(), reward, absorbing, {}
 
