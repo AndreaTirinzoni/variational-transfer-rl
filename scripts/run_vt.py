@@ -144,12 +144,11 @@ def gradient_be(samples, weights):
 def gradient_mm(samples, weights):
     """Computes the mellowmax gradient for different weights"""
     _, _, _, _, s_prime, absorbing, _ = utils.split_data(samples, state_dim, action_dim)
-    feats_s_prime = Q.compute_gradient_all_actions(s_prime)
+    # We zero-out features corresponding to terminal states so that their value and their gradient are zero
+    feats_s_prime = Q.compute_gradient_all_actions(s_prime) * (1 - absorbing)[:, np.newaxis, np.newaxis]
     assert feats_s_prime.shape == (samples.shape[0], n_actions, K)
-    Q_values_prime = np.dot(feats_s_prime, weights.T) * (1 - absorbing[:, np.newaxis, np.newaxis])
+    Q_values_prime = np.dot(feats_s_prime, weights.T)
     assert Q_values_prime.shape == (samples.shape[0], n_actions, weights.shape[0])
-    feats_s_prime = feats_s_prime * (1 - absorbing)[:, np.newaxis, np.newaxis]
-    assert feats_s_prime.shape == (samples.shape[0], n_actions, K)
     sft_Q = utils.softmax(Q_values_prime, kappa, axis=1)
     assert sft_Q.shape == (samples.shape[0], n_actions, weights.shape[0])
     mm_grad = np.squeeze(np.sum(sft_Q[:, :, :, np.newaxis] * feats_s_prime[:, :, np.newaxis, :], axis=1))
