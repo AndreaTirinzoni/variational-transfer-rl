@@ -117,7 +117,7 @@ def run(door_x, seed=None):
             # Step
             s_prime, r, done, _ = mdp.step(a)
             # Build the new sample and add it to the dataset
-            sample = np.concatenate([np.array([t]), s, np.array([a]), np.array([r]), s_prime, np.array([1 if done else 0])])[np.newaxis, :]
+            sample = np.concatenate([np.array([h]), s, a, np.array([r]), s_prime, np.array([1 if done else 0])])[np.newaxis, :]
             dataset = np.concatenate((dataset,sample), axis=0)
 
             # Take n_fit steps of gradient
@@ -127,7 +127,7 @@ def run(door_x, seed=None):
                 # Estimate gradient
                 g = gradient(Q, dataset[:gradient_batch, :])
                 # Take a gradient step
-                Q_w, t, m_t, v_t = utils.adam(Q._w, g, t, m_t, v_t, alpha=alpha)
+                Q._w, t, m_t, v_t = utils.adam(Q._w, g, t, m_t, v_t, alpha=alpha)
 
             s = s_prime
             h += 1
