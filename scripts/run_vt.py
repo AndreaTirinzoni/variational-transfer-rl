@@ -32,7 +32,7 @@ m_t = 0
 v_t = 0
 t = 0
 eps = 1e-8
-alpha = 0.01
+alpha = 0.001
 beta_1 = 0.9
 beta_2 = 0.999
 
@@ -126,18 +126,19 @@ def gradient_be(weights):
     assert br.shape == (samples.shape[0], weights.shape[0])
     mm_grad = gradient_mm(weights)
     assert mm_grad.shape == (samples.shape[0], weights.shape[0], K)
-    q_grad = Q.compute_gradient(samples[:, 0:3])
+    q_grad = Q.compute_gradient(samples[:, 1:4])
     assert q_grad.shape == (samples.shape[0], K)
     res_grad = xi * gamma * mm_grad - q_grad[:, np.newaxis, :]
     assert res_grad.shape == (samples.shape[0], weights.shape[0], K)
-    be_grad = 2 * np.sum(br[:, :, np.newaxis] * res_grad * softmax(br ** 2)[:, np.newaxis, :], axis=0)
+    be_grad = 2 * np.sum(br[:, :, np.newaxis] * res_grad * softmax(br ** 2, axis=0)[:, :, np.newaxis], axis=0)
     assert be_grad.shape == (weights.shape[0], K)
 
     return be_grad
 
 
-def gradient_mm(weights, s_prime, absorbing):
+def gradient_mm(weights):
     """Computes the mellowmax gradient for different weights"""
+    _, _, _, _, s_prime, absorbing, _ = utils.split_data(samples, state_dim, action_dim)
     feats_s_prime = Q.compute_gradient_all_actions(s_prime)
     assert feats_s_prime.shape == (samples.shape[0], n_actions, K)
     Q_values_prime = np.dot(feats_s_prime, weights.T) * (1 - absorbing[:, np.newaxis, np.newaxis])
@@ -150,6 +151,7 @@ def gradient_mm(weights, s_prime, absorbing):
     assert mm_grad.shape == (samples.shape[0], weights.shape[0], K)
 
     return mm_grad
+
 
 def gradient(params):
     """Computes the objective function gradient"""
@@ -264,7 +266,6 @@ for i in range(max_iter):
             np.random.shuffle(samples)
             g = gradient(params)
             params = clip(adam(params, g))
-        utils.plot_Q(Q)
 
         s = s_prime
         h += 1
@@ -273,8 +274,9 @@ for i in range(max_iter):
 
     mu, _ = unpack(params)
     Q._w = mu
+    utils.plot_Q(Q)
     rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
-    br = np.squeeze(bellman_residual(mu[np.newaxis, :]) ** 2)
+    br = np.squeeze(bellman_residual(np.concatenate([mu[np.newaxis, :],mu[np.newaxis, :]])) ** 2)
     l_2_err = np.average(br)
     l_inf_err = np.max(br)
     sft_err = np.sum(softmax(br) * br)
@@ -288,4 +290,4 @@ for i in range(max_iter):
     sft.append(sft_err)
 
     if verbose:
-        print("Iteration {} Reward {} Fval {} L2 {} L_inf {} Sft {}".format(i,rew,fval,l_2_err,l_inf_err,sft_err))
+        print("Iteration {} Reward {} Fval {} L2 {} L_inf {} Sft {}".format(i,rew[0],fval,l_2_err,l_inf_err,sft_err))
