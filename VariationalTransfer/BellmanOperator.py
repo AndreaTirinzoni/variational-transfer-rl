@@ -22,6 +22,7 @@ class BellmanOperator:
         a = self._Q.get_statedim()
         r = self._Q.get_statedim() + self._Q.get_actiondim()
         residuals = -self._Q(mdp_samples[:, 0:r]) + self.__call__(mdp_samples)
+
         return residuals
 
     """
@@ -72,11 +73,22 @@ class LinearQBellmanOperator(BellmanOperator):
             feats_sprime = self._Q.compute_gradient_all_actions(mdp_samples[:, sprime:sprime + self._Q.get_statedim()])
             feats = self._Q.compute_gradient(mdp_samples[:, 0:r])
             Q = feats @ weights.T
-            Q *= (1-mdp_samples[:, -1])[:, np.newaxis]
+            # Q *= (1-mdp_samples[:, -1])[:, np.newaxis]
             qs = feats_sprime.reshape(feats_sprime.shape[0] * feats_sprime.shape[1], feats_sprime.shape[2]) @ weights.T
             qs = np.max(qs.reshape(feats_sprime.shape[0], feats_sprime.shape[1], weights.shape[0]), axis=1)
 
-            return mdp_samples[:, r, np.newaxis] + self._gamma * qs * (1 - mdp_samples[:, -1])[:, np.newaxis] - Q
+            residuals = mdp_samples[:, r, np.newaxis] + self._gamma * qs * (1 - mdp_samples[:, -1])[:, np.newaxis] - Q
+
+            argmax = np.argmax(residuals, axis=0)
+            max = np.max(residuals, axis=0)
+
+            argmax = np.argmax(np.average(residuals ** 2, axis=1))
+            max = np.max(np.average(residuals ** 2, axis=1))
+
+            if max == 1.0:
+                print(mdp_samples[argmax, :])
+
+            return residuals
 
     def compute_gradient_diag_hessian(self, mdp_samples, weights=None):
         if weights is None:
