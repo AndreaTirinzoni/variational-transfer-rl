@@ -216,3 +216,98 @@ def plot_Q(Q, size=(5,5)):
     fig.colorbar(f20, ax=ax[2, 0])
     fig.colorbar(f21, ax=ax[2, 1])
     plt.show()
+
+
+def mellow_max(a, kappa, axis=-1):
+    """
+    Computes the mellow-max of array a along the given axis
+    :param a: a numpy array
+    :param kappa: the (inverse) temperature
+    :param axis: the axis along which the mellow-max is computed. By default, the last axis is used
+    :return: a numpy array. The axis along which mellow-max is computed is always removed
+    """
+    mx = np.max(a, axis=axis, keepdims=True)
+    mm_exp = np.exp(kappa * (a - mx))
+    mm_sum = np.sum(mm_exp, axis=axis, keepdims=True)
+    return np.squeeze(np.log(mm_sum / a.shape[axis]) / kappa + mx, axis=axis)
+
+
+def softmax(a, tau, axis=-1):
+    """
+    Computes the softmax of array a along the given axis
+    :param a: a numpy array
+    :param tau: the (inverse) temperature
+    :param axis: the axis along which the softmax is computed. By default, the last axis is used
+    :return: a numpy array with the same shape of a
+    """
+    mx = np.max(a, axis=axis, keepdims=True)
+    num = np.exp(tau * (a - mx))
+    return num / np.sum(num, axis=axis, keepdims=True)
+
+
+def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8):
+    """
+    Applies a gradient step to the given parameters based on ADAM update rule
+    :param params: a numpy array of parameters
+    :param grad: the objective function gradient evaluated in params. This must have the same shape of params
+    :param t: the iteration number
+    :param m_t: first order momentum
+    :param v_t: second order momentum
+    :param alpha: base learning rate
+    :param beta_1: decay of first order momentum
+    :param beta_2: decay of second order momentum
+    :param eps: small constant
+    :return: the updated parameters, iteration number, first order momentum, and second order momentum
+    """
+    t += 1
+    m_t = beta_1 * m_t + (1 - beta_1) * grad
+    v_t = beta_2 * v_t + (1 - beta_2) * grad ** 2
+    m_t_hat = m_t / (1 - beta_1 ** t)
+    v_t_hat = v_t / (1 - beta_2 ** t)
+    return params - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps), t, m_t, v_t
+
+
+def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
+    """
+    Computes the KL divergence between two multivariate Gaussian distributions.
+    :param mu1: mean of the first Gaussian. A numpy array of shape (K,)
+    :param Sigma1: covariance of the first Gaussian. A numpy array of shape (K,K)
+    :param mu2: mean of the second Gaussian. A numpy array of shape (K,)
+    :param Sigma2: covariance or precision of the second Gaussian. A numpy array of shape (K,K)
+    :param precision: whether the precision of the second Gaussian or its covariance is passed
+    :return: the KL divergence (scalar)
+    """
+    Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
+    mu_diff = mu1 - mu2
+    return (np.log(1 / (np.linalg.det(Sigma1) * np.linalg.det(Sigma2_inv))) +
+            np.trace(np.dot(Sigma2_inv,Sigma1)) +
+            np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
+
+
+def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
+    """
+    Computes the gradient of the KL between two multivariate Gaussians wrt mean and Cholensky factor of the first
+    :param mu1: mean of the first Gaussian. A numpy array of shape (K,)
+    :param L1: Cholensky factor of the first Gaussian's covariance. A numpy array of shape (K,K).
+    :param mu2: mean of the second Gaussian. A numpy array of shape (K,)
+    :param Sigma2: covariance or precision of the second Gaussian. A numpy array of shape (K,K)
+    :param precision: whether the precision of the second Gaussian or its covariance is passed
+    :return: the gradient wrt mu1 (K-dimensional array) and the gradient wrt L1 (KxK matrix)
+    """
+    Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
+    grad_mu = np.dot(Sigma2_inv, mu1 - mu2)
+    grad_L = np.dot(Sigma2_inv, L1) - np.linalg.inv(L1).T
+    return grad_mu, grad_L
+
+
+def sample_mvn(n_samples, mu, L):
+    """
+    Fast sampling from a multivariate Gaussian using its Cholensky factor
+    :param n_samples: the number of samples to draw
+    :param mu: mean vector. A numpy array of shape (K,)
+    :param L: Cholensky factor of the covariance. A numpy array of shape (K,K).
+    :return: Two arrays of shape (n_samples,K): one with the mvn samples and one with the corresponding uvn samples
+    """
+    vs = np.random.randn(n_samples, mu.shape[0])
+    ws = np.dot(vs, L.T) + mu
+    return ws, vs
