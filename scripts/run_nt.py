@@ -37,7 +37,7 @@ def gradient_mm(Q, s_prime, absorbing):
     assert q_gradient.shape == (s_prime.shape[0],n_actions,K)
     sft_Q = utils.softmax(q_values, kappa, axis=1)
     assert sft_Q.shape == (s_prime.shape[0], n_actions)
-    mm_grad = np.squeeze(np.sum(sft_Q[:, :, np.newaxis] * q_gradient, axis=1))
+    mm_grad = np.sum(sft_Q[:, :, np.newaxis] * q_gradient, axis=1)
     assert mm_grad.shape == (s_prime.shape[0], K)
 
     return mm_grad
@@ -46,13 +46,9 @@ def gradient_mm(Q, s_prime, absorbing):
 def bellman_residual(Q, samples):
     """Computes the Bellman residuals of given samples"""
     _, _, _, r, s_prime, absorbing, sa = utils.split_data(samples, state_dim, action_dim)
-    feats_s_prime = Q.compute_gradient_all_actions(s_prime)
-    assert feats_s_prime.shape == (samples.shape[0],n_actions,K)
-    feats = Q.compute_gradient(sa)
-    assert feats.shape == (samples.shape[0], K)
-    Qs = np.dot(feats, Q._w)
+    Qs = Q(sa)
     assert Qs.shape == (samples.shape[0],)
-    Qs_prime = np.dot(feats_s_prime, Q._w)
+    Qs_prime = Q.compute_all_actions(s_prime, absorbing)
     assert Qs_prime.shape == (samples.shape[0],n_actions)
     mmQs = utils.mellow_max(Qs_prime, kappa)
     assert mmQs.shape == (samples.shape[0],)
@@ -176,7 +172,7 @@ parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=1.0)
 parser.add_argument("--tau", default=0.0)
 parser.add_argument("--epsilon", default=0.2)
-parser.add_argument("--gradient_batch", default=1000)
+parser.add_argument("--gradient_batch", default=100)
 parser.add_argument("--max_iter", default=100)
 parser.add_argument("--n_fit", default=1)
 parser.add_argument("--alpha", default=0.001)
