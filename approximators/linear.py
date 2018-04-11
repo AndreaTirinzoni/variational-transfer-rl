@@ -30,7 +30,7 @@ class LinearQFunction(QFunction):
 
     def value_actions(self, states, done=None):
         """Computes Q(s,a) for all actions at each s"""
-        feats = self.compute_gradient_all_actions(states)
+        feats = self.gradient_actions(states)
         return np.dot(feats, self._w) * (1 if done is None else 1 - done[:, np.newaxis])
 
     def gradient(self, sa):
@@ -58,21 +58,21 @@ class LinearQFunction(QFunction):
 
     def value_weights(self, sa, weights):
         """Computes Q(s,a) for any weight passed at each sa"""
-        feats = self.compute_gradient(sa)
+        feats = self.gradient(sa)
         return np.dot(feats, weights.T)
 
     def value_actions_weights(self, states, weights, done=None):
         """Computes Q(s,a) for any action and for any weight passed at each s"""
-        feats = self.compute_gradient_all_actions(states)
+        feats = self.gradient_actions(states)
         return np.dot(feats, weights.T) * (1 if done is None else 1 - done[:, np.newaxis, np.newaxis])
 
     def gradient_weights(self, sa, weights):
         """Computes the gradient for each weight at each sa"""
-        return self.compute_gradient(sa)
+        return self.gradient(sa)
 
     def gradient_actions_weights(self, states, weights):
         """Computes the gradient for all actions and weights at each s"""
-        return self.compute_gradient_all_actions(states)
+        return self.gradient_actions(states)
 
     def value_gradient_weights(self, sa, weights):
         """Computes Q(s,a) and its gradient at each sa"""
