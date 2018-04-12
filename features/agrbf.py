@@ -59,6 +59,30 @@ class AGaussianRBF:
     def number_of_features(self):
         return self._K
 
+
+def build_features_gw(gw_size, n_basis, n_actions, state_dim, action_dim):
+    """Create ARBF for gridworld"""
+    # Number of features
+    K = n_basis ** 2 * n_actions
+    # Build the features
+    x = np.linspace(0, gw_size, n_basis)
+    y = np.linspace(0, gw_size, n_basis)
+    a = np.linspace(0, n_actions - 1, n_actions)
+    mean_x, mean_y, mean_a = np.meshgrid(x, y, a)
+    mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 1)))
+    assert mean.shape == (K, 3)
+
+    state_var = (gw_size / (n_basis - 1) / 3) ** 2
+    action_var = 0.01 ** 2
+    covar = np.eye(state_dim + action_dim)
+    covar[0:state_dim, 0:state_dim] *= state_var
+    covar[-1, -1] *= action_var
+    assert covar.shape == (3, 3)
+    covar = np.tile(covar, (K, 1))
+    assert covar.shape == (3 * K, 3)
+
+    return AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
+
 if __name__ == '__main__':
     mean = np.array([[1, 2], [3, 4]])
     print(mean)
