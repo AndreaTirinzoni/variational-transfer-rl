@@ -6,7 +6,7 @@ from envs.walled_gridworld import WalledGridworld
 from features.agrbf import build_features_gw
 from approximators.linear import LinearQFunction
 from operators.mellow import MellowBellmanOperator
-from policies import EpsilonGreedy
+from policies import EpsilonGreedy, ScheduledEpsilonGreedy
 import utils
 import argparse
 from joblib import Parallel, delayed
@@ -25,7 +25,8 @@ def run(mdp, seed=None):
     # Create Q Function
     Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
     # Initialize policies
-    pi = EpsilonGreedy(Q, Q.actions, epsilon=0.2) # TODO change to scheduled policy
+    schedule = np.linspace(eps_start,eps_end,exploration_fraction*max_iter)
+    pi = ScheduledEpsilonGreedy(Q, Q.actions, schedule)
     pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
     pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
 
