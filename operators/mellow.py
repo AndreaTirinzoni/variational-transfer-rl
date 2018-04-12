@@ -56,7 +56,7 @@ class MellowBellmanOperator(Operator):
 
         return r[:, np.newaxis] + self._gamma * mm * (1 - absorbing[:, np.newaxis]) - Q.value_weights(sa, weights)
 
-    def gradient_be(self, Q, samples, weights):
+    def gradient_be(self, Q, samples, weights=None):
         """General function for gradients of the Bellman error"""
         _, _, _, _, _, _, sa = utils.split_data(samples, self._state_dim, self._action_dim)
         return self._gradient_be_single(Q, samples, sa) if weights is None else \

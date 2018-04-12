@@ -53,7 +53,7 @@ class LinearQFunction(QFunction):
     def value_gradient_actions(self, states, done=None):
         """Computes Q(s,a) and its gradient for all actions at each s"""
         # We zero-out features corresponding to terminal states so that their value and their gradient are zero
-        feats = self.gradient_actions(states) * (1 if done is None else 1 - done[:, np.newaxis])
+        feats = self.gradient_actions(states) * (1 if done is None else 1 - done[:, np.newaxis, np.newaxis])
         return np.dot(feats, self._w), feats
 
     def value_weights(self, sa, weights):

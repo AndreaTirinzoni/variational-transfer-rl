@@ -2,58 +2,15 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from features.agrbf import AGaussianRBF
-from VariationalTransfer.LinearQRegressor import LinearQRegressor
 from envs.walled_gridworld import WalledGridworld
-from algorithms.e_greedy_policy import eGreedyPolicy
+from features.agrbf import build_features_gw
+from approximators.linear import LinearQFunction
+from operators.mellow import MellowBellmanOperator
+from policies import EpsilonGreedy
 import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
-
-
-def gradient(Q, samples):
-    """Computes the Bellman error gradient"""
-    _, _, _, _, s_prime, absorbing, sa = utils.split_data(samples, state_dim, action_dim)
-    br = bellman_residual(Q, samples)
-    assert br.shape == (samples.shape[0],)
-    mm_gradient = gradient_mm(Q, s_prime, absorbing)
-    assert mm_gradient.shape == (samples.shape[0], K)
-    q_gradient = Q.compute_gradient(sa)
-    assert q_gradient.shape == (samples.shape[0], K)
-    b_grad = xi * gamma * mm_gradient - q_gradient
-    assert b_grad.shape == (samples.shape[0], K)
-    bellman_grad = 2 * np.sum(br[:, np.newaxis] * b_grad * utils.softmax(br ** 2, tau)[:, np.newaxis], axis=0)
-    assert bellman_grad.shape == (K,)
-
-    return bellman_grad
-
-
-def gradient_mm(Q, s_prime, absorbing):
-    """Computes the mellow-max gradient"""
-    q_values = Q.compute_all_actions(s_prime, absorbing)
-    assert q_values.shape == (s_prime.shape[0],n_actions)
-    q_gradient = Q.compute_gradient_all_actions(s_prime) * (1 - absorbing)[:, np.newaxis, np.newaxis]
-    assert q_gradient.shape == (s_prime.shape[0],n_actions,K)
-    sft_Q = utils.softmax(q_values, kappa, axis=1)
-    assert sft_Q.shape == (s_prime.shape[0], n_actions)
-    mm_grad = np.sum(sft_Q[:, :, np.newaxis] * q_gradient, axis=1)
-    assert mm_grad.shape == (s_prime.shape[0], K)
-
-    return mm_grad
-
-
-def bellman_residual(Q, samples):
-    """Computes the Bellman residuals of given samples"""
-    _, _, _, r, s_prime, absorbing, sa = utils.split_data(samples, state_dim, action_dim)
-    Qs = Q(sa)
-    assert Qs.shape == (samples.shape[0],)
-    Qs_prime = Q.compute_all_actions(s_prime, absorbing)
-    assert Qs_prime.shape == (samples.shape[0],n_actions)
-    mmQs = utils.mellow_max(Qs_prime, kappa)
-    assert mmQs.shape == (samples.shape[0],)
-
-    return r + gamma * mmQs * (1 - absorbing) - Qs
 
 
 def run(door_x, seed=None):
@@ -62,32 +19,19 @@ def run(door_x, seed=None):
         np.random.seed(seed)
 
     # Build the features
-    x = np.linspace(0, gw_size, n_basis)
-    y = np.linspace(0, gw_size, n_basis)
-    a = np.linspace(0, n_actions - 1, n_actions)
-    mean_x, mean_y, mean_a = np.meshgrid(x, y, a)
-    mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 1)))
-    assert mean.shape == (K, 3)
+    features = build_features_gw(gw_size, n_basis, n_actions, state_dim, action_dim)
 
-    state_var = (gw_size / (n_basis - 1) / 3) ** 2
-    action_var = 0.01 ** 2
-    covar = np.eye(state_dim + action_dim)
-    covar[0:state_dim, 0:state_dim] *= state_var
-    covar[-1, -1] *= action_var
-    assert covar.shape == (3, 3)
-    covar = np.tile(covar, (K, 1))
-    assert covar.shape == (3 * K, 3)
-
-    features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
+    # Create BellmanOperator
+    operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
 
     # Create Target task
     mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=door_x)
-    Q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
+    Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
 
     # Initialize policies
-    pi = eGreedyPolicy(Q, Q.actions, epsilon=epsilon)
-    pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
-    pi_g = eGreedyPolicy(Q, Q.actions, epsilon=0)
+    pi = EpsilonGreedy(Q, Q.actions, epsilon=epsilon)
+    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
+    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
 
     # Add a first sample
     dataset = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
@@ -124,7 +68,7 @@ def run(door_x, seed=None):
                 # Shuffle the dataset
                 np.random.shuffle(dataset)
                 # Estimate gradient
-                g = gradient(Q, dataset[:gradient_batch, :])
+                g = operator.gradient_be(Q, dataset[:gradient_batch, :])
                 # Take a gradient step
                 Q._w, t, m_t, v_t = utils.adam(Q._w, g, t, m_t, v_t, alpha=alpha)
 
@@ -136,7 +80,7 @@ def run(door_x, seed=None):
         # Evaluate MAP Q-function
         #utils.plot_Q(Q)
         rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
-        br = bellman_residual(Q, dataset) ** 2
+        br = operator.bellman_residual(Q, dataset) ** 2
         l_2_err = np.average(br)
         l_inf_err = np.max(br)
         sft_err = np.sum(utils.softmax(br, tau) * br)
