@@ -120,14 +120,23 @@ def split_data(data, state_dim, action_dim):
     s_idx = r_idx + 1
 
     t = data[:, 0]
-    s = data[:, 1:a_idx].squeeze()
-    a = data[:, a_idx:r_idx].squeeze()
+    s = data[:, 1:a_idx]
+    a = data[:, a_idx:r_idx]
     r = data[:, r_idx]
-    s_prime = data[:, s_idx:-1].squeeze()
+    s_prime = data[:, s_idx:-1]
     absorbing = data[:, -1]
     sa = data[:, 1:r_idx]
 
     return t, s, a, r, s_prime, absorbing, sa
+
+
+def add_sample(dataset, capacity, t, s, a, r, s_prime, absorbing):
+    """Adds sample to a dataset of limited capacity"""
+    sample = np.concatenate([np.array([t]), s, a, np.array([r]), s_prime, np.array([1 if absorbing else 0])])[np.newaxis, :]
+    if dataset is None:
+        return sample
+    dataset = np.concatenate((dataset, sample), axis=0)
+    return dataset if dataset.shape[0] <= capacity else dataset[1:, :]
 
 
 def save_object(obj, file_name):
@@ -169,7 +178,7 @@ def plot_Q(Q, size=(5,5)):
 
     for x in X:
         for y in Y:
-            vals = Q.compute_all_actions(np.array([y, x]))
+            vals = Q.value_actions(np.array([y, x]))
             Vmax.append(np.max(vals))
             pi.append(np.argmax(vals))
             vals = vals.reshape(4,1)
