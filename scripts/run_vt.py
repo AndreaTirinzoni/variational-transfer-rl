@@ -2,10 +2,11 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from features.agrbf import AGaussianRBF
-from VariationalTransfer.LinearQRegressor import LinearQRegressor
 from envs.walled_gridworld import WalledGridworld
-from algorithms.e_greedy_policy import eGreedyPolicy
+from features.agrbf import build_features_gw
+from approximators.linear import LinearQFunction
+from operators.mellow import MellowBellmanOperator
+from policies import EpsilonGreedy
 import utils
 import argparse
 from joblib import Parallel, delayed
@@ -41,7 +42,7 @@ def sample_posterior(params):
     return np.dot(L, np.random.randn(K,)) + mu
 
 
-def objective(samples, params, Q, mu_bar, Sigma_bar_inv):
+def objective(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     """Computes the negative ELBO"""
     mu, L = unpack(params)
     assert mu.shape == (K,) and L.shape == (K,K)
@@ -50,46 +51,20 @@ def objective(samples, params, Q, mu_bar, Sigma_bar_inv):
     assert Sigma.shape == (K,K) and np.all(np.linalg.eigvals(Sigma) > 0)
     weights, _ = utils.sample_mvn(n_weights, mu, L)
     assert weights.shape == (n_weights,K)
-    likelihood = expected_bellman_error(samples, weights, Q)
+    likelihood = operator.expected_bellman_error(Q, samples, weights)
     assert likelihood >= 0
     kl = utils.KL(mu, Sigma, mu_bar, Sigma_bar_inv)
     assert kl >= 0
-    return likelihood + lambda_ * kl / samples.shape[0]
+    return likelihood + lambda_ * kl / n_samples
 
 
-def expected_bellman_error(samples, weights, Q):
-    """Approximates the expected Bellman error with a finite sample of weights"""
-    br = bellman_residual(samples, weights, Q) ** 2
-    assert br.shape == (samples.shape[0],weights.shape[0])
-    errors = np.average(br, axis=0, weights=utils.softmax(br, tau, axis=0))
-    assert errors.shape == (weights.shape[0],)
-    return np.average(errors)
-
-
-def bellman_residual(samples, weights, Q):
-    """Computes the Bellman residuals of a set of samples given a set of weights"""
-    _, _, _, r, s_prime, absorbing, sa = utils.split_data(samples, state_dim, action_dim)
-    feats_s_prime = Q.compute_gradient_all_actions(s_prime)
-    assert feats_s_prime.shape == (samples.shape[0], n_actions, K)
-    feats = Q.compute_gradient(sa)
-    assert feats.shape == (samples.shape[0], K)
-    Q_values = np.dot(feats, weights.T)
-    assert Q_values.shape == (samples.shape[0], weights.shape[0])
-    Q_values_prime = np.dot(feats_s_prime, weights.T)
-    assert Q_values_prime.shape == (samples.shape[0], n_actions, weights.shape[0])
-    mm = utils.mellow_max(Q_values_prime, kappa, axis=1)
-    assert mm.shape == (samples.shape[0], weights.shape[0])
-
-    return r[:, np.newaxis] + gamma * mm * (1 - absorbing[:, np.newaxis]) - Q_values
-
-
-def gradient(samples, params, Q, mu_bar, Sigma_bar_inv):
+def gradient(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     """Computes the objective function gradient"""
     mu, L = unpack(params)
     assert mu.shape == (K,) and L.shape == (K,K)
     ws, vs = utils.sample_mvn(n_weights, mu, L)
     assert vs.shape == (n_weights, K) and ws.shape == (n_weights,K)
-    be_grad = gradient_be(samples, ws, Q)
+    be_grad = operator.gradient_be(Q, samples, ws)
     assert be_grad.shape == (n_weights, K)
     # Gradient of the expected Bellman error wrt mu
     ebe_grad_mu = np.average(be_grad, axis=0)
@@ -99,44 +74,12 @@ def gradient(samples, params, Q, mu_bar, Sigma_bar_inv):
     assert ebe_grad_L.shape == (K,K)
     kl_grad_mu, kl_grad_L = utils.gradient_KL(mu, L, mu_bar, Sigma_bar_inv)
     assert kl_grad_mu.shape == (K,) and kl_grad_L.shape == (K,K)
-    grad_mu = ebe_grad_mu + lambda_ * kl_grad_mu / samples.shape[0]
+    grad_mu = ebe_grad_mu + lambda_ * kl_grad_mu / n_samples
     assert grad_mu.shape == (K,)
-    grad_L = ebe_grad_L + lambda_ * kl_grad_L / samples.shape[0]
+    grad_L = ebe_grad_L + lambda_ * kl_grad_L / n_samples
     assert grad_L.shape == (K,K)
 
     return pack(grad_mu, grad_L)
-
-
-def gradient_be(samples, weights, Q):
-    """Computes the gradient of the Bellman error for different weights"""
-    br = bellman_residual(samples, weights, Q)
-    assert br.shape == (samples.shape[0], weights.shape[0])
-    mm_grad = gradient_mm(samples, weights, Q)
-    assert mm_grad.shape == (samples.shape[0], weights.shape[0], K)
-    q_grad = Q.compute_gradient(samples[:, 1:1+state_dim+action_dim])
-    assert q_grad.shape == (samples.shape[0], K)
-    res_grad = xi * gamma * mm_grad - q_grad[:, np.newaxis, :]
-    assert res_grad.shape == (samples.shape[0], weights.shape[0], K)
-    be_grad = 2 * np.sum(br[:, :, np.newaxis] * res_grad * utils.softmax(br ** 2, tau, axis=0)[:, :, np.newaxis], axis=0)
-    assert be_grad.shape == (weights.shape[0], K)
-
-    return be_grad
-
-
-def gradient_mm(samples, weights, Q):
-    """Computes the mellowmax gradient for different weights"""
-    _, _, _, _, s_prime, absorbing, _ = utils.split_data(samples, state_dim, action_dim)
-    # We zero-out features corresponding to terminal states so that their value and their gradient are zero
-    feats_s_prime = Q.compute_gradient_all_actions(s_prime) * (1 - absorbing)[:, np.newaxis, np.newaxis]
-    assert feats_s_prime.shape == (samples.shape[0], n_actions, K)
-    Q_values_prime = np.dot(feats_s_prime, weights.T)
-    assert Q_values_prime.shape == (samples.shape[0], n_actions, weights.shape[0])
-    sft_Q = utils.softmax(Q_values_prime, kappa, axis=1)
-    assert sft_Q.shape == (samples.shape[0], n_actions, weights.shape[0])
-    mm_grad = np.squeeze(np.sum(sft_Q[:, :, :, np.newaxis] * feats_s_prime[:, :, np.newaxis, :], axis=1))
-    assert mm_grad.shape == (samples.shape[0], weights.shape[0], K)
-
-    return mm_grad
 
 
 def run(door_x, seed=None):
@@ -145,27 +88,14 @@ def run(door_x, seed=None):
         np.random.seed(seed)
 
     # Build the features
-    x = np.linspace(0, gw_size, n_basis)
-    y = np.linspace(0, gw_size, n_basis)
-    a = np.linspace(0, n_actions - 1, n_actions)
-    mean_x, mean_y, mean_a = np.meshgrid(x, y, a)
-    mean = np.hstack((mean_x.reshape(K, 1), mean_y.reshape(K, 1), mean_a.reshape(K, 1)))
-    assert mean.shape == (K, 3)
+    features = build_features_gw(gw_size, n_basis, n_actions, state_dim, action_dim)
 
-    state_var = (gw_size / (n_basis - 1) / 3) ** 2
-    action_var = 0.01 ** 2
-    covar = np.eye(state_dim + action_dim)
-    covar[0:state_dim, 0:state_dim] *= state_var
-    covar[-1, -1] *= action_var
-    assert covar.shape == (3, 3)
-    covar = np.tile(covar, (K, 1))
-    assert covar.shape == (3 * K, 3)
-
-    features = AGaussianRBF(mean, covar, K=K, dims=state_dim + action_dim)
+    # Create BellmanOperator
+    operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
 
     # Create Target task
     mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=door_x)
-    Q = LinearQRegressor(features, np.arange(n_actions), state_dim, action_dim)
+    Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
 
     # Load weights and construct prior distribution
     weights = utils.load_object(source_file)
@@ -181,8 +111,8 @@ def run(door_x, seed=None):
     params = pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * 0.0001))
 
     # Initialize policies
-    pi_u = eGreedyPolicy(Q, Q.actions, epsilon=1)
-    pi_g = eGreedyPolicy(Q, Q.actions, epsilon=0)
+    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
+    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
 
     # Add a first sample
     dataset = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
@@ -212,7 +142,7 @@ def run(door_x, seed=None):
             # If we do not use time coherent exploration, resample parameters
             Q._w = sample_posterior(params) if not time_coherent else Q._w
             # Take greedy action wrt current Q-function
-            a = np.argmax(Q.compute_all_actions(s))
+            a = np.argmax(Q.value_actions(s))
             # Step
             s_prime, r, done, _ = mdp.step(a)
             # Build the new sample and add it to the dataset
@@ -224,7 +154,7 @@ def run(door_x, seed=None):
                 # Shuffle the dataset
                 np.random.shuffle(dataset)
                 # Estimate gradient
-                g = gradient(dataset[:gradient_batch, :], params, Q, mu_bar, Sigma_bar_inv)
+                g = gradient(dataset[:gradient_batch, :], params, Q, mu_bar, Sigma_bar_inv, operator, dataset.shape[0])
                 # Take a gradient step
                 params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
                 # Clip parameters
@@ -240,11 +170,11 @@ def run(door_x, seed=None):
         Q._w = mu
         #utils.plot_Q(Q)
         rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
-        br = np.squeeze(bellman_residual(dataset, mu[np.newaxis, :], Q) ** 2)
+        br = np.squeeze(operator.bellman_residual(Q, dataset) ** 2)
         l_2_err = np.average(br)
         l_inf_err = np.max(br)
         sft_err = np.sum(utils.softmax(br, tau) * br)
-        fval = objective(dataset, params, Q, mu_bar, Sigma_bar_inv)
+        fval = objective(dataset, params, Q, mu_bar, Sigma_bar_inv, operator, dataset.shape[0])
 
         # Append results
         iterations.append(i)
@@ -275,9 +205,9 @@ verbose = True
 # Command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=100.)
-parser.add_argument("--xi", default=1.0)
+parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
-parser.add_argument("--gradient_batch", default=1000)
+parser.add_argument("--gradient_batch", default=100)
 parser.add_argument("--max_iter", default=100)
 parser.add_argument("--n_fit", default=1)
 parser.add_argument("--alpha", default=0.001)
