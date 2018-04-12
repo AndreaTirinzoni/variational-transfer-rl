@@ -167,13 +167,22 @@ def run(mdp, seed=None):
         if done or h >= mdp.horizon:
 
             episode_rewards.append(0.0)
+            s = mdp.reset()
+            h = 0
+            Q._w = sample_posterior(params)
+
+        # Evaluate model
+        if i % eval_freq == 0:
+
+            #Save current weights
+            current_w = np.array(Q._w)
 
             # Evaluate MAP Q-function
             mu, _ = unpack(params)
             Q._w = mu
             # utils.plot_Q(Q)
             rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
-            learning_rew = np.mean(episode_rewards[-mean_episodes - 1:-1])
+            learning_rew = np.mean(episode_rewards[-mean_episodes - 1:-1]) if len(episode_rewards) > 1 else 0.0
             br = operator.bellman_residual(Q, dataset) ** 2
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
@@ -191,15 +200,17 @@ def run(mdp, seed=None):
             sft.append(sft_err)
             fvals.append(fval)
 
+            # Make sure we restart from s
+            mdp.reset(s)
+
+            # Restore weights
+            Q._w = current_w
+
             if verbose:
                 print("Iter {} Episodes {} Rew(G) {} Rew(L) {} Fval {} L2 {} L_inf {} Sft {}".format(
                     i, episodes[-1], rew, learning_rew, fval, l_2_err, l_inf_err, sft_err))
 
-            s = mdp.reset()
-            h = 0
-            Q._w = sample_posterior(params)
-
-    run_info = [iterations, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft, fval]
+    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft, fval]
     weights = np.array(mu)
 
     return [mdp.door_x, weights, run_info]
@@ -223,6 +234,7 @@ parser.add_argument("--max_iter", default=5000)
 parser.add_argument("--buffer_size", default=10000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
+parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
 parser.add_argument("--lambda_", default=0.001)
@@ -236,7 +248,7 @@ parser.add_argument("--n_basis", default=6)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--source_file", default="../scripts/mm_sources_5x5_basis6_rw1_kappa100_xi1_tau0")
+parser.add_argument("--source_file", default="source_tasks/gw5x5")
 
 # Read arguments
 args = parser.parse_args()
@@ -248,6 +260,7 @@ max_iter = int(args.max_iter)
 buffer_size = int(args.buffer_size)
 random_episodes = int(args.random_episodes)
 train_freq = int(args.train_freq)
+eval_freq = int(args.eval_freq)
 mean_episodes = int(args.mean_episodes)
 alpha = float(args.alpha)
 lambda_ = float(args.lambda_)
