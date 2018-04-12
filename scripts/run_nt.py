@@ -81,11 +81,16 @@ def run(mdp, seed=None):
         if done or h >= mdp.horizon:
 
             episode_rewards.append(0.0)
+            s = mdp.reset()
+            h = 0
+
+        # Evaluate model
+        if i % eval_freq == 0:
 
             # Evaluate greedy policy
             #utils.plot_Q(Q)
             rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
-            learning_rew = np.mean(episode_rewards[-mean_episodes-1:-1])
+            learning_rew = np.mean(episode_rewards[-mean_episodes-1:-1]) if len(episode_rewards) > 1 else 0.0
             br = operator.bellman_residual(Q, dataset) ** 2
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
@@ -101,14 +106,14 @@ def run(mdp, seed=None):
             l_inf.append(l_inf_err)
             sft.append(sft_err)
 
+            # Make sure we restart from s
+            mdp.reset(s)
+
             if verbose:
                 print("Iter {} Episodes {} Rew(G) {} Rew(L) {} L2 {} L_inf {} Sft {}".format(
                     i, episodes[-1], rew, learning_rew, l_2_err, l_inf_err, sft_err))
 
-            s = mdp.reset()
-            h = 0
-
-    run_info = [iterations, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft]
+    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft]
     weights = np.array(Q._w)
 
     return [mdp.door_x, weights, run_info]
@@ -135,6 +140,7 @@ parser.add_argument("--exploration_fraction", default=0.2)
 parser.add_argument("--eps_start", default=1.0)
 parser.add_argument("--eps_end", default=0.02)
 parser.add_argument("--train_freq", default=1)
+parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
 parser.add_argument("--gw_size", default=5)
@@ -158,6 +164,7 @@ exploration_fraction = float(args.exploration_fraction)
 eps_start = float(args.eps_start)
 eps_end = float(args.eps_end)
 train_freq = int(args.train_freq)
+eval_freq = int(args.eval_freq)
 mean_episodes = int(args.mean_episodes)
 alpha = float(args.alpha)
 gw_size = int(args.gw_size)
