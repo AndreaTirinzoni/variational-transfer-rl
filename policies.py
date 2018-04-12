@@ -44,6 +44,7 @@ class ScheduledEpsilonGreedy(Policy):
 
         t = np.random.rand(1)
         eps = self._schedule[self._h] if self._h < self._H else self._schedule[-1]
+        self._h += 1
         if t < 1-eps:
             return self._actions[max_a]
         else:
