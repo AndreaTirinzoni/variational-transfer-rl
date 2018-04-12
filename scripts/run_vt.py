@@ -89,12 +89,17 @@ def run(mdp, seed=None):
 
     # Build the features
     features = build_features_gw(gw_size, n_basis, n_actions, state_dim, action_dim)
-
     # Create BellmanOperator
     operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
-
     # Create Q Function
     Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
+    # Initialize policies
+    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
+    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
+
+    # Add random episodes if needed
+    dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
+    n_init_samples = dataset.shape[0] if dataset is not None else 0
 
     # Load weights and construct prior distribution
     weights = utils.load_object(source_file)
@@ -109,17 +114,13 @@ def run(mdp, seed=None):
     # We initialize the parameters at the prior with smaller regularization (just to make sure Sigma_bar is pd)
     params = pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * 0.0001))
 
-    # Initialize policies
-    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
-    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
-
-    # Add a first sample
-    dataset = utils.generate_episodes(mdp, pi_u, n_episodes=1, render=False)
-
     # Results
     iterations = []
+    episodes = []
     n_samples = []
-    rewards = []
+    evaluation_rewards = []
+    learning_rewards = []
+    episode_rewards = [0.0]
     l_2 = []
     l_inf = []
     sft = []
@@ -130,64 +131,75 @@ def run(mdp, seed=None):
     v_t = 0
     t = 0
 
+    # Init env
+    s = mdp.reset()
+    h = 0
+    Q._w = sample_posterior(params)
+
     # Learning
     for i in range(max_iter):
 
-        s = mdp.reset()
-        h = 0
-        # Sample parameters from the posterior distribution
-        Q._w = sample_posterior(params)
-        while h < mdp.horizon:
-            # If we do not use time coherent exploration, resample parameters
-            Q._w = sample_posterior(params) if not time_coherent else Q._w
-            # Take greedy action wrt current Q-function
-            a = np.argmax(Q.value_actions(s))
-            # Step
-            s_prime, r, done, _ = mdp.step(a)
-            # Build the new sample and add it to the dataset
-            sample = np.concatenate([np.array([h]), s, np.array([a]), np.array([r]), s_prime, np.array([1 if done else 0])])[np.newaxis, :]
-            dataset = np.concatenate((dataset,sample), axis=0)
+        # If we do not use time coherent exploration, resample parameters
+        Q._w = sample_posterior(params) if not time_coherent else Q._w
+        # Take greedy action wrt current Q-function
+        a = np.array([np.argmax(Q.value_actions(s))])
+        # Step
+        s_prime, r, done, _ = mdp.step(a)
+        # Build the new sample and add it to the dataset
+        dataset = utils.add_sample(dataset, buffer_size, h, s, a, r, s_prime, done)
 
-            # Take n_fit steps of gradient
-            for _ in range(n_fit):
-                # Shuffle the dataset
-                np.random.shuffle(dataset)
-                # Estimate gradient
-                g = gradient(dataset[:gradient_batch, :], params, Q, mu_bar, Sigma_bar_inv, operator, dataset.shape[0])
-                # Take a gradient step
-                params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
-                # Clip parameters
-                params = clip(params)
+        # Take a step of gradient if needed
+        if i % train_freq == 0:
+            # Shuffle the dataset
+            np.random.shuffle(dataset)
+            # Estimate gradient
+            g = gradient(dataset[:batch_size, :], params, Q, mu_bar, Sigma_bar_inv, operator, n_init_samples + i + 1)
+            # Take a gradient step
+            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
+            # Clip parameters
+            params = clip(params)
 
-            s = s_prime
-            h += 1
-            if done:
-                break
+        # Add reward to last episode
+        episode_rewards[-1] += r * gamma ** h
 
-        # Evaluate MAP Q-function
-        mu, _ = unpack(params)
-        Q._w = mu
-        #utils.plot_Q(Q)
-        rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=[np.array([0., 0.]) for _ in range(10)])
-        br = np.squeeze(operator.bellman_residual(Q, dataset) ** 2)
-        l_2_err = np.average(br)
-        l_inf_err = np.max(br)
-        sft_err = np.sum(utils.softmax(br, tau) * br)
-        fval = objective(dataset, params, Q, mu_bar, Sigma_bar_inv, operator, dataset.shape[0])
+        s = s_prime
+        h += 1
+        if done or h >= mdp.horizon:
 
-        # Append results
-        iterations.append(i)
-        n_samples.append(dataset.shape[0])
-        rewards.append(rew)
-        l_2.append(l_2_err)
-        l_inf.append(l_inf_err)
-        sft.append(sft_err)
-        fvals.append(fval)
+            episode_rewards.append(0.0)
 
-        if verbose:
-            print("Iteration {} Reward {} Fval {} L2 {} L_inf {} Sft {}".format(i,rew[0],fval,l_2_err,l_inf_err,sft_err))
+            # Evaluate MAP Q-function
+            mu, _ = unpack(params)
+            Q._w = mu
+            # utils.plot_Q(Q)
+            rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
+            learning_rew = np.mean(episode_rewards[-mean_episodes - 1:-1])
+            br = operator.bellman_residual(Q, dataset) ** 2
+            l_2_err = np.average(br)
+            l_inf_err = np.max(br)
+            sft_err = np.sum(utils.softmax(br, tau) * br)
+            fval = objective(dataset, params, Q, mu_bar, Sigma_bar_inv, operator, n_init_samples + i + 1)
 
-    run_info = [iterations, n_samples, rewards, l_2, l_inf, sft, fval]
+            # Append results
+            iterations.append(i)
+            episodes.append(len(episode_rewards) - 1)
+            n_samples.append(n_init_samples + i + 1)
+            evaluation_rewards.append(rew)
+            learning_rewards.append(learning_rew)
+            l_2.append(l_2_err)
+            l_inf.append(l_inf_err)
+            sft.append(sft_err)
+            fvals.append(fval)
+
+            if verbose:
+                print("Iter {} Episodes {} Rew(G) {} Rew(L) {} Fval {} L2 {} L_inf {} Sft {}".format(
+                    i, episodes[-1], rew, learning_rew, fval, l_2_err, l_inf_err, sft_err))
+
+            s = mdp.reset()
+            h = 0
+            Q._w = sample_posterior(params)
+
+    run_info = [iterations, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft, fval]
     weights = np.array(mu)
 
     return [mdp.door_x, weights, run_info]
@@ -206,9 +218,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
-parser.add_argument("--gradient_batch", default=100)
-parser.add_argument("--max_iter", default=100)
-parser.add_argument("--n_fit", default=1)
+parser.add_argument("--batch_size", default=100)
+parser.add_argument("--max_iter", default=5000)
+parser.add_argument("--buffer_size", default=10000)
+parser.add_argument("--random_episodes", default=0)
+parser.add_argument("--train_freq", default=1)
+parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
 parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
@@ -228,9 +243,12 @@ args = parser.parse_args()
 kappa = float(args.kappa)
 xi = float(args.xi)
 tau = float(args.tau)
-gradient_batch = int(args.gradient_batch)
+batch_size = int(args.batch_size)
 max_iter = int(args.max_iter)
-n_fit = int(args.n_fit)
+buffer_size = int(args.buffer_size)
+random_episodes = int(args.random_episodes)
+train_freq = int(args.train_freq)
+mean_episodes = int(args.mean_episodes)
 alpha = float(args.alpha)
 lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
@@ -250,6 +268,7 @@ K = n_basis ** 2 * n_actions
 # Generate tasks
 doors = [np.random.uniform(0.5, gw_size - 0.5) if door < 0 else door for _ in range(n_runs)]
 mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
+eval_states = [np.array([0., 0.]) for _ in range(10)]
 
 if n_jobs == 1:
     results = [run(mdp) for mdp in mdps]
