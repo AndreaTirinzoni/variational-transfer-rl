@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 import datetime
 
 
-def run(door_x, seed=None):
+def run(mdp, seed=None):
 
     if seed is not None:
         np.random.seed(seed)
@@ -24,8 +24,7 @@ def run(door_x, seed=None):
     # Create BellmanOperator
     operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
 
-    # Create Target task
-    mdp = WalledGridworld(np.array([gw_size, gw_size]), door_x=door_x)
+    # Create Q Function
     Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
 
     # Initialize policies
@@ -99,7 +98,7 @@ def run(door_x, seed=None):
     run_info = [iterations, n_samples, rewards, l_2, l_inf, sft]
     weights = np.array(Q._w)
 
-    return [door_x, weights, run_info]
+    return [mdp.door_x, weights, run_info]
 
 
 # Global parameters
@@ -113,7 +112,7 @@ verbose = True
 # Command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=100.)
-parser.add_argument("--xi", default=1.0)
+parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
 parser.add_argument("--epsilon", default=0.2)
 parser.add_argument("--gradient_batch", default=100)
@@ -148,14 +147,15 @@ file_name = str(args.file_name)
 # Number of features
 K = n_basis ** 2 * n_actions
 
-# Generate door positions
+# Generate tasks
 doors = [np.random.uniform(0.5, gw_size - 0.5) if door < 0 else door for _ in range(n_runs)]
+mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
 
 if n_jobs == 1:
-    results = [run(d) for d in doors]
+    results = [run(mdp) for mdp in mdps]
 elif n_jobs > 1:
     seeds = [np.random.randint(1000000) for _ in range(n_runs)]
-    results = Parallel(n_jobs=n_jobs)(delayed(run)(d,seed) for (d,seed) in zip(doors,seeds))
+    results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed) for (mdp,seed) in zip(mdps,seeds))
 
 utils.save_object(results, file_name)
 
