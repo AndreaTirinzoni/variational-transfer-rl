@@ -3,6 +3,7 @@ sys.path.append("../")
 
 import numpy as np
 from envs.walled_gridworld import WalledGridworld
+from envs.marcellos_gridworld import MarcellosGridworld
 from features.agrbf import build_features_gw
 from approximators.linear import LinearQFunction
 from operators.mellow import MellowBellmanOperator
@@ -241,9 +242,11 @@ parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=100)
 parser.add_argument("--n_source", default=10)
+parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
 # Door at -1 means random positions over all runs
 parser.add_argument("--door", default=-1)
+parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=6)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
@@ -267,8 +270,10 @@ lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
 n_weights = int(args.n_weights)
 n_source = int(args.n_source)
+env = str(args.env)
 gw_size = int(args.gw_size)
 door = float(args.door)
+door2 = float(args.door2)
 n_basis = int(args.n_basis)
 n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
@@ -280,7 +285,11 @@ K = n_basis ** 2 * n_actions
 
 # Generate tasks
 doors = [np.random.uniform(0.5, gw_size - 0.5) if door < 0 else door for _ in range(n_runs)]
-mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
+doors2 = [np.random.uniform(0.5, gw_size - 0.5) if door2 < 0 else door2 for _ in range(n_runs)]
+if env == "two-room-gw":
+    mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
+elif env == "three-room-gw":
+    mdps = [MarcellosGridworld(np.array([gw_size, gw_size]), door_x=(d1,d2)) for (d1,d2) in zip(doors,doors2)]
 eval_states = [np.array([0., 0.]) for _ in range(10)]
 
 if n_jobs == 1:
