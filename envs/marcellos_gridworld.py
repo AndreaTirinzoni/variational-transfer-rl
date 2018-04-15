@@ -57,8 +57,10 @@ class MarcellosGridworld(gym.Env):
 
     def reset(self, state=None):
         if state is None:
+            x = np.random.ranf() * (self.size[0] - self.goal_radius)
+            y = np.random.ranf() * (self.size[1] - self.goal_radius)
+            self.current_position = np.array([x, y])
             self.current_position = np.array([0., 0.])
-            self.current_position = np.random.uniform(self.size[0], size=(2,))
         else:
             self.current_position = np.array(state)
 
@@ -106,10 +108,10 @@ class MarcellosGridworld(gym.Env):
         # Compute reward
         if np.linalg.norm(self.current_position - self.goal) < self.goal_radius:
             absorbing = True
-            reward = 0.0
+            reward = 1.0
         else:
             absorbing = False
-            reward = -1.0
+            reward = 0.0
 
         return self.get_state(), reward, absorbing, {}
 

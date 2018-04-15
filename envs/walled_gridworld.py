@@ -53,8 +53,8 @@ class WalledGridworld(gym.Env):
 
     def reset(self, state=None):
         if state is None:
-            x = np.random.ranf(1)[0]*self.size[0]
-            y = np.random.ranf(1)[0]*self.size[1]
+            x = np.random.ranf() * (self.size[0] - self.goal_radius)
+            y = np.random.ranf() * (self.size[1] - self.goal_radius)
             self.current_position = np.array([x, y])
             self.current_position = np.array([0., 0.])
         else:
