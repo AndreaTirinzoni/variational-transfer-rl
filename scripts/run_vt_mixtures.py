@@ -38,8 +38,8 @@ def clip(params):
     c, mu, L = unpack(params)
     # TODO implement more efficiently?
     for i in range(C):
-        mask = np.logical_and(L[i, :, :] < 0.0001, np.eye(K, dtype=bool))
-        L[i, :, :][mask] = 0.0001
+        mask = np.logical_and(L[i, :, :] < cholesky_clip, np.eye(K, dtype=bool))
+        L[i, :, :][mask] = cholesky_clip
         L[i, :, :][np.triu_indices(K, 1)] = 0
     return pack(c, mu, L)
 
@@ -56,8 +56,8 @@ def normal_KL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, precision=None):
     global det_prior
 
     m = np.min(np.diagonal(Sigma_bar, axis1=1, axis2=2))
-    # det_a = np.linalg.det(Sigma/m)[:, np.newaxis]
-    # det_prior = np.linalg.det(Sigma_bar/m)[np.newaxis] if det_prior is None else det_prior
+    det_a = np.linalg.det(Sigma)[:, np.newaxis]
+    det_prior = np.linalg.det(Sigma_bar)[np.newaxis] if det_prior is None else det_prior
     # d = det_prior/det_a
 
     Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
@@ -65,7 +65,11 @@ def normal_KL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, precision=None):
     inv_b = Sigma_bar_inv[np.newaxis]
 
     prod = np.matmul(inv_b, Sigma[:, np.newaxis])
-    d = 1 / np.linalg.det(prod)
+
+    d = 1/np.linalg.det(prod)
+
+
+
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
     return 0.5 * (np.log(d) + np.trace(prod, axis1=2, axis2=3) + \
                   np.matmul(np.matmul(mu_diff[:, :, np.newaxis], inv_b), mu_diff[:, :, :, np.newaxis])[:,:,0,0]- mu.shape[1])
@@ -149,6 +153,8 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
         phi = np.array(psi)
         phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl)
 
+    assert np.all(np.logical_and(phi >= 0, psi >= 0))
+
     Sigma_bar_inv = precision if precision is not None else np.linalg.inv(Sigma_bar)
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
     phi_m = np.argmax(phi, axis=1)
@@ -156,15 +162,15 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
     # grad_mu = np.squeeze(np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis]))
     # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m]
 
-    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(L[:, np.newaxis])), axis=1)
-
+    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(np.transpose(L, (0,2,1))[:, np.newaxis])), axis=1)
+    assert np.all(np.logical_not(np.isnan(grad_L)))
     # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(L[:, np.newaxis])
     # grad_L = grad_L[np.arange(phi.shape[0]), phi_m]
     grad_c = np.zeros(C)
 
     return grad_c, grad_mu, grad_L, phi, psi
 
-def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-2, eps=0.001):
+def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-3, eps=0.001):
     i = 0
     Sigma = np.matmul(L, np.transpose(L, axes=(0, 2, 1)))
     ukl_prev = UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi)
@@ -248,7 +254,7 @@ def run(mdp, seed=None):
     mu_bar = ws
     Sigma_bar = np.tile(np.eye(K) * bw, (n_source,1,1))
     # We use higher regularization for the prior to prevent the ELBO from diverging
-    Sigma_bar_inv = np.tile((1/bw * np.eye(K))[np.newaxis], (n_source, 1, 1))
+    Sigma_bar_inv = np.tile(((1/bw + sigma_reg) * np.eye(K))[np.newaxis], (n_source, 1, 1))
     c_bar = np.ones(n_source)/n_source
 
 
@@ -258,7 +264,7 @@ def run(mdp, seed=None):
     phi = np.array(psi)
 
     mu = np.array([np.random.randn(K) + 100 * np.random.randn(K) for _ in range(C)])
-    Sigma = np.array([np.eye(K) * 0.1 for _ in range(C)])
+    Sigma = np.array([np.eye(K) * (1 + cholesky_clip) for _ in range(C)])
 
     phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl)
     params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv)
@@ -328,9 +334,14 @@ def run(mdp, seed=None):
 
             # Evaluate MAP Q-function
             c, mu, _ = unpack(params)
-            Q._w = np.average(mu, axis=0, weights=c)
-            utils.plot_Q(Q)
-            rew = utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
+            rew = 0
+            for j in range(C):
+                Q._w = mu[j]
+                utils.plot_Q(Q)
+                rew += utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
+
+            rew /= C
+
             learning_rew = np.mean(episode_rewards[-mean_episodes - 1:-1]) if len(episode_rewards) > 1 else 0.0
             br = operator.bellman_residual(Q, dataset) ** 2
             l_2_err = np.average(br)
@@ -387,12 +398,14 @@ parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
-parser.add_argument("--lambda_", default=0.0001)
+parser.add_argument("--lambda_", default=0.00001)
 parser.add_argument("--time_coherent", default=True)
-parser.add_argument("--n_weights", default=100)
+parser.add_argument("--n_weights", default=500)
 parser.add_argument("--n_source", default=10)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
+parser.add_argument("--sigma_reg", default=0.01)
+parser.add_argument("--cholesky_clip", default=0.0001)
 # Door at -1 means random positions over all runs
 parser.add_argument("--door", default=1.5)
 parser.add_argument("--door2", default=-1)
@@ -401,7 +414,7 @@ parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/gw5x5")
-parser.add_argument("--bandwidth", default=.05)     # Bandwidth for the Kernel Estimator
+parser.add_argument("--bandwidth", default=.1)     # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1) # number of components of the posterior family
 
 
@@ -422,6 +435,8 @@ lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
 n_weights = int(args.n_weights)
 n_source = int(args.n_source)
+sigma_reg = float(args.sigma_reg)
+cholesky_clip = float(args.cholesky_clip)
 env = str(args.env)
 gw_size = int(args.gw_size)
 door = float(args.door)
