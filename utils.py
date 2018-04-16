@@ -305,7 +305,12 @@ def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
     """
     Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
     grad_mu = np.dot(Sigma2_inv, mu1 - mu2)
-    grad_L = np.dot(Sigma2_inv, L1) - np.linalg.inv(L1).T
+    # If L1 is not invertible, we return 0 by default
+    try:
+        grad_L = np.dot(Sigma2_inv, L1) - np.linalg.inv(L1).T
+    except np.linalg.LinAlgError:
+        print("WARNING: L1 is not invertible")
+        grad_L = 0.0
     return grad_mu, grad_L
 
 
