@@ -30,8 +30,8 @@ def clip(params):
     """Makes sure the Cholensky factor L is well-defined"""
     mu, L = unpack(params)
     # Clip the diagonal to 0.01
-    mask = np.logical_and(L < 0.0001, np.eye(K, dtype=bool))
-    L[mask] = 0.0001
+    mask = np.logical_and(L < cholesky_clip, np.eye(K, dtype=bool))
+    L[mask] = cholesky_clip
     # Make sure L is lower triangular
     L[np.triu_indices(K, 1)] = 0
     return pack(mu, L)
@@ -48,7 +48,7 @@ def objective(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     mu, L = unpack(params)
     assert mu.shape == (K,) and L.shape == (K,K)
     # We add a small constant to make sure Sigma is always positive definite
-    Sigma = np.dot(L, L.T) + np.eye(K) * 0.01
+    Sigma = np.dot(L, L.T) + np.eye(K) * sigma_reg
     assert Sigma.shape == (K,K) and np.all(np.linalg.eigvals(Sigma) > 0)
     weights, _ = utils.sample_mvn(n_weights, mu, L)
     assert weights.shape == (n_weights,K)
@@ -111,9 +111,9 @@ def run(mdp, seed=None):
     mu_bar = np.mean(ws, axis=0)
     Sigma_bar = np.cov(ws.T)
     # We use higher regularization for the prior to prevent the ELBO from diverging
-    Sigma_bar_inv = np.linalg.inv(Sigma_bar + np.eye(K) * 0.01)
+    Sigma_bar_inv = np.linalg.inv(Sigma_bar + np.eye(K) * sigma_reg)
     # We initialize the parameters at the prior with smaller regularization (just to make sure Sigma_bar is pd)
-    params = pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * 0.0001))
+    params = clip(pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * cholesky_clip)))
 
     # Results
     iterations = []
@@ -242,6 +242,8 @@ parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=100)
 parser.add_argument("--n_source", default=10)
+parser.add_argument("--sigma_reg", default=0.01)
+parser.add_argument("--cholesky_clip", default=0.0001)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
 # Door at -1 means random positions over all runs
@@ -270,6 +272,8 @@ lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
 n_weights = int(args.n_weights)
 n_source = int(args.n_source)
+sigma_reg = float(args.sigma_reg)
+cholesky_clip = float(args.cholesky_clip)
 env = str(args.env)
 gw_size = int(args.gw_size)
 door = float(args.door)
