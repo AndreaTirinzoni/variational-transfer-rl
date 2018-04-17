@@ -74,7 +74,7 @@ def gradient(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     ebe_grad_L = np.average(be_grad[:, :, np.newaxis] * vs[:, np.newaxis, :], axis=0)
     assert ebe_grad_L.shape == (K,K)
     kl_grad_mu, kl_grad_L = utils.gradient_KL(mu, L, mu_bar, Sigma_bar_inv)
-    assert kl_grad_mu.shape == (K,) and kl_grad_L.shape == (K,K)
+    #assert kl_grad_mu.shape == (K,) and kl_grad_L.shape == (K,K)
     grad_mu = ebe_grad_mu + lambda_ * kl_grad_mu / n_samples
     assert grad_mu.shape == (K,)
     grad_L = ebe_grad_L + lambda_ * kl_grad_L / n_samples
