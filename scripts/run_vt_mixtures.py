@@ -151,11 +151,17 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
     Sigma_bar_inv = precision if precision is not None else np.linalg.inv(Sigma_bar)
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
     phi_m = np.argmax(phi, axis=1)
-    grad_mu = np.sum(phi[:,:, np.newaxis, np.newaxis] * np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:,:,:, np.newaxis]), axis=1)[:,:,0]
+    grad_mu = np.sum(phi[:,:, np.newaxis, np.newaxis] * \
+                     np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:,:,:, np.newaxis]), axis=1)[:,:,0]
     # grad_mu = np.squeeze(np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis]))
     # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m]
 
-    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(np.transpose(L, (0,2,1))[:, np.newaxis])), axis=1)
+    diagonal = np.diag_indices(K)
+    L_inv_t = np.zeros(L.shape)
+    L_inv_t[:, diagonal[0], diagonal[1]] = 1/np.diagonal(L, axis1=1, axis2=2)
+    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * \
+                     (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - L_inv_t[:, np.newaxis]), axis=1)
+
     assert np.all(np.logical_not(np.isnan(grad_L)))
     # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(L[:, np.newaxis])
     # grad_L = grad_L[np.arange(phi.shape[0]), phi_m]
