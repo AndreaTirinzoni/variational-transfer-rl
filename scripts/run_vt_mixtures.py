@@ -118,7 +118,7 @@ def UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None):
 def sample_gmm(n_samples, c, mu, L):
     """ Samples a mixture of Gaussians """
     vs = np.random.randn(n_samples, mu.shape[1])
-    clusters = np.random.choice(np.arange(C), n_samples, p=c)
+    clusters = np.random.choice(np.arange(c.size), n_samples, p=c)
     ws = np.matmul(vs[:,np.newaxis], np.transpose(L[clusters], (0,2,1)))[:,:,0] + mu[clusters]
     return ws, vs
 
@@ -150,11 +150,9 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
 
     Sigma_bar_inv = precision if precision is not None else np.linalg.inv(Sigma_bar)
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
-    phi_m = np.argmax(phi, axis=1)
+
     grad_mu = np.sum(phi[:,:, np.newaxis, np.newaxis] * \
                      np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:,:,:, np.newaxis]), axis=1)[:,:,0]
-    # grad_mu = np.squeeze(np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis]))
-    # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m]
 
     diagonal = np.diag_indices(K)
     L_inv_t = np.zeros(L.shape)
@@ -162,9 +160,16 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
     grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * \
                      (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - L_inv_t[:, np.newaxis]), axis=1)
 
-    assert np.all(np.logical_not(np.isnan(grad_L)))
-    # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(L[:, np.newaxis])
+
+
+    # phi_m = np.argmax(phi, axis=1)
+    # grad_mu = np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis])
+    # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m][:,:,0]
+
+    # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - L_inv_t[:, np.newaxis]
     # grad_L = grad_L[np.arange(phi.shape[0]), phi_m]
+
+    assert np.all(np.logical_not(np.isnan(grad_L)))
     grad_c = np.zeros(C)
 
     return grad_c, grad_mu, grad_L, phi, psi
@@ -238,9 +243,6 @@ def run(mdp, seed=None):
     pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
     pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
 
-    # Add random episodes if needed
-    dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
-    n_init_samples = dataset.shape[0] if dataset is not None else 0
 
     # Load weights and construct prior distribution
     weights = utils.load_object(source_file)
@@ -250,22 +252,35 @@ def run(mdp, seed=None):
     ws = ws[:n_source, :]
     mu_bar = ws
     Sigma_bar = np.tile(np.eye(K) * bw, (n_source,1,1))
-    # We use higher regularization for the prior to prevent the ELBO from diverging
-    Sigma_bar_inv = np.tile(((1/bw + sigma_reg) * np.eye(K))[np.newaxis], (n_source, 1, 1))
+    Sigma_bar_inv = np.tile((1/bw * np.eye(K))[np.newaxis], (n_source, 1, 1))
     c_bar = np.ones(n_source)/n_source
-
 
     # We initialize the parameters of the posterior to the best approximation of the posterior family to the prior
     c = np.ones(C) / C
     psi = c[:, np.newaxis] * c_bar[np.newaxis]
     phi = np.array(psi)
 
-    mu = np.array([np.random.randn(K) + 100 * np.random.randn(K) for _ in range(C)])
-    Sigma = np.array([np.eye(K) * (1 + cholesky_clip) for _ in range(C)])
+    mu = np.array([100 * np.random.randn(K) for _ in range(C)])
+    Sigma = np.array([np.eye(K) for _ in range(C)])
 
     phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl, eps=eps)
     params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi,\
                                       max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv, eta=eta, eps=eps)
+
+    # Add random episodes if needed
+    dataset = list()
+    if random_episodes > 0:
+        w, _ = sample_gmm(random_episodes, c_bar, mu_bar, np.sqrt(Sigma_bar))
+        for i in range(random_episodes):
+            Q._w = w[i]
+            dataset.append(utils.generate_episodes(mdp, pi_g, n_episodes=1))
+        dataset = np.concatenate(dataset)
+    else:
+        dataset = None
+
+    # dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
+    n_init_samples = dataset.shape[0] if dataset is not None else 0
+
 
     # Results
     iterations = []
@@ -311,11 +326,6 @@ def run(mdp, seed=None):
             params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
             # Clip parameters
             params = clip(params)
-
-
-        # c, mu, L = unpack(params)
-        # Sigma = np.matmul(L, np.transpose(L, axes=(0, 2, 1)))
-        # print(UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, precision=Sigma_bar_inv))
 
         # Add reward to last episode
         episode_rewards[-1] += r * gamma ** h
@@ -411,14 +421,14 @@ parser.add_argument("--gw_size", default=5)
 parser.add_argument("--sigma_reg", default=0.01)
 parser.add_argument("--cholesky_clip", default=0.01)
 # Door at -1 means random positions over all runs
-parser.add_argument("--door", default=1.)
+parser.add_argument("--door", default=-1)
 parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=6)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/gw5x5")
-parser.add_argument("--eta", default=1e-5)  # learning rate for
+parser.add_argument("--eta", default=1e-6)  # learning rate for
 parser.add_argument("--eps", default=0.001) # precision for the initial posterior approximation and upperbound tighting
 parser.add_argument("--bandwidth", default=.00001)     # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1) # number of components of the posterior family
