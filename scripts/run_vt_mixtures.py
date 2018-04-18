@@ -13,9 +13,8 @@ import argparse
 from joblib import Parallel, delayed
 import datetime
 
-
-
-det_prior = None
+prior_eigen = None
+cholesky_mask = None;
 
 def unpack(params):
     """Unpacks a parameter vector into c, mu, L"""
@@ -35,10 +34,11 @@ def pack(c, mu, L):
 
 def clip(params):
     """Makes sure the Cholesky factor L is well-defined"""
+    global cholesky_mask
     c, mu, L = unpack(params)
-    # TODO implement more efficiently?
+    cholesky_mask = np.eye(K, dtype=bool) if cholesky_mask is None else cholesky_mask
     for i in range(C):
-        mask = np.logical_and(L[i, :, :] < cholesky_clip, np.eye(K, dtype=bool))
+        mask = np.logical_and(L[i, :, :] < cholesky_clip, cholesky_mask)
         L[i, :, :][mask] = cholesky_clip
         L[i, :, :][np.triu_indices(K, 1)] = 0
     return pack(c, mu, L)
@@ -53,25 +53,20 @@ def sample_posterior(params):
 
 def normal_KL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, precision=None):
     """ Computes the KL between normals for two GMMs """
-    global det_prior
 
-    m = np.min(np.diagonal(Sigma_bar, axis1=1, axis2=2))
-    det_a = np.linalg.det(Sigma)[:, np.newaxis]
-    det_prior = np.linalg.det(Sigma_bar)[np.newaxis] if det_prior is None else det_prior
-    # d = det_prior/det_a
+    global prior_eigen
 
     Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
-
     inv_b = Sigma_bar_inv[np.newaxis]
+    if prior_eigen is None:
+        prior_eigen, _ = np.linalg.eig(Sigma_bar[np.newaxis])
 
-    prod = np.matmul(inv_b, Sigma[:, np.newaxis])
-
-    d = 1/np.linalg.det(prod)
-
-
+    posterior_eigen, _ = np.linalg.eig(Sigma[:, np.newaxis])
+    posterior_eigen = np.real(posterior_eigen)
 
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
-    return 0.5 * (np.log(d) + np.trace(prod, axis1=2, axis2=3) + \
+
+    return 0.5 * (np.sum(np.log(prior_eigen/posterior_eigen) + posterior_eigen/prior_eigen, axis=2) + \
                   np.matmul(np.matmul(mu_diff[:, :, np.newaxis], inv_b), mu_diff[:, :, :, np.newaxis])[:,:,0,0]- mu.shape[1])
 
 
@@ -123,11 +118,9 @@ def UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None):
 def sample_gmm(n_samples, c, mu, L):
     """ Samples a mixture of Gaussians """
     vs = np.random.randn(n_samples, mu.shape[1])
-    clusters = np.random.choice(np.arange(C), n_samples, p=c)
-    ws = []
-    for i in range(n_samples):
-        ws.append(np.dot(vs[i, :], L[clusters[i],:,:].T) + mu[clusters[i],:])
-    return np.array(ws), vs
+    clusters = np.random.choice(np.arange(c.size), n_samples, p=c)
+    ws = np.matmul(vs[:,np.newaxis], np.transpose(L[clusters], (0,2,1)))[:,:,0] + mu[clusters]
+    return ws, vs
 
 
 def objective(samples, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_samples, phi, psi, precision=None):
@@ -157,20 +150,31 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
 
     Sigma_bar_inv = precision if precision is not None else np.linalg.inv(Sigma_bar)
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
-    phi_m = np.argmax(phi, axis=1)
-    grad_mu = np.sum(phi[:,:, np.newaxis, np.newaxis] * np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:,:,:, np.newaxis]), axis=1)[:,:,0]
-    # grad_mu = np.squeeze(np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis]))
-    # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m]
 
-    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(np.transpose(L, (0,2,1))[:, np.newaxis])), axis=1)
-    assert np.all(np.logical_not(np.isnan(grad_L)))
-    # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - np.linalg.inv(L[:, np.newaxis])
+    grad_mu = np.sum(phi[:,:, np.newaxis, np.newaxis] * \
+                     np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:,:,:, np.newaxis]), axis=1)[:,:,0]
+
+    diagonal = np.diag_indices(K)
+    L_inv_t = np.zeros(L.shape)
+    L_inv_t[:, diagonal[0], diagonal[1]] = 1/np.diagonal(L, axis1=1, axis2=2)
+    grad_L =  np.sum(phi[:,:, np.newaxis, np.newaxis] * \
+                     (np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - L_inv_t[:, np.newaxis]), axis=1)
+
+
+
+    # phi_m = np.argmax(phi, axis=1)
+    # grad_mu = np.matmul(Sigma_bar_inv[np.newaxis], mu_diff[:, :, :, np.newaxis])
+    # grad_mu = grad_mu[np.arange(phi.shape[0]), phi_m][:,:,0]
+
+    # grad_L = np.matmul(Sigma_bar_inv[np.newaxis], L[:, np.newaxis]) - L_inv_t[:, np.newaxis]
     # grad_L = grad_L[np.arange(phi.shape[0]), phi_m]
+
+    assert np.all(np.logical_not(np.isnan(grad_L)))
     grad_c = np.zeros(C)
 
     return grad_c, grad_mu, grad_L, phi, psi
 
-def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-3, eps=0.001):
+def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-5, eps=0.000001):
     i = 0
     Sigma = np.matmul(L, np.transpose(L, axes=(0, 2, 1)))
     ukl_prev = UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi)
@@ -198,23 +202,21 @@ def gradient(samples, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_samples, 
     c, mu, L = unpack(params)
     assert mu.shape == (C,K) and L.shape == (C,K,K)
     grad_c = np.zeros(c.shape)
-    grads_mu = []
-    grads_L = []
-    # TODO more efficient computation?
-    for i in range(C):
-        ws, vs = utils.sample_mvn(n_weights, mu[i, :], L[i, :, :])
-        assert vs.shape == (n_weights, K) and ws.shape == (n_weights, K)
-        be_grad = operator.gradient_be(Q, samples, ws)
-        assert be_grad.shape == (n_weights, K)
-        # Gradient of the expected Bellman error wrt mu
-        ebe_grad_mu = np.average(be_grad, axis=0)
-        assert ebe_grad_mu.shape == (K,)
-        # Gradient of the expected Bellman error wrt L.
-        ebe_grad_L = np.average(be_grad[:, :, np.newaxis] * vs[:, np.newaxis, :], axis=0)
-        assert ebe_grad_L.shape == (K,K)
 
-        grads_mu.append(c[i] * ebe_grad_mu)
-        grads_L.append(c[i] * ebe_grad_L)
+    _, vs = utils.sample_mvn(n_weights * C, mu[0, :], L[0, :, :])
+
+    ws = np.matmul(vs.reshape(C,n_weights,K), np.transpose(L, (0,2,1))) + mu[:, np.newaxis]
+    assert ws.shape == (C, n_weights, K)
+    be_grad = operator.gradient_be(Q, samples, ws.reshape(C*n_weights, K)).reshape(C, n_weights, K)
+    assert be_grad.shape == (C, n_weights, K)
+    # Gradient of the expected Bellman error wrt mu
+    ebe_grad_mu = np.average(be_grad, axis=1)
+    assert ebe_grad_mu.shape == (C,K)
+    # Gradient of the expected Bellman error wrt L.
+    ebe_grad_L = np.average(np.matmul(be_grad[:, :, :, np.newaxis], vs.reshape(C, n_weights, K)[:,:,np.newaxis]), axis=1)
+    assert ebe_grad_L.shape == (C,K,K)
+    ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
+    ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
 
     kl_grad_c, kl_grad_mu, kl_grad_L, phi, psi = gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=precision)
     assert kl_grad_mu.shape == (C, K) and kl_grad_L.shape == (C,K,K)
@@ -241,9 +243,6 @@ def run(mdp, seed=None):
     pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
     pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
 
-    # Add random episodes if needed
-    dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
-    n_init_samples = dataset.shape[0] if dataset is not None else 0
 
     # Load weights and construct prior distribution
     weights = utils.load_object(source_file)
@@ -253,21 +252,35 @@ def run(mdp, seed=None):
     ws = ws[:n_source, :]
     mu_bar = ws
     Sigma_bar = np.tile(np.eye(K) * bw, (n_source,1,1))
-    # We use higher regularization for the prior to prevent the ELBO from diverging
-    Sigma_bar_inv = np.tile(((1/bw + sigma_reg) * np.eye(K))[np.newaxis], (n_source, 1, 1))
+    Sigma_bar_inv = np.tile((1/bw * np.eye(K))[np.newaxis], (n_source, 1, 1))
     c_bar = np.ones(n_source)/n_source
-
 
     # We initialize the parameters of the posterior to the best approximation of the posterior family to the prior
     c = np.ones(C) / C
     psi = c[:, np.newaxis] * c_bar[np.newaxis]
     phi = np.array(psi)
 
-    mu = np.array([np.random.randn(K) + 100 * np.random.randn(K) for _ in range(C)])
-    Sigma = np.array([np.eye(K) * (1 + cholesky_clip) for _ in range(C)])
+    mu = np.array([100 * np.random.randn(K) for _ in range(C)])
+    Sigma = np.array([np.eye(K) for _ in range(C)])
 
-    phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl)
-    params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv)
+    phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl, eps=eps)
+    params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi,\
+                                      max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv, eta=eta, eps=eps)
+
+    # Add random episodes if needed
+    dataset = list()
+    if random_episodes > 0:
+        w, _ = sample_gmm(random_episodes, c_bar, mu_bar, np.sqrt(Sigma_bar))
+        for i in range(random_episodes):
+            Q._w = w[i]
+            dataset.append(utils.generate_episodes(mdp, pi_g, n_episodes=1))
+        dataset = np.concatenate(dataset)
+    else:
+        dataset = None
+
+    # dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
+    n_init_samples = dataset.shape[0] if dataset is not None else 0
+
 
     # Results
     iterations = []
@@ -347,7 +360,8 @@ def run(mdp, seed=None):
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
             sft_err = np.sum(utils.softmax(br, tau) * br)
-            fval = objective(dataset, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_init_samples + i + 1, phi, psi, precision=Sigma_bar_inv)
+            fval = objective(dataset, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_init_samples + i + 1, \
+                             phi, psi, precision=Sigma_bar_inv)
 
             # Append results
             iterations.append(i)
@@ -381,7 +395,7 @@ gamma = 0.99
 n_actions = 4
 state_dim = 2
 action_dim = 1
-max_iter_ukl = 50
+max_iter_ukl = 60
 render = False
 verbose = True
 
@@ -398,23 +412,25 @@ parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
-parser.add_argument("--lambda_", default=0.00001)
+parser.add_argument("--lambda_", default=0.000001)
 parser.add_argument("--time_coherent", default=True)
-parser.add_argument("--n_weights", default=500)
+parser.add_argument("--n_weights", default=200)
 parser.add_argument("--n_source", default=10)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
 parser.add_argument("--sigma_reg", default=0.01)
-parser.add_argument("--cholesky_clip", default=0.0001)
+parser.add_argument("--cholesky_clip", default=0.01)
 # Door at -1 means random positions over all runs
-parser.add_argument("--door", default=1.5)
+parser.add_argument("--door", default=-1)
 parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=6)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/gw5x5")
-parser.add_argument("--bandwidth", default=.1)     # Bandwidth for the Kernel Estimator
+parser.add_argument("--eta", default=1e-6)  # learning rate for
+parser.add_argument("--eps", default=0.001) # precision for the initial posterior approximation and upperbound tighting
+parser.add_argument("--bandwidth", default=.00001)     # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1) # number of components of the posterior family
 
 
@@ -446,6 +462,8 @@ n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 source_file = str(args.source_file)
+eps = float(args.eps)
+eta = float(args.eta)
 
 # Number of features
 K = n_basis ** 2 * n_actions
