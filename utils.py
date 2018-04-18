@@ -288,9 +288,10 @@ def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
     """
     Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
     mu_diff = mu1 - mu2
-    return (np.log(1 / (np.linalg.det(Sigma1) * np.linalg.det(Sigma2_inv))) +
-            np.trace(np.dot(Sigma2_inv,Sigma1)) +
-            np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
+    Sigma_prod = np.dot(Sigma2_inv, Sigma1)
+    eig = np.real(np.linalg.eigvals(Sigma_prod))
+
+    return (np.sum(eig - np.log(eig)) + np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
 
 
 def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
@@ -305,12 +306,10 @@ def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
     """
     Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
     grad_mu = np.dot(Sigma2_inv, mu1 - mu2)
-    # If L1 is not invertible, we return 0 by default
-    try:
-        grad_L = np.dot(Sigma2_inv, L1) - np.linalg.inv(L1).T
-    except np.linalg.LinAlgError:
-        print("WARNING: L1 is not invertible")
-        grad_L = 0.0
+    # Off-diagonal elements are not required, so we directly invert diag(L1)
+    grad_L = np.dot(Sigma2_inv, L1) - np.diag(1. / np.diag(L1))
+    # TODO should we also clip the gradient? The maximum value is cholesky-clip
+
     return grad_mu, grad_L
 
 
