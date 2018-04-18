@@ -257,8 +257,9 @@ def run(mdp, seed=None):
     mu = np.array([np.random.randn(K) + 100 * np.random.randn(K) for _ in range(C)])
     Sigma = np.array([np.eye(K) * (1 + cholesky_clip) for _ in range(C)])
 
-    phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl)
-    params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv)
+    phi, psi = tight_ukl(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, max_iter=max_iter_ukl, eps=eps)
+    params, phi, psi = init_posterior(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi,\
+                                      max_iter=max_iter_ukl * 10, precision=Sigma_bar_inv, eta=eta, eps=eps)
 
     # Results
     iterations = []
@@ -411,6 +412,8 @@ parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/gw5x5")
+parser.add_argument("--eta", default=1e-5)  # learning rate for
+parser.add_argument("--eps", default=0.001) # precision for the initial posterior approximation and upperbound tighting
 parser.add_argument("--bandwidth", default=.00001)     # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1) # number of components of the posterior family
 
@@ -443,6 +446,8 @@ n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 source_file = str(args.source_file)
+eps = float(args.eps)
+eta = float(args.eta)
 
 # Number of features
 K = n_basis ** 2 * n_actions
