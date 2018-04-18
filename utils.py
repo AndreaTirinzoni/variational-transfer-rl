@@ -290,6 +290,8 @@ def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
     mu_diff = mu1 - mu2
     Sigma_prod = np.dot(Sigma2_inv, Sigma1)
     eig = np.real(np.linalg.eigvals(Sigma_prod))
+    # Make sure all eigenvalues are strictly positive
+    eig[eig < 1e-10] = 1e-10
 
     return (np.sum(eig - np.log(eig)) + np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
 
@@ -308,7 +310,9 @@ def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
     grad_mu = np.dot(Sigma2_inv, mu1 - mu2)
     # Off-diagonal elements are not required, so we directly invert diag(L1)
     grad_L = np.dot(Sigma2_inv, L1) - np.diag(1. / np.diag(L1))
-    # TODO should we also clip the gradient? The maximum value is cholesky-clip
+    # Clip the gradient
+    grad_L[grad_L > 100.0] = 100.0
+    grad_L[grad_L < -100.0] = -100.0
 
     return grad_mu, grad_L
 

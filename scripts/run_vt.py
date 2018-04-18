@@ -46,12 +46,9 @@ def sample_posterior(params):
 def objective(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     """Computes the negative ELBO"""
     mu, L = unpack(params)
-    assert mu.shape == (K,) and L.shape == (K,K)
     # We add a small constant to make sure Sigma is always positive definite
-    Sigma = np.dot(L, L.T) + np.eye(K) * sigma_reg
-    assert Sigma.shape == (K,K) and np.all(np.linalg.eigvals(Sigma) > 0)
+    Sigma = np.dot(L, L.T)
     weights, _ = utils.sample_mvn(n_weights, mu, L)
-    assert weights.shape == (n_weights,K)
     likelihood = operator.expected_bellman_error(Q, samples, weights)
     assert likelihood >= 0
     kl = utils.KL(mu, Sigma, mu_bar, Sigma_bar_inv)
@@ -62,23 +59,15 @@ def objective(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
 def gradient(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples):
     """Computes the objective function gradient"""
     mu, L = unpack(params)
-    assert mu.shape == (K,) and L.shape == (K,K)
     ws, vs = utils.sample_mvn(n_weights, mu, L)
-    assert vs.shape == (n_weights, K) and ws.shape == (n_weights,K)
     be_grad = operator.gradient_be(Q, samples, ws)
-    assert be_grad.shape == (n_weights, K)
     # Gradient of the expected Bellman error wrt mu
     ebe_grad_mu = np.average(be_grad, axis=0)
-    assert ebe_grad_mu.shape == (K,)
-    # Gradient of the expected Bellman error wrt L. TODO is this one correct?
+    # Gradient of the expected Bellman error wrt L.
     ebe_grad_L = np.average(be_grad[:, :, np.newaxis] * vs[:, np.newaxis, :], axis=0)
-    assert ebe_grad_L.shape == (K,K)
     kl_grad_mu, kl_grad_L = utils.gradient_KL(mu, L, mu_bar, Sigma_bar_inv)
-    #assert kl_grad_mu.shape == (K,) and kl_grad_L.shape == (K,K)
     grad_mu = ebe_grad_mu + lambda_ * kl_grad_mu / n_samples
-    assert grad_mu.shape == (K,)
     grad_L = ebe_grad_L + lambda_ * kl_grad_L / n_samples
-    assert grad_L.shape == (K,K)
 
     return pack(grad_mu, grad_L)
 
@@ -242,7 +231,7 @@ parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=100)
 parser.add_argument("--n_source", default=10)
-parser.add_argument("--sigma_reg", default=0.01)
+parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
