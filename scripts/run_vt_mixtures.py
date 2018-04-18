@@ -13,9 +13,7 @@ import argparse
 from joblib import Parallel, delayed
 import datetime
 
-
-
-det_prior = None
+prior_eigen = None
 
 def unpack(params):
     """Unpacks a parameter vector into c, mu, L"""
@@ -53,25 +51,20 @@ def sample_posterior(params):
 
 def normal_KL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, precision=None):
     """ Computes the KL between normals for two GMMs """
-    global det_prior
 
-    m = np.min(np.diagonal(Sigma_bar, axis1=1, axis2=2))
-    det_a = np.linalg.det(Sigma)[:, np.newaxis]
-    det_prior = np.linalg.det(Sigma_bar)[np.newaxis] if det_prior is None else det_prior
-    # d = det_prior/det_a
+    global prior_eigen
 
     Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
-
     inv_b = Sigma_bar_inv[np.newaxis]
+    if prior_eigen is None:
+        prior_eigen, _ = np.linalg.eig(Sigma_bar[np.newaxis])
 
-    prod = np.matmul(inv_b, Sigma[:, np.newaxis])
-
-    d = 1/np.linalg.det(prod)
-
-
+    posterior_eigen, _ = np.linalg.eig(Sigma[:, np.newaxis])
+    posterior_eigen = np.real(posterior_eigen)
 
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
-    return 0.5 * (np.log(d) + np.trace(prod, axis1=2, axis2=3) + \
+
+    return 0.5 * (np.sum(np.log(prior_eigen/posterior_eigen) + posterior_eigen/prior_eigen, axis=2) + \
                   np.matmul(np.matmul(mu_diff[:, :, np.newaxis], inv_b), mu_diff[:, :, :, np.newaxis])[:,:,0,0]- mu.shape[1])
 
 
@@ -170,7 +163,7 @@ def gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, ti
 
     return grad_c, grad_mu, grad_L, phi, psi
 
-def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-3, eps=0.001):
+def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=None, max_iter=10000, eta=1e-5, eps=0.000001):
     i = 0
     Sigma = np.matmul(L, np.transpose(L, axes=(0, 2, 1)))
     ukl_prev = UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi)
@@ -198,23 +191,21 @@ def gradient(samples, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_samples, 
     c, mu, L = unpack(params)
     assert mu.shape == (C,K) and L.shape == (C,K,K)
     grad_c = np.zeros(c.shape)
-    grads_mu = []
-    grads_L = []
-    # TODO more efficient computation?
-    for i in range(C):
-        ws, vs = utils.sample_mvn(n_weights, mu[i, :], L[i, :, :])
-        assert vs.shape == (n_weights, K) and ws.shape == (n_weights, K)
-        be_grad = operator.gradient_be(Q, samples, ws)
-        assert be_grad.shape == (n_weights, K)
-        # Gradient of the expected Bellman error wrt mu
-        ebe_grad_mu = np.average(be_grad, axis=0)
-        assert ebe_grad_mu.shape == (K,)
-        # Gradient of the expected Bellman error wrt L.
-        ebe_grad_L = np.average(be_grad[:, :, np.newaxis] * vs[:, np.newaxis, :], axis=0)
-        assert ebe_grad_L.shape == (K,K)
 
-        grads_mu.append(c[i] * ebe_grad_mu)
-        grads_L.append(c[i] * ebe_grad_L)
+    _, vs = utils.sample_mvn(n_weights * C, mu[0, :], L[0, :, :])
+
+    ws = np.matmul(vs.reshape(C,n_weights,K), np.transpose(L, (0,2,1))) + mu[:, np.newaxis]
+    assert ws.shape == (C, n_weights, K)
+    be_grad = operator.gradient_be(Q, samples, ws.reshape(C*n_weights, K)).reshape(C, n_weights, K)
+    assert be_grad.shape == (C, n_weights, K)
+    # Gradient of the expected Bellman error wrt mu
+    ebe_grad_mu = np.average(be_grad, axis=1)
+    assert ebe_grad_mu.shape == (C,K)
+    # Gradient of the expected Bellman error wrt L.
+    ebe_grad_L = np.average(np.matmul(be_grad[:, :, :, np.newaxis], vs.reshape(C, n_weights, K)[:,:,np.newaxis]), axis=1)
+    assert ebe_grad_L.shape == (C,K,K)
+    ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
+    ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
 
     kl_grad_c, kl_grad_mu, kl_grad_L, phi, psi = gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, precision=precision)
     assert kl_grad_mu.shape == (C, K) and kl_grad_L.shape == (C,K,K)
@@ -314,6 +305,11 @@ def run(mdp, seed=None):
             # Clip parameters
             params = clip(params)
 
+
+        # c, mu, L = unpack(params)
+        # Sigma = np.matmul(L, np.transpose(L, axes=(0, 2, 1)))
+        # print(UKL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, phi, psi, precision=Sigma_bar_inv))
+
         # Add reward to last episode
         episode_rewards[-1] += r * gamma ** h
 
@@ -347,7 +343,8 @@ def run(mdp, seed=None):
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
             sft_err = np.sum(utils.softmax(br, tau) * br)
-            fval = objective(dataset, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_init_samples + i + 1, phi, psi, precision=Sigma_bar_inv)
+            fval = objective(dataset, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_init_samples + i + 1, \
+                             phi, psi, precision=Sigma_bar_inv)
 
             # Append results
             iterations.append(i)
@@ -381,7 +378,7 @@ gamma = 0.99
 n_actions = 4
 state_dim = 2
 action_dim = 1
-max_iter_ukl = 50
+max_iter_ukl = 60
 render = False
 verbose = True
 
@@ -398,23 +395,23 @@ parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
-parser.add_argument("--lambda_", default=0.00001)
+parser.add_argument("--lambda_", default=0.000001)
 parser.add_argument("--time_coherent", default=True)
-parser.add_argument("--n_weights", default=500)
+parser.add_argument("--n_weights", default=200)
 parser.add_argument("--n_source", default=10)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=5)
 parser.add_argument("--sigma_reg", default=0.01)
-parser.add_argument("--cholesky_clip", default=0.0001)
+parser.add_argument("--cholesky_clip", default=0.01)
 # Door at -1 means random positions over all runs
-parser.add_argument("--door", default=1.5)
+parser.add_argument("--door", default=1.)
 parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=6)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/gw5x5")
-parser.add_argument("--bandwidth", default=.1)     # Bandwidth for the Kernel Estimator
+parser.add_argument("--bandwidth", default=.00001)     # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1) # number of components of the posterior family
 
 
