@@ -14,6 +14,7 @@ from joblib import Parallel, delayed
 import datetime
 
 prior_eigen = None
+cholesky_mask = None;
 
 def unpack(params):
     """Unpacks a parameter vector into c, mu, L"""
@@ -33,10 +34,11 @@ def pack(c, mu, L):
 
 def clip(params):
     """Makes sure the Cholesky factor L is well-defined"""
+    global cholesky_mask
     c, mu, L = unpack(params)
-    # TODO implement more efficiently?
+    cholesky_mask = np.eye(K, dtype=bool) if cholesky_mask is None else cholesky_mask
     for i in range(C):
-        mask = np.logical_and(L[i, :, :] < cholesky_clip, np.eye(K, dtype=bool))
+        mask = np.logical_and(L[i, :, :] < cholesky_clip, cholesky_mask)
         L[i, :, :][mask] = cholesky_clip
         L[i, :, :][np.triu_indices(K, 1)] = 0
     return pack(c, mu, L)
