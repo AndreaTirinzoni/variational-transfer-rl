@@ -288,9 +288,10 @@ def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
     """
     Sigma2_inv = Sigma2 if precision else np.linalg.inv(Sigma2)
     mu_diff = mu1 - mu2
-    return (np.log(1 / (np.linalg.det(Sigma1) * np.linalg.det(Sigma2_inv))) +
-            np.trace(np.dot(Sigma2_inv,Sigma1)) +
-            np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
+    Sigma_prod = np.dot(Sigma2_inv, Sigma1)
+    eig = np.real(np.linalg.eigvals(Sigma_prod))
+
+    return (np.sum(eig - np.log(eig)) + np.dot(np.dot(mu_diff.T,Sigma2_inv),mu_diff) - mu1.shape[0]) / 2
 
 
 def gradient_KL(mu1, L1, mu2, Sigma2, precision=True):
