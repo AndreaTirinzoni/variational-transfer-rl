@@ -63,7 +63,7 @@ def normal_KL(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, precision=None):
 
     posterior_eigen, _ = np.linalg.eig(Sigma[:, np.newaxis])
     posterior_eigen = np.real(posterior_eigen)
-
+    posterior_eigen[posterior_eigen < 0] = 1e-10
     mu_diff = mu[:, np.newaxis] - mu_bar[np.newaxis]
 
     return 0.5 * (np.sum(np.log(prior_eigen/posterior_eigen) + posterior_eigen/prior_eigen, axis=2) + \
@@ -350,7 +350,7 @@ def run(mdp, seed=None):
             rew = 0
             for j in range(C):
                 Q._w = mu[j]
-                utils.plot_Q(Q)
+                #utils.plot_Q(Q)
                 rew += utils.evaluate_policy(mdp, pi_g, render=render, initial_states=eval_states)[0]
 
             rew /= C
