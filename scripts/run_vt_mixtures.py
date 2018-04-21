@@ -119,7 +119,7 @@ def sample_gmm(n_samples, c, mu, L):
     """ Samples a mixture of Gaussians """
     vs = np.random.randn(n_samples, mu.shape[1])
     clusters = np.random.choice(np.arange(c.size), n_samples, p=c)
-    ws = np.matmul(vs[:,np.newaxis], np.transpose(L[clusters], (0,2,1)))[:,:,0] + mu[clusters]
+    ws = np.matmul(vs[:,np.newaxis], np.transpose(L[clusters], (0,2,1)))[:,0,:] + mu[clusters]
     return ws, vs
 
 
