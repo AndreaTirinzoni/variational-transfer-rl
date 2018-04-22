@@ -68,15 +68,11 @@ class Maze(gym.Env):
         if int(a) == 0:
             self.current_state[:2] += self.speed * self.time_step \
                                       * np.array((np.cos(self.current_state[-1]), np.sin(self.current_state[-1])))
-        # BACKWARD
-        elif int(a) == 1:
-            self.current_state[:2] -= self.speed * self.time_step \
-                                      * np.array((np.cos(self.current_state[-1]), np.sin(self.current_state[-1])))
         # ROTATE LEFT
-        elif int(a) == 2:
+        elif int(a) == 1:
             self.current_state[-1] += self.angular_speed * self.time_step
         # ROTATE RIGHT
-        elif int(a) == 3:
+        elif int(a) == 2:
             self.current_state[-1] -= self.angular_speed * self.time_step
 
         # Add noise
@@ -185,12 +181,10 @@ class Maze(gym.Env):
         # draw obstacles
         x = np.arange(0, self.size[0]+1, self.wall_dim[0])
         y = np.arange(0, self.size[1]+1, self.wall_dim[1])
-        x, y = np.meshgrid(x,y)
-        v = np.concatenate((x[:,:,np.newaxis],y[:,:,np.newaxis]), axis=2)
         for i in range(x.shape[0]-1):
-            for j in range(x.shape[1]-1):
+            for j in range(y.shape[0]-1):
                 if self.walls[i,j] == 1:
-                    vertices = tuple(v[i:i + 2, j:j + 2].reshape(4, 2))
+                    vertices = [(x[k], y[l]) for k in range(i,i+2) for l in range(j, j+2)]
                     self.viewer.draw_polygon(vertices)
 
         c = self.viewer.draw_circle(radius=0.2)
@@ -228,26 +222,14 @@ class Maze(gym.Env):
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
 if __name__ == '__main__':
-
-    w = np.random.random((10,10))
-    w[w > 0.8] = 1.
-    w[w <= 0.8] = 0.
-    w[0,0] = 0.
-    w[1,0] = 1.
-    w[0,1] = 1.
-    w[9, 9] = 0.
-    print(w)
-    m = Maze(walls=w)
-
-    m.step(3)
-    m.step(3)
-    m.step(1)
-    m.step(2)
-
-    for i in range(100):
-        a = np.random.randint(0, 4)
-        s, _, _, _ = m.step(a)
-
-        print("State {} A {}".format(s,a))
-        m._render(a=a)
-        time.sleep(1)
+    import utils
+    mazes = utils.load_object("../scripts/mazes10x10")
+    for maze in mazes:
+        m = Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4])
+        print(maze[4][3])
+        for i in range(100):
+            a = np.random.randint(0, 3)
+            s, _, _, _ = m.step(a)
+            print("State {} A {}".format(s,a))
+            m._render(a=a)
+            time.sleep(1)
