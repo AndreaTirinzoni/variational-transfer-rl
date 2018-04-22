@@ -89,7 +89,7 @@ def run(mdp, seed=None):
 
             # Evaluate greedy policy
             #utils.plot_Q(Q)
-            rew = utils.evaluate_policy(mdp, pi_g, render=False, n_episodes=5)[0]
+            rew = utils.evaluate_policy(mdp, pi_g, render=render, n_episodes=n_eval_episodes)[0]
             learning_rew = np.mean(episode_rewards[-mean_episodes-1:-1]) if len(episode_rewards) > 1 else 0.0
             br = operator.bellman_residual(Q, dataset) ** 2
             l_2_err = np.average(br)
@@ -146,6 +146,10 @@ parser.add_argument("--l1", default=64)
 parser.add_argument("--l2", default=0)
 parser.add_argument("--alpha", default=0.001)
 parser.add_argument("--env", default="cartpole")
+# Cartpole parameters (default = randomize
+parser.add_argument("--cart_mass", default=-1)
+parser.add_argument("--pole_mass", default=-1)
+parser.add_argument("--pole_length", default=-1)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="nt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
@@ -169,12 +173,19 @@ l1 = int(args.l1)
 l2 = int(args.l2)
 alpha = float(args.alpha)
 env = str(args.env)
+cart_mass = float(args.cart_mass)
+pole_mass = float(args.pole_mass)
+pole_length = float(args.pole_length)
 n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 
 # Generate tasks
-mdps = [CartPoleEnv() for _ in range(n_runs)]
+mc = [np.random.uniform(0.5, 1.5) if cart_mass < 0 else cart_mass for _ in range(n_runs)]
+mp = [np.random.uniform(0.1, 0.2) if pole_mass < 0 else pole_mass for _ in range(n_runs)]
+l = [np.random.uniform(0.2, 0.8) if pole_length < 0 else pole_length for _ in range(n_runs)]
+mdps = [CartPoleEnv(a,b,c) for a,b,c in zip(mc,mp,l)]
+n_eval_episodes = 5
 
 if n_jobs == 1:
     results = [run(mdp) for mdp in mdps]
