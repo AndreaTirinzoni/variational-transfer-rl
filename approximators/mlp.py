@@ -12,7 +12,7 @@ class MLPQFunction(QFunction):
     def __init__(self, state_dim, n_actions, layers=(32,), initial_params=None):
 
         self._nn = MLP(state_dim, n_actions, layers)
-        self._w = np.random.randn(self._nn.num_weights) if initial_params is None else initial_params
+        self._w = np.random.randn(self._nn.num_weights) * 0.1 if initial_params is None else initial_params
         self._state_dim = state_dim
         self._n_actions = n_actions
 
@@ -25,14 +25,15 @@ class MLPQFunction(QFunction):
         """Computes Q(s,a) at each sa [N]"""
         vals = self._nn.predict(sa[:, :-1], self._w[np.newaxis, :])
         assert vals.shape == (1,sa.shape[0],self._n_actions)
-        acts = np.array(sa[:, -1], dtype=np.int)
+        acts = np.array(sa[:, -1], dtype=np.int32)
         assert acts.shape == (sa.shape[0],)
-        ret = vals[0,:,acts]
+        ret = vals[0, np.arange(sa.shape[0]), acts]
         assert ret.shape == (sa.shape[0],)
         return ret
 
     def value_actions(self, states, done=None):
         """Computes Q(s,a) for all actions at each s [NxA]"""
+        states = states if states.ndim > 1 else states[np.newaxis, :]
         vals = self._nn.predict(states, self._w[np.newaxis, :])
         assert vals.shape == (1,states.shape[0],self._n_actions)
         return vals[0,:,:] * (1 if done is None else 1 - done[:, np.newaxis])
@@ -41,9 +42,9 @@ class MLPQFunction(QFunction):
         """Computes the gradient at each sa [NxK]"""
         grads = self._nn.gradient(sa[:, :-1], self._w[np.newaxis, :])
         assert grads.shape == (1,sa.shape[0],self._n_actions,self._w.shape[0])
-        acts = np.array(sa[:, -1], dtype=np.int)
+        acts = np.array(sa[:, -1], dtype=np.int32)
         assert acts.shape == (sa.shape[0],)
-        ret = grads[0,:,acts,:]
+        ret = grads[0, np.arange(sa.shape[0]), acts, :]
         assert ret.shape == (sa.shape[0],self._w.shape[0])
         return ret
 
@@ -69,9 +70,9 @@ class MLPQFunction(QFunction):
         """Computes Q(s,a) for any weight passed at each sa [NxM]"""
         vals = self._nn.predict(sa[:, :-1], weights)
         assert vals.shape == (weights.shape[0], sa.shape[0], self._n_actions)
-        acts = np.array(sa[:, -1], dtype=np.int)
+        acts = np.array(sa[:, -1], dtype=np.int32)
         assert acts.shape == (sa.shape[0],)
-        ret = vals[:, :, acts]
+        ret = vals[:, np.arange(sa.shape[0]), acts]
         assert ret.shape == (weights.shape[0], sa.shape[0])
         return ret.T
 
@@ -85,9 +86,9 @@ class MLPQFunction(QFunction):
         """Computes the gradient for each weight at each sa [NxKxM]"""
         grads = self._nn.gradient(sa[:, :-1], weights)
         assert grads.shape == (weights.shape[0],sa.shape[0],self._n_actions,self._w.shape[0])
-        acts = np.array(sa[:, -1], dtype=np.int)
+        acts = np.array(sa[:, -1], dtype=np.int32)
         assert acts.shape == (sa.shape[0],)
-        ret = grads[:,:,acts,:]
+        ret = grads[:, np.arange(sa.shape[0]), acts, :]
         assert ret.shape == (weights.shape[0],sa.shape[0],self._w.shape[0])
         return np.transpose(ret, (1,2,0))
 
@@ -114,7 +115,7 @@ class MLP:
 
     relu = lambda x: np.maximum(x, 0.)
 
-    def __init__(self, state_dim, n_actions, layers, activation=relu):
+    def __init__(self, state_dim, n_actions, layers, activation=np.tanh):
 
         layers = [state_dim] + list(layers)
         layers.append(n_actions)
