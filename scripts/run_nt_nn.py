@@ -116,7 +116,7 @@ def run(mdp, seed=None):
     run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft]
     weights = np.array(Q._w)
 
-    return [None, weights, run_info]
+    return [(mdp.masscart,mdp.masspole,mdp.length), weights, run_info]
 
 
 # Global parameters
