@@ -210,8 +210,8 @@ def run(mdp, seed=None):
 
 # Global parameters
 gamma = 0.99
-n_actions = 4
-state_dim = 2
+n_actions = 2
+state_dim = 4
 action_dim = 1
 render = False
 verbose = True
