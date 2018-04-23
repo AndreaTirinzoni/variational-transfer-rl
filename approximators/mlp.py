@@ -84,7 +84,11 @@ class MLPQFunction(QFunction):
 
     def gradient_weights(self, sa, weights):
         """Computes the gradient for each weight at each sa [NxKxM]"""
-        grads = self._nn.gradient(sa[:, :-1], weights)
+        grads = np.zeros((weights.shape[0],sa.shape[0],self._n_actions,self._w.shape[0]))
+        for i in range(weights.shape[0]):
+            grads[i,:,:,:] = self._nn.gradient(sa[:, :-1], weights[i,:].reshape(1,weights.shape[1]))[0,:,:,:]
+        # TODO : it seems that a for loop is still faster
+        #grads = self._nn.gradient(sa[:, :-1], weights)
         assert grads.shape == (weights.shape[0],sa.shape[0],self._n_actions,self._w.shape[0])
         acts = np.array(sa[:, -1], dtype=np.int32)
         assert acts.shape == (sa.shape[0],)
@@ -94,7 +98,11 @@ class MLPQFunction(QFunction):
 
     def gradient_actions_weights(self, states, weights):
         """Computes the gradient for all actions and weights at each s [NxAxKxM]"""
-        grads = self._nn.gradient(states, weights)
+        grads = np.zeros((weights.shape[0],states.shape[0],self._n_actions,self._w.shape[0]))
+        for i in range(weights.shape[0]):
+            grads[i,:,:,:] = self._nn.gradient(states, weights[i,:].reshape(1,weights.shape[1]))[0,:,:,:]
+        # TODO : it seems that a for loop is still faster
+        #grads = self._nn.gradient(states, weights)
         assert grads.shape == (weights.shape[0],states.shape[0],self._n_actions,self._w.shape[0])
         return np.transpose(grads, (1,2,3,0))
 
