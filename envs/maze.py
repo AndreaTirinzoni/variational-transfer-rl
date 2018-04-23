@@ -53,7 +53,7 @@ class Maze(gym.Env):
         if state is None:
             self.current_state = np.array(np.concatenate((self.start, np.zeros(1))))
         else:
-            self.current_state = np.concatenate((np.array(state), np.zeros(1)))
+            self.current_state = np.array(state)
         return self.get_state()
 
     def get_state(self):
