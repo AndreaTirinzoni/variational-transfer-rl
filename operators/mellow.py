@@ -31,8 +31,10 @@ class MellowBellmanOperator(Operator):
         """Computes the mellow-max gradient for different weights"""
         q_values, q_gradient = Q.value_gradient_actions_weights(s_prime, weights, absorbing)
         sft_Q = utils.softmax(q_values, self._kappa, axis=1)
-        # TODO this one would be different for other regressors than linear (q_gradient would depend on the weights)
-        mm_grad = np.sum(sft_Q[:, :, :, np.newaxis] * q_gradient[:, :, np.newaxis, :], axis=1)
+        if q_gradient.ndim == 4:
+            mm_grad = np.sum(sft_Q[:, :, :, np.newaxis] * np.transpose(q_gradient, (0,1,3,2)), axis=1)
+        else:
+            mm_grad = np.sum(sft_Q[:, :, :, np.newaxis] * q_gradient[:, :, np.newaxis, :], axis=1)
 
         return mm_grad
 

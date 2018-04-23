@@ -86,8 +86,8 @@ def run(mdp, seed=None):
     global K
     K = Q._nn.num_weights
     # Initialize policies
-    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
-    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
+    pi_u = EpsilonGreedy(Q, np.arange(n_actions), epsilon=1)
+    pi_g = EpsilonGreedy(Q, np.arange(n_actions), epsilon=0)
 
     # Add random episodes if needed
     dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
@@ -233,7 +233,7 @@ parser.add_argument("--l2", default=0)
 parser.add_argument("--alpha", default=0.001)
 parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
-parser.add_argument("--n_weights", default=10)
+parser.add_argument("--n_weights", default=1)
 parser.add_argument("--n_source", default=50)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
