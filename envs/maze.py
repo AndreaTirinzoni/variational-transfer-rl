@@ -82,7 +82,7 @@ class Maze(gym.Env):
         # Clip to make sure the agent is inside the grid
         self.current_state[-1] = np.divmod(self.current_state[-1], 2 * np.pi)[1]    # set the orientation to be [0,2pi]
 
-        clipped = self.current_state[:2].clip([0, 0], self.size - 1e-5)
+        clipped = self.current_state[:2].clip([0., 0.], self.size - 1e-8)
         self.current_state[:2] = clipped
 
         # Check whether the agent hit a wall
@@ -102,12 +102,12 @@ class Maze(gym.Env):
         # compute line
         d = s2-s1
         vertical = False
-        c = 1e-5
+        c = 1e-8
 
-        if d[0] == 0. and d[1] == 0.:
+        if np.abs(d[0]) < c and np.abs(d[1]) < c:
             return s2
 
-        if d[0] != 0.:
+        if np.abs(d[0]) >= c:
             m = d[1]/d[0]
             b = s1[1]-m*s1[0]
         else:
@@ -128,7 +128,7 @@ class Maze(gym.Env):
                         x += dir[0]
             elif y != tile2[1] and Maze._check_tile_intersect(m, b, x, x+1, y+dir[1], y+dir[1]+1, vertical) :
                 if self.walls[x, y+dir[1]] == 1:
-                    v = y + c if dir[0] < 0 else y + 1 - c
+                    v = y + c if dir[1] < 0 else y + 1 - c
                     return np.array(((v-b)/m, v, s2[2])) if not vertical else np.array((x, v, s2[2]))
                 else:
                     y += dir[1]
@@ -227,9 +227,9 @@ if __name__ == '__main__':
     for maze in mazes:
         m = Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4])
         print(maze[4][3])
-        for i in range(100):
+        for i in range(1000):
             a = np.random.randint(0, 3)
             s, _, _, _ = m.step(a)
-            print("State {} A {}".format(s,a))
+            print("Iter {} State {} A {}".format(i,s,a))
             m._render(a=a)
-            time.sleep(1)
+            time.sleep(.1)
