@@ -43,19 +43,21 @@ class Maze(gym.Env):
         # Load walls
         assert walls.shape == tuple(np.floor(self.size / self.wall_dim))
         self.walls = walls
-
         # Action space: {FORWARD,ROTATE_LEFT,ROTATE_RIGHT}
         self.action_space = spaces.Discrete(3)
 
+        self.goal_tile = tuple(self.get_tiled_state(self.goal).astype("int"))
         self.reset()
         self.viewer = None
 
     def reset(self, state=None):
         if state is None:
+            self.walls[self.goal_tile] = -1.
             self.current_state = np.array(np.concatenate((self.start, np.zeros(1))))
-            free_cells = np.where(self.walls == 0)
-            choice = np.random.choice(free_cells[0])
-            self.current_state = np.array((free_cells[0][choice] + np.random.ranf(), free_cells[1][choice] + np.random.ranf(), 0.))
+            free_cells = np.array(np.where(self.walls == 0))
+            choice = np.random.choice(free_cells.shape[1])
+            self.current_state = np.array((free_cells[0, choice] + np.random.ranf(), free_cells[1, choice] + np.random.ranf(), 0.))
+            self.walls[self.goal_tile] = 0.
         else:
             if state.size == 22:
                 self.current_state = np.array((state[0], state[1], np.arctan2(state[3],state[2])))
