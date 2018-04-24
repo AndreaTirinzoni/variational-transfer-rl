@@ -18,11 +18,11 @@ class Maze(gym.Env):
         'video.frames_per_second': 15
     }
 
-    def __init__(self, size=np.array([10., 10.]), wall_dim=np.array((1.,1.)), start_pos=np.array((0,0)), goal_pos=None, walls=None):
+    def __init__(self, size=np.array([10., 10.]), wall_dim=np.array((1.,1.)), start_pos=np.array((0., 0.)), goal_pos=None, walls=None):
         # General MDP parameters
         self.horizon = 100
         self.gamma = 0.99
-        self.state_dim = 3
+        self.state_dim = 22
         self.action_dim = 1
         self.time_step = 1
         self.speed = 0.5
@@ -35,7 +35,7 @@ class Maze(gym.Env):
         self.start = start_pos
         self.goal = size if goal_pos is None else goal_pos
         self.goal_radius = 1
-        self.noise = 0.2
+        self.noise = 0.05
 
         # State space: [0,width,0]x[0,height,2pi]
         self.observation_space = spaces.Box(low=np.array([0., 0., 0.]), high=np.concatenate((size, np.array([2*np.pi]))))
@@ -44,8 +44,8 @@ class Maze(gym.Env):
         assert walls.shape == tuple(np.floor(self.size / self.wall_dim))
         self.walls = walls
 
-        # Action space: {FORWARD,BACKWARD,ROTATE_LEFT,ROTATE_RIGHT}
-        self.action_space = spaces.Discrete(4)
+        # Action space: {FORWARD,ROTATE_LEFT,ROTATE_RIGHT}
+        self.action_space = spaces.Discrete(3)
 
         self.reset()
         self.viewer = None
@@ -55,10 +55,13 @@ class Maze(gym.Env):
             self.current_state = np.array(np.concatenate((self.start, np.zeros(1))))
             free_cells = np.where(self.walls == 0)
             choice = np.random.choice(free_cells[0])
-            self.current_state = np.array((free_cells[0][choice], free_cells[1][choice], 0.))
+            self.current_state = np.array((free_cells[0][choice] + np.random.ranf(), free_cells[1][choice] + np.random.ranf(), 0.))
         else:
-            self.current_state = np.array(state)
-        return self.get_state()
+            if state.size == 22:
+                self.current_state = np.array((state[0], state[1], np.arctan2(state[3],state[2])))
+            elif state.size == 3:
+                self.current_state = np.array(state)
+        return self.get_observation()
 
     def get_state(self):
         return np.array(self.current_state)
@@ -93,7 +96,7 @@ class Maze(gym.Env):
         self.current_state = self._check_intersect(s, self.current_state)
 
         # Compute reward
-        if np.linalg.norm(self.current_state[:2] - self.goal) < self.goal_radius:
+        if self._is_goal(self.get_tiled_state(self.current_state[:2])):
             absorbing = True
             reward = 1.0
         else:
@@ -114,6 +117,9 @@ class Maze(gym.Env):
             goals.append(1. if goal else 0.)
         return np.concatenate((s[:2], np.array([np.cos(s[2]), np.sin(s[2])]), np.array(obstacles), np.array(goals)))
 
+    def get_tiled_state(self, s):
+        return np.floor((s-1e-8)/self.wall_dim)
+
     def _get_obstacle_goal(self, s1, s2):
         tiles = self._get_traversed_tiles(s1, s2)
         goal = False
@@ -130,15 +136,14 @@ class Maze(gym.Env):
         return np.array_equal(tile, np.floor((self.goal-1e-8)/self.wall_dim))
 
 
-
     # TODO : maybe recast with _intersection_tile function
     def _check_intersect(self, s1, s2):
         # compute line
         d = s2-s1
         vertical = False
-        c = 1e-8
+        c = 1e-10
 
-        if np.abs(d[0]) < c and np.abs(d[1]) < c:
+        if np.abs(d[0]) == 0.0 and np.abs(d[1]) == 0.0:
             return s2
 
         if np.abs(d[0]) >= c:
@@ -221,6 +226,9 @@ class Maze(gym.Env):
         borders = np.array((tile, tile + 1)).T
         if np.abs(direction[0]) <= c:
             a = (borders[1] - x[1]) / direction[1]  # compute intersections
+            a = a[a >= 0]
+        elif np.abs(direction[1]) <= c:
+            a = (borders[0] - x[0]) / direction[0]
             a = a[a >= 0]
         else:
             a = (borders - x[:, np.newaxis]) / direction[:, np.newaxis]
