@@ -6,7 +6,7 @@ import time
 """
 Info
 ----
-  - State space: 3D Box (x,y,theta)
+  - State space: 3D Box (x,y,theta). Observation: (x,y,z,cos(theta),sin(theta), obstacles[-pi/2 + theta, ... , +pi/2+theta], goal[-pi/2 + theta, +pi/2 + theta])
   - Action space: Discrete (FORWARD, ROTATE_LEFT, ROTATE_RIGHT)
   - Parameters: grid size (width,height), wall_dim (width, height), goal_pos, start_pos, walls: np.ndarray
 """
@@ -100,7 +100,7 @@ class Maze(gym.Env):
             absorbing = False
             reward = 0.0
 
-        return self.get_state(), reward, absorbing, {}
+        return self.get_observation(), reward, absorbing, {}
 
     def get_observation(self):
         s = self.get_state()
@@ -129,19 +129,9 @@ class Maze(gym.Env):
     def _is_goal(self, tile):
         return np.array_equal(tile, np.floor((self.goal-1e-8)/self.wall_dim))
 
-    @staticmethod
-    def _intersection_tile(x, direction, tile):
-        c = 1e-8
-        borders = np.array((tile-1, tile, tile+1)).T
-        if np.abs(direction[0]) <= c:
-            a = (borders[1] - x[1])/direction[1] # compute intersections
-            a = a[a >= 0]
-        else:
-            a = (borders-x[:,np.newaxis])/direction[:, np.newaxis]
-            a = a.flatten()
-            a = a[a >= 0]
-        return x + direction * np.min(a)
 
+
+    # TODO : maybe recast with _intersection_tile function
     def _check_intersect(self, s1, s2):
         # compute line
         d = s2-s1
@@ -186,8 +176,9 @@ class Maze(gym.Env):
                         y += dir[1]
         return s2   # go to final state
 
+    # TODO : maybe recast with _intersection_tile function
     def _get_traversed_tiles(self, s1, s2):
-        """ return a list of tiles traversed by the ray define by its extreme points s1,s2"""
+        """ returns a list of tiles traversed by the ray define by its extreme points s1, s2 """
         # compute line
         d = s2 - s1
         vertical = False
@@ -220,6 +211,24 @@ class Maze(gym.Env):
                 traversed.append(np.array((x, y)))
         return traversed
 
+    @staticmethod
+    def _intersection_tile(x, direction, tile):
+        """
+        Computes the intersection point with the given tile (np.array) with the ray starting at x(np.array)
+        in the given direction(np.array) (only forward)
+        """
+        c = 1e-8
+        borders = np.array((tile, tile + 1)).T
+        if np.abs(direction[0]) <= c:
+            a = (borders[1] - x[1]) / direction[1]  # compute intersections
+            a = a[a >= 0]
+        else:
+            a = (borders - x[:, np.newaxis]) / direction[:, np.newaxis]
+            a = a.flatten()
+            a = a[a >= 0]
+        return x + direction * np.min(a) - c
+
+    # TODO : maybe recast with _intersection_tile function
     @staticmethod
     def _check_tile_intersect(m, b, x1, x2, y1, y2, vertical=False):
 
