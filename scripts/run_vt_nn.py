@@ -10,6 +10,7 @@ import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
+import time
 
 
 def unpack(params):
@@ -132,6 +133,8 @@ def run(mdp, seed=None):
     h = 0
     Q._w = sample_posterior(params)
 
+    start_time = time.time()
+
     # Learning
     for i in range(max_iter):
 
@@ -204,9 +207,13 @@ def run(mdp, seed=None):
             # Restore weights
             Q._w = current_w
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            start_time = end_time
+
             if verbose:
-                print("Iter {} Episodes {} Rew(G) {} Rew(L) {} Fval {} L2 {} L_inf {} Sft {}".format(
-                    i, episodes[-1], rew, learning_rew, fval, l_2_err, l_inf_err, sft_err))
+                print("Iter {} Episodes {} Rew(G) {} Rew(L) {} Fval {} L2 {} L_inf {} Sft {} time {:.1f} s".format(
+                    i, episodes[-1], rew, learning_rew, fval, l_2_err, l_inf_err, sft_err, elapsed_time))
 
     run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft, fvals]
     weights = np.array(mu)
