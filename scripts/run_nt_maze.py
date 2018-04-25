@@ -74,9 +74,17 @@ def run(mdp, seed=None):
         # Take a step of gradient if needed
         if i % train_freq == 0:
             # Shuffle the dataset
-            np.random.shuffle(dataset)
+            # np.random.shuffle(dataset)
+
+            idxs = np.random.choice(dataset.shape[0], batch_size)
+
             # Estimate gradient
-            g = operator.gradient_be(Q, dataset[:batch_size, :])
+            batch = np.array(dataset[idxs, :])
+            # batch[:, 1:3] /= mdp.size[np.newaxis]
+            # batch[:, 4:14] /= mdp.range
+            # batch[:, 25:27] /= mdp.size[np.newaxis]
+            # batch[:, 29:38] /= mdp.range
+            g = operator.gradient_be(Q, batch)
             # Take a gradient step
             Q._w, t, m_t, v_t = utils.adam(Q._w, g, t, m_t, v_t, alpha=alpha)
 
@@ -130,7 +138,7 @@ gamma = 0.99
 n_actions = 3
 state_dim = 22
 action_dim = 1
-render = False
+render = True
 verbose = True
 
 # Command line arguments
@@ -140,9 +148,9 @@ parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
 parser.add_argument("--batch_size", default=100)
 parser.add_argument("--max_iter", default=5000)
-parser.add_argument("--buffer_size", default=10000)
+parser.add_argument("--buffer_size", default=5000)
 parser.add_argument("--random_episodes", default=50)
-parser.add_argument("--exploration_fraction", default=0.6)
+parser.add_argument("--exploration_fraction", default=0.3)
 parser.add_argument("--eps_start", default=1.0)
 parser.add_argument("--eps_end", default=0.02)
 parser.add_argument("--train_freq", default=1)
