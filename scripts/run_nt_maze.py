@@ -12,6 +12,7 @@ import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
+import time
 
 
 def run(mdp, seed=None):
@@ -60,6 +61,8 @@ def run(mdp, seed=None):
     # Init env
     s = mdp.reset()
     h = 0
+
+    start_time = time.time()
 
     # Learning
     for i in range(max_iter):
@@ -115,9 +118,13 @@ def run(mdp, seed=None):
             # Make sure we restart from s
             mdp.reset(s)
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            start_time = end_time
+
             if verbose:
-                print("Iter {} Episodes {} Rew(G) {} Rew(L) {} L2 {} L_inf {} Sft {}".format(
-                    i, episodes[-1], rew, learning_rew, l_2_err, l_inf_err, sft_err))
+                print("Iter {} Episodes {} Rew(G) {} Rew(L) {} L2 {} L_inf {} Sft {} time {:.1f} s".format(
+                    i, episodes[-1], rew, learning_rew, l_2_err, l_inf_err, sft_err, elapsed_time))
 
     run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft]
     weights = np.array(Q._w)
