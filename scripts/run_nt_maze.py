@@ -3,8 +3,6 @@ sys.path.append("../")
 
 import numpy as np
 from envs.emaze import Maze
-from features.agrbf import build_features_maze
-from approximators.linear import LinearQFunction
 from approximators.mlp import MLPQFunction
 from operators.mellow import MellowBellmanOperator
 from policies import EpsilonGreedy, ScheduledEpsilonGreedy
@@ -187,9 +185,6 @@ n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 l1 = int(args.l1)
 l2 = int(args.l2)
-
-# Number of features
-K = n_basis ** 3 * n_actions
 
 # Generate tasks
 mazes = utils.load_object("../scripts/mazes10x10")

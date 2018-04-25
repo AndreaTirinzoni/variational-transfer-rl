@@ -281,40 +281,23 @@ class Maze(gym.Env):
         for i in range(x.shape[0]-1):
             for j in range(y.shape[0]-1):
                 if self.walls[i,j] == 1:
-                    vertices = [(x[k], y[l]) for k in range(i,i+2) for l in range(j, j+2)]
-                    self.viewer.draw_polygon(vertices)
+                    s = self.viewer.draw_polygon(v=[(0,0),(0,1),(1,1),(1,0)])
+                    s.add_attr(rendering.Transform(translation=(i,j)))
+                    s.set_color(0, 0, 0)
 
-        c = self.viewer.draw_circle(radius=0.2)
-        c.set_color(0, 0, 0)
-        if a == 0:
-            c.set_color(0.8, 0.8, 0)
-        c.add_attr(rendering.Transform(translation=(1, self.size[1] - 0.5)))
-        c = self.viewer.draw_circle(radius=0.2)
-        c.set_color(0, 0, 0)
-        if a == 1:
-            c.set_color(0.8, 0.8, 0)
-        c.add_attr(rendering.Transform(translation=(1.5, self.size[1] - 1)))
-        c = self.viewer.draw_circle(radius=0.2)
-        c.set_color(0, 0, 0)
-        if a == 2:
-            c.set_color(0.8, 0.8, 0)
-        c.add_attr(rendering.Transform(translation=(1, self.size[1] - 1.5)))
-        c = self.viewer.draw_circle(radius=0.2)
-        c.set_color(0, 0, 0)
-        if a == 3:
-            c.set_color(0.8, 0.8, 0)
-        c.add_attr(rendering.Transform(translation=(0.5, self.size[1] - 1)))
-
-        goal = self.viewer.draw_circle(radius=self.goal_radius)
+        goal = self.viewer.draw_polygon(v=[(0,0),(0,1),(1,1),(1,0)])
+        goal.add_attr(rendering.Transform(translation=(self.goal_tile[0], self.goal_tile[1])))
         goal.set_color(0, 0.8, 0)
-        goal.add_attr(rendering.Transform(translation=(self.goal[0], self.goal[1])))
 
-        agent = self.viewer.draw_circle(radius=0.1)
-        orientation = self.viewer.draw_line([0.,0.], [.1 * np.cos(self.current_state[2]), .1 * np.sin(self.current_state[2])])
+        rect = self.viewer.draw_polygon(v=[(-0.1,-0.1),(-0.1,0.1),(0.3,0.1),(0.3,-0.1)])
+        rect.set_color(0, 0, .8)
+        transform = rendering.Transform(translation=(self.current_state[0], self.current_state[1]),rotation=self.current_state[2])
+        rect.add_attr(transform)
+
+        agent = self.viewer.draw_circle(radius=0.15)
         agent.set_color(.8, 0, 0)
         transform = rendering.Transform(translation=(self.current_state[0], self.current_state[1]))
         agent.add_attr(transform)
-        orientation.add_attr(transform)
 
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
