@@ -118,6 +118,10 @@ def run(mdp, seed=None):
     sft = []
     fvals = []
 
+    # Create masks for ADAM and SGD
+    adam_mask = pack(np.ones(K) * alpha_adam, np.zeros((K,K)))  # ADAM learns only \mu
+    sgd_mask = pack(np.zeros(K), np.ones((K,K)) * alpha_sgd)  # SGD learns only L
+
     # Adam initial params
     m_t = 0
     v_t = 0
@@ -146,8 +150,10 @@ def run(mdp, seed=None):
             np.random.shuffle(dataset)
             # Estimate gradient
             g = gradient(dataset[:batch_size, :], params, Q, mu_bar, Sigma_bar_inv, operator, n_init_samples + i + 1)
-            # Take a gradient step
-            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
+            # Take a gradient step for \mu
+            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
+            # Take a gradient step for L
+            params = utils.sgd(params, g, alpha=sgd_mask)
             # Clip parameters
             params = clip(params)
 
@@ -230,7 +236,8 @@ parser.add_argument("--eval_freq", default=100)
 parser.add_argument("--mean_episodes", default=20)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=0)
-parser.add_argument("--alpha", default=0.001)
+parser.add_argument("--alpha_adam", default=0.001)
+parser.add_argument("--alpha_sgd", default=0.1)
 parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=10)
@@ -261,7 +268,8 @@ eval_freq = int(args.eval_freq)
 mean_episodes = int(args.mean_episodes)
 l1 = int(args.l1)
 l2 = int(args.l2)
-alpha = float(args.alpha)
+alpha_adam = float(args.alpha_adam)
+alpha_sgd = float(args.alpha_sgd)
 lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
 n_weights = int(args.n_weights)

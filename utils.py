@@ -276,6 +276,11 @@ def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1
     return params - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps), t, m_t, v_t
 
 
+def sgd(params, grad, alpha=0.001):
+    """Applies a gradient step to the given parameters based on SGD update rule"""
+    return params - alpha * grad
+
+
 def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
     """
     Computes the KL divergence between two multivariate Gaussian distributions.

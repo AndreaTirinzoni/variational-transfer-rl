@@ -116,6 +116,10 @@ def run(mdp, seed=None):
     sft = []
     fvals = []
 
+    # Create masks for ADAM and SGD
+    adam_mask = pack(np.ones(K) * alpha_adam, np.zeros((K,K)))  # ADAM learns only \mu
+    sgd_mask = pack(np.zeros(K), np.ones((K,K)) * alpha_sgd)  # SGD learns only L
+
     # Adam initial params
     m_t = 0
     v_t = 0
@@ -144,8 +148,10 @@ def run(mdp, seed=None):
             np.random.shuffle(dataset)
             # Estimate gradient
             g = gradient(dataset[:batch_size, :], params, Q, mu_bar, Sigma_bar_inv, operator, n_init_samples + i + 1)
-            # Take a gradient step
-            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=alpha)
+            # Take a gradient step for \mu
+            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
+            # Take a gradient step for L
+            params = utils.sgd(params, g, alpha=sgd_mask)
             # Clip parameters
             params = clip(params)
 
@@ -219,17 +225,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
-parser.add_argument("--batch_size", default=100)
+parser.add_argument("--batch_size", default=50)
 parser.add_argument("--max_iter", default=5000)
 parser.add_argument("--buffer_size", default=10000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
-parser.add_argument("--alpha", default=0.001)
+parser.add_argument("--alpha_adam", default=0.001)
+parser.add_argument("--alpha_sgd", default=0.1)
 parser.add_argument("--lambda_", default=0.001)
 parser.add_argument("--time_coherent", default=False)
-parser.add_argument("--n_weights", default=100)
+parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=10)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
@@ -256,7 +263,8 @@ random_episodes = int(args.random_episodes)
 train_freq = int(args.train_freq)
 eval_freq = int(args.eval_freq)
 mean_episodes = int(args.mean_episodes)
-alpha = float(args.alpha)
+alpha_adam = float(args.alpha_adam)
+alpha_sgd = float(args.alpha_sgd)
 lambda_ = float(args.lambda_)
 time_coherent = bool(args.time_coherent)
 n_weights = int(args.n_weights)
