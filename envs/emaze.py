@@ -38,6 +38,7 @@ class Maze(gym.Env):
         self.goal = size if goal_pos is None else goal_pos
         self.goal_radius = 1
         self.noise = 0.05
+        self.irew = False  # True if informative reward is to be use
 
         # State space: [0,width,0]x[0,height,2pi]
         self.observation_space = spaces.Box(low=np.array([0., 0., 0.]), high=np.concatenate((size, np.array([2*np.pi]))))
@@ -100,15 +101,18 @@ class Maze(gym.Env):
         self.current_state[:2] = clipped
 
         # Check whether the agent hit a wall
-        self.current_state = self._check_intersect(s, self.current_state)
+        self.current_state, hits = self._check_intersect(s, self.current_state)
 
         # Compute reward
+        reward = 0.
+        absorbing = False
+        if self.irew & hits:   # if it hits a wall
+            reward -= 0.1
+        if self.irew & a > 0: # if does not move forward
+            reward -= 0.001
         if self._is_goal(self.get_tiled_state(self.current_state[:2])):
             absorbing = True
-            reward = 1.0
-        else:
-            absorbing = False
-            reward = 0.0
+            reward += 1.0
 
         return self.get_observation(), reward, absorbing, {}
 
@@ -152,18 +156,23 @@ class Maze(gym.Env):
         return s2, goal
 
     def _is_goal(self, tile):
-        return np.array_equal(tile, np.floor((self.goal-1e-8)/self.wall_dim))
+        return np.array_equal(tile, self.goal_tile)
 
+    def toggle_irew(self):
+        self.irew = not self.irew
 
     # TODO : maybe recast with _intersection_tile function
     def _check_intersect(self, s1, s2):
+
+        """ Return the new position in the direction of the displacement that can be reached. Also, returns whether it
+        hit a wall."""
         # compute line
         d = s2-s1
         vertical = False
         c = 1e-10
 
         if np.abs(d[0]) == 0.0 and np.abs(d[1]) == 0.0:
-            return s2
+            return s2, False
 
         if np.abs(d[0]) >= c:
             m = d[1]/d[0]
@@ -181,24 +190,24 @@ class Maze(gym.Env):
             if x != tile2[0] and not vertical and Maze._check_tile_intersect(m, b, x+dir[0], x+dir[0]+1, y, y+1):
                     if self.walls[x+dir[0], y] == 1:
                         h = x + c if dir[0] < 0 else x + 1 - c
-                        return np.array((h, m*h + b, s2[2]))
+                        return np.array((h, m*h + b, s2[2])), True
                     else:
                         x += dir[0]
             elif y != tile2[1] and Maze._check_tile_intersect(m, b, x, x+1, y+dir[1], y+dir[1]+1, vertical) :
                 if self.walls[x, y+dir[1]] == 1:
                     v = y + c if dir[1] < 0 else y + 1 - c
-                    return np.array(((v-b)/m, v, s2[2])) if not vertical else np.array((x, v, s2[2]))
+                    return np.array(((v-b)/m, v, s2[2])) if not vertical else np.array((x, v, s2[2])), True
                 else:
                     y += dir[1]
             elif Maze._check_tile_intersect(m, b, x+dir[0], x+dir[0]+1, y+dir[1], y+dir[1]+1, vertical):
                     if self.walls[x+dir[0], y+dir[1]] == 1:
                         h = x + c if dir[0] < 0 else x + 1 - c
                         v = y + c if dir[0] < 0 else y + 1 - c
-                        return np.array((h,v,s2[2]))
+                        return np.array((h,v,s2[2])), True
                     else:
                         x += dir[0]
                         y += dir[1]
-        return s2   # go to final state
+        return s2, False   # go to final state
 
     # TODO : maybe recast with _intersection_tile function
     def _get_traversed_tiles(self, s1, s2):
