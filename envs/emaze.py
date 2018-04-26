@@ -2,6 +2,7 @@ import gym
 import numpy as np
 from gym import spaces
 import time
+import matplotlib.pyplot as plt
 
 """
 Info
@@ -23,10 +24,11 @@ class Maze(gym.Env):
         self.horizon = 100
         self.gamma = 0.99
         self.state_dim = 22
+        self.absolute_state_dim = 3
         self.action_dim = 1
         self.time_step = 1
         self.speed = 0.5
-        self.angular_speed = np.pi/4
+        self.angular_speed = np.pi/8
         self.wall_dim = wall_dim
         self.range = 2.
 
@@ -46,23 +48,26 @@ class Maze(gym.Env):
         # Action space: {FORWARD,ROTATE_LEFT,ROTATE_RIGHT}
         self.action_space = spaces.Discrete(3)
 
-        self.goal_tile = tuple(self.get_tiled_state(self.goal).astype("int"))
+        self.goal_tile = tuple(self.get_tiled_state(self.goal-1e-8).astype("int"))
         self.reset()
         self.viewer = None
 
     def reset(self, state=None):
         if state is None:
             self.walls[self.goal_tile] = -1.
-            self.current_state = np.array(np.concatenate((self.start, np.zeros(1))))
             free_cells = np.array(np.where(self.walls == 0))
             choice = np.random.choice(free_cells.shape[1])
-            self.current_state = np.array((free_cells[0, choice] + np.random.ranf(), free_cells[1, choice] + np.random.ranf(), 0.))
+            self.current_state = np.array((free_cells[0, choice] + np.random.ranf(), \
+                                           free_cells[1, choice] + np.random.ranf(), \
+                                           np.random.ranf() * 2 * np.pi))
             self.walls[self.goal_tile] = 0.
         else:
-            if state.size == 22:
+            if state.size == self.state_dim:
                 self.current_state = np.array((state[0], state[1], np.arctan2(state[3],state[2])))
-            elif state.size == 3:
-                self.current_state = np.array(state)
+            elif state.size == self.absolute_state_dim:
+                assert state[0] < self.size[0] and state[0] >= 0 and \
+                       state[1] < self.size[1] and state[1] >= 0
+                self.current_state = np.array((state[0], state[1], np.divmod(state[2], 2*np.pi)[1]))
         return self.get_observation()
 
     def get_state(self):
@@ -120,7 +125,7 @@ class Maze(gym.Env):
         return np.concatenate((s[:2], np.array([np.cos(s[2]), np.sin(s[2])]), np.array(obstacles), np.array(goals)))
 
     def get_tiled_state(self, s):
-        return np.floor((s-1e-8)/self.wall_dim)
+        return np.floor(s/self.wall_dim)
 
     def _get_obstacle_goal(self, s1, s2):
         tiles = self._get_traversed_tiles(s1, s2)
@@ -197,7 +202,7 @@ class Maze(gym.Env):
         dir = np.sign(tile2 - tile1).astype('int')
         traversed = [tile1,]
 
-        if np.abs(d[0]) >= c:
+        if np.abs(d[0]) > 0:
             m = d[1] / d[0]
             b = s1[1] - m * s1[0]
         else:
@@ -224,7 +229,7 @@ class Maze(gym.Env):
         Computes the intersection point with the given tile (np.array) with the ray starting at x(np.array)
         in the given direction(np.array) (only forward)
         """
-        c = 1e-8
+        c = 1e-8 # tolerance
         borders = np.array((tile, tile + 1)).T
         if np.abs(direction[0]) <= c:
             a = (borders[1] - x[1]) / direction[1]  # compute intersections
@@ -236,7 +241,15 @@ class Maze(gym.Env):
             a = (borders - x[:, np.newaxis]) / direction[:, np.newaxis]
             a = a.flatten()
             a = a[a >= 0]
-        return x + direction * np.min(a) - c
+
+        a = np.sort(a)  # sort to have the closest intersections first
+        cuts = x[:, np.newaxis] + direction[:, np.newaxis] * a[np.newaxis]                     # compute intersections
+        idx = np.all(np.logical_and(np.less_equal(cuts-c, borders[:,1][:,np.newaxis]),\
+                                      np.less_equal(borders[:,0][:,np.newaxis],cuts + c)), axis=0) # in the tile
+        idx = np.where(idx)[0] # take closest intersection in the tile
+        cuts = cuts[:, idx[0]]
+
+        return cuts
 
     # TODO : maybe recast with _intersection_tile function
     @staticmethod
@@ -306,11 +319,64 @@ if __name__ == '__main__':
     mazes = utils.load_object("../scripts/mazes10x10")
     for maze in mazes:
         m = Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4])
-        print(maze[4][3])
+
+        m.reset(np.array((0., 0., 0.)))
+        s = m.get_observation()
+        print(s)
+        phi = np.linspace(-np.pi/2, np.pi/2, 9) # view angles
+        o = np.linspace(0., 1., 10)
+        r = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])  # rotation matrices
+
+        sq = np.array([(0,0), (0,1), (1,0), (1,1)])
+        w = np.array(np.where(maze[4] == 1)).T
+        w = np.concatenate((w, np.array([m.goal_tile])), axis=0)
+        sq = sq[:, np.newaxis] + w[np.newaxis]
+
+        obstacles = s[4:13, np.newaxis] * (s[2:4])[np.newaxis]
+        orientation = o[:, np.newaxis] * (s[2:4])[np.newaxis] + s[:2][np.newaxis]
+        p = np.einsum("mnp,pn->pm", r, obstacles) + s[:2][np.newaxis]
+
+        plt.xlim((-0.5, 10.5))
+        plt.ylim((-0.5, 10.5))
+        plt.plot(p[:, 0], p[:, 1], "kD", s[0], s[1], "ro", orientation[:, 0], orientation[:, 1], "r-")
+        for k in range(sq.shape[1]-1):
+            plt.plot(sq[(0, 1), k, 0], sq[(0, 1), k, 1], "k-")
+            plt.plot(sq[(0, 2), k, 0], sq[(0, 2), k, 1], "k-")
+            plt.plot(sq[(1, 3), k, 0], sq[(1, 3), k, 1], "k-")
+            plt.plot(sq[(2, 3), k, 0], sq[(2, 3), k, 1], "k-")
+
+        plt.plot(sq[(0, 1), -1, 0], sq[(0, 1), -1, 1], "g-")
+        plt.plot(sq[(0, 2), -1, 0], sq[(0, 2), -1, 1], "g-")
+        plt.plot(sq[(1, 3), -1, 0], sq[(1, 3), -1, 1], "g-")
+        plt.plot(sq[(2, 3), -1, 0], sq[(2, 3), -1, 1], "g-")
+
+        plt.show()
+
         for i in range(1000):
             a = np.random.randint(0, 3)
             s, _, _, _ = m.step(a)
+
+            obstacles = s[4:13, np.newaxis] * (s[2:4])[np.newaxis]
+            orientation = o[:, np.newaxis] * (s[2:4])[np.newaxis] + s[:2][np.newaxis]
+            p = np.einsum("mnp,pn->pm", r, obstacles) + s[:2][np.newaxis]
+
+            plt.xlim((-0.5, 10.5))
+            plt.ylim((-0.5, 10.5))
+            plt.plot(p[:, 0], p[:, 1], "kD", s[0], s[1], "ro", orientation[:, 0], orientation[:, 1], "r-")
+            for k in range(sq.shape[1] - 1):
+                plt.plot(sq[(0, 1), k, 0], sq[(0, 1), k, 1], "k-")
+                plt.plot(sq[(0, 2), k, 0], sq[(0, 2), k, 1], "k-")
+                plt.plot(sq[(1, 3), k, 0], sq[(1, 3), k, 1], "k-")
+                plt.plot(sq[(2, 3), k, 0], sq[(2, 3), k, 1], "k-")
+
+            plt.plot(sq[(0, 1), -1, 0], sq[(0, 1), -1, 1], "g-")
+            plt.plot(sq[(0, 2), -1, 0], sq[(0, 2), -1, 1], "g-")
+            plt.plot(sq[(1, 3), -1, 0], sq[(1, 3), -1, 1], "g-")
+            plt.plot(sq[(2, 3), -1, 0], sq[(2, 3), -1, 1], "g-")
+
+            plt.show()
+
             print("Iter {} State {} A {}".format(i,s,a))
             print(m.get_observation())
             # m._render(a=a)
-            time.sleep(.1)
+            time.sleep(1)
