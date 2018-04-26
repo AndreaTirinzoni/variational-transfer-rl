@@ -125,7 +125,19 @@ class Maze(gym.Env):
         return np.concatenate((s[:2], np.array([np.cos(s[2]), np.sin(s[2])]), np.array(obstacles), np.array(goals)))
 
     def get_tiled_state(self, s):
-        return np.floor(s/self.wall_dim)
+        return np.floor(s/self.wall_dim).astype("int")
+
+    def get_binarized_observation(self, observation=None):
+        """ Takes a observation and binarizes the absolute position based on the tiled partition given by the
+        matrix self.walls. It puts a 1. in the tile currently occupied by the agent. It returns it in the first
+        positions of the new binarized observation. If no observation is passed, the current observation is used. """
+        if observation is None:
+            observation = self.get_observation()
+        occupied_tile = self.get_tiled_state(observation[:2])
+        tiles = np.zeros(self.walls.shape)
+        tiles[occupied_tile[0], occupied_tile[1]] = 1.
+        return np.concatenate((tiles.flatten(), observation[2:]))
+
 
     def _get_obstacle_goal(self, s1, s2):
         tiles = self._get_traversed_tiles(s1, s2)
@@ -377,6 +389,6 @@ if __name__ == '__main__':
             plt.show()
 
             print("Iter {} State {} A {}".format(i,s,a))
-            print(m.get_observation())
+            print(m.get_binarized_observation())
             # m._render(a=a)
             time.sleep(1)
