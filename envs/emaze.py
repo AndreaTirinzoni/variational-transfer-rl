@@ -21,7 +21,7 @@ class Maze(gym.Env):
 
     def __init__(self, size=np.array([10., 10.]), wall_dim=np.array((1.,1.)), start_pos=np.array((0., 0.)), goal_pos=None, walls=None):
         # General MDP parameters
-        self.horizon = 1
+        self.horizon = 100
         self.gamma = 0.99
         self.state_dim = 22
         self.absolute_state_dim = 3
@@ -99,6 +99,7 @@ class Maze(gym.Env):
         self.current_state[-1] = np.divmod(self.current_state[-1], 2 * np.pi)[1]    # set the orientation to be [0,2pi]
 
         clipped = self.current_state[:2].clip([0., 0.], self.size - 1e-8)
+        out_grid = True if not np.array_equal(clipped, self.current_state[:2]) else False
         self.current_state[:2] = clipped
 
         # Check whether the agent hit a wall
@@ -107,7 +108,7 @@ class Maze(gym.Env):
         # Compute reward
         reward = 0.
         absorbing = False
-        if self.irew & hits:   # if it hits a wall
+        if self.irew & (hits or out_grid):   # if it hits a wall
             reward -= 0.1
         if self.irew & a > 0: # if does not move forward
             reward -= 0.001
