@@ -21,7 +21,7 @@ class Maze(gym.Env):
 
     def __init__(self, size=np.array([10., 10.]), wall_dim=np.array((1.,1.)), start_pos=np.array((0., 0.)), goal_pos=None, walls=None):
         # General MDP parameters
-        self.horizon = 100
+        self.horizon = 1
         self.gamma = 0.99
         self.state_dim = 22
         self.absolute_state_dim = 3
@@ -39,6 +39,7 @@ class Maze(gym.Env):
         self.goal_radius = 1
         self.noise = 0.05
         self.irew = False  # True if informative reward is to be use
+        self.binarized = False # True if observation is to be returned binarized
 
         # State space: [0,width,0]x[0,height,2pi]
         self.observation_space = spaces.Box(low=np.array([0., 0., 0.]), high=np.concatenate((size, np.array([2*np.pi]))))
@@ -69,7 +70,7 @@ class Maze(gym.Env):
                 assert state[0] < self.size[0] and state[0] >= 0 and \
                        state[1] < self.size[1] and state[1] >= 0
                 self.current_state = np.array((state[0], state[1], np.divmod(state[2], 2*np.pi)[1]))
-        return self.get_observation()
+        return self.get_observation() if not self.binarized else self.get_binarized_observation()
 
     def get_state(self):
         return np.array(self.current_state)
@@ -114,7 +115,7 @@ class Maze(gym.Env):
             absorbing = True
             reward += 1.0
 
-        return self.get_observation(), reward, absorbing, {}
+        return self.get_observation() if not self.binarized else self.get_binarized_observation(), reward, absorbing, {}
 
     def get_observation(self):
         s = self.get_state()
@@ -135,13 +136,20 @@ class Maze(gym.Env):
         """ Takes a observation and binarizes the absolute position based on the tiled partition given by the
         matrix self.walls. It puts a 1. in the tile currently occupied by the agent. It returns it in the first
         positions of the new binarized observation. If no observation is passed, the current observation is used. """
+
         if observation is None:
             observation = self.get_observation()
-        occupied_tile = self.get_tiled_state(observation[:2])
-        tiles = np.zeros(self.walls.shape)
-        tiles[occupied_tile[0], occupied_tile[1]] = 1.
-        return np.concatenate((tiles.flatten(), observation[2:]))
-
+        if observation.ndim == 1:
+            occupied_tile = self.get_tiled_state(observation[:2])
+            tiles = np.zeros(self.walls.shape)
+            tiles[occupied_tile[0], occupied_tile[1]] = 1.
+            return np.concatenate((tiles.flatten(), observation[2:]))
+        if observation.ndim == 2:
+            occupied_tile = np.floor(observation[:, :2]/self.wall_dim[np.newaxis]).astype("int")
+            tiles = np.zeros((observation.shape[0], self.walls.shape[0], self.walls.shape[1]))
+            s = np.arange(observation.shape[0])
+            tiles[s, occupied_tile[s,0], occupied_tile[s,1]] = 1.
+            return np.concatenate((tiles.reshape(observation.shape[0], self.walls.shape[0]*self.walls.shape[1]), observation[:,2:]), axis=1)
 
     def _get_obstacle_goal(self, s1, s2):
         tiles = self._get_traversed_tiles(s1, s2)
@@ -160,6 +168,13 @@ class Maze(gym.Env):
 
     def toggle_irew(self):
         self.irew = not self.irew
+
+    def toggle_binarized(self):
+        self.binarized = not self.binarized
+        if self.binarized:
+            self.state_dim = self.walls.size + 20
+        else:
+            self.state_dim = 22
 
     # TODO : maybe recast with _intersection_tile function
     def _check_intersect(self, s1, s2):
