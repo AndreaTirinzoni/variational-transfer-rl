@@ -37,6 +37,10 @@ def learn(mdp,
     # Add random episodes if needed
     init_samples = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes,
                                            preprocess=preprocess) if random_episodes > 0 else None
+    if random_episodes > 0:
+        t, s, a, r, s_prime, absorbing, sa = utils.split_data(init_samples, mdp.state_dim, mdp.action_dim)
+        init_samples = np.concatenate((t[:, np.newaxis], preprocess(s), a, r[:, np.newaxis], preprocess(s_prime),
+                                       absorbing[:, np.newaxis]), axis=1)
 
     # Figure out the effective state-dimension after preprocessing is applied
     eff_state_dim = preprocess(np.zeros(mdp.state_dim)).size
