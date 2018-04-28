@@ -96,23 +96,7 @@ def learn(mdp,
         np.random.seed(seed)
 
     # Initialize policies
-    pi_u = EpsilonGreedy(Q, np.arange(mdp.action_space.n), epsilon=1)
     pi_g = EpsilonGreedy(Q, np.arange(mdp.action_space.n), epsilon=0)
-
-    # Add random episodes if needed
-    init_samples = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes,
-                                           preprocess=preprocess) if random_episodes > 0 else None
-    if random_episodes > 0:
-        t, s, a, r, s_prime, absorbing, sa = utils.split_data(init_samples, mdp.state_dim, mdp.action_dim)
-        init_samples = np.concatenate((t[:, np.newaxis], preprocess(s), a, r[:, np.newaxis], preprocess(s_prime),
-                                       absorbing[:, np.newaxis]), axis=1)
-
-    # Figure out the effective state-dimension after preprocessing is applied
-    eff_state_dim = preprocess(np.zeros(mdp.state_dim)).size
-
-    # Create replay buffer
-    buffer = Buffer(buffer_size, eff_state_dim)
-    n_init_samples = buffer.add_all(init_samples) if random_episodes > 0 else 0
 
     # Get number of features
     K = Q._w.size
@@ -129,6 +113,25 @@ def learn(mdp,
     Sigma_bar_inv = np.linalg.inv(Sigma_bar + np.eye(K) * sigma_reg)
     # We initialize the parameters at the prior with smaller regularization (just to make sure Sigma_bar is pd)
     params = clip(pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * cholesky_clip)), cholesky_clip, K)
+
+    # Add random episodes if needed
+    if random_episodes > 0:
+        init_samples = list()
+        for i in range(random_episodes):
+            Q._w = sample_posterior(params, K)
+            init_samples.append(utils.generate_episodes(mdp, pi_g, n_episodes=1, preprocess=preprocess))
+        init_samples = np.concatenate(init_samples)
+
+        t, s, a, r, s_prime, absorbing, sa = utils.split_data(init_samples, mdp.state_dim, mdp.action_dim)
+        init_samples = np.concatenate((t[:, np.newaxis], preprocess(s), a, r[:, np.newaxis], preprocess(s_prime),
+                                       absorbing[:, np.newaxis]), axis=1)
+
+    # Figure out the effective state-dimension after preprocessing is applied
+    eff_state_dim = preprocess(np.zeros(mdp.state_dim)).size
+
+    # Create replay buffer
+    buffer = Buffer(buffer_size, eff_state_dim)
+    n_init_samples = buffer.add_all(init_samples) if random_episodes > 0 else 0
 
     # Results
     iterations = []
