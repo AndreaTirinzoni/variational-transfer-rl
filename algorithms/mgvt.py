@@ -265,7 +265,7 @@ def learn(mdp,
         w, _ = sample_gmm(random_episodes, c_bar, mu_bar, np.sqrt(Sigma_bar))
         for i in range(random_episodes):
             Q._w = w[i]
-            init_samples.append(utils.generate_episodes(mdp, pi_g, n_episodes=1))
+            init_samples.append(utils.generate_episodes(mdp, pi_g, n_episodes=1, preprocess=preprocess))
         init_samples = np.concatenate(init_samples)
 
         t, s, a, r, s_prime, absorbing, sa = utils.split_data(init_samples, mdp.state_dim, mdp.action_dim)
