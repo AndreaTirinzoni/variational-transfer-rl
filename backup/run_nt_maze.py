@@ -2,10 +2,8 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from envs.walled_gridworld import WalledGridworld
-from envs.marcellos_gridworld import MarcellosGridworld
-from features.agrbf import build_features_gw
-from approximators.linear import LinearQFunction
+from envs.emaze import Maze
+from approximators.mlp import MLPQFunction
 from operators.mellow import MellowBellmanOperator
 from policies import EpsilonGreedy, ScheduledEpsilonGreedy
 import utils
@@ -21,16 +19,22 @@ def run(mdp, seed=None):
         np.random.seed(seed)
 
     # Build the features
-    features = build_features_gw(gw_size, n_basis, n_actions, state_dim, action_dim)
+    # features = build_features_maze(gw_size, n_basis, n_actions, state_dim, action_dim)
+
     # Create BellmanOperator
     operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
+
     # Create Q Function
-    Q = LinearQFunction(features, np.arange(n_actions), state_dim, action_dim)
+    layers = [l1]
+    if l2 > 0:
+        layers.append(l2)
+    Q = MLPQFunction(state_dim, n_actions, layers=layers)
+
     # Initialize policies
     schedule = np.linspace(eps_start,eps_end,exploration_fraction*max_iter)
-    pi = ScheduledEpsilonGreedy(Q, Q.actions, schedule)
-    pi_u = EpsilonGreedy(Q, Q.actions, epsilon=1)
-    pi_g = EpsilonGreedy(Q, Q.actions, epsilon=0)
+    pi = ScheduledEpsilonGreedy(Q, np.arange(n_actions), schedule)
+    pi_u = EpsilonGreedy(Q, np.arange(n_actions), epsilon=1)
+    pi_g = EpsilonGreedy(Q, np.arange(n_actions), epsilon=0)
 
     # Add random episodes if needed
     dataset = utils.generate_episodes(mdp, pi_u, n_episodes=random_episodes) if random_episodes > 0 else None
@@ -66,14 +70,22 @@ def run(mdp, seed=None):
         # Step
         s_prime, r, done, _ = mdp.step(a)
         # Build the new sample and add it to the dataset
-        dataset = utils.add_sample(dataset, buffer_size, h, s, a, r, s_prime, done)
+        dataset = utils.add_sample(dataset, buffer_size, h, s, a[np.newaxis], r, s_prime, done)
 
         # Take a step of gradient if needed
         if i % train_freq == 0:
             # Shuffle the dataset
-            np.random.shuffle(dataset)
+            # np.random.shuffle(dataset)
+
+            idxs = np.random.choice(dataset.shape[0], batch_size)
+
             # Estimate gradient
-            g = operator.gradient_be(Q, dataset[:batch_size, :])
+            batch = np.array(dataset[idxs, :])
+            # batch[:, 1:3] /= mdp.size[np.newaxis]
+            # batch[:, 4:14] /= mdp.range
+            # batch[:, 25:27] /= mdp.size[np.newaxis]
+            # batch[:, 29:38] /= mdp.range
+            g = operator.gradient_be(Q, batch)
             # Take a gradient step
             Q._w, t, m_t, v_t = utils.adam(Q._w, g, t, m_t, v_t, alpha=alpha)
 
@@ -83,7 +95,6 @@ def run(mdp, seed=None):
         s = s_prime
         h += 1
         if done or h >= mdp.horizon:
-
             episode_rewards.append(0.0)
             s = mdp.reset()
             h = 0
@@ -124,15 +135,15 @@ def run(mdp, seed=None):
     run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, sft]
     weights = np.array(Q._w)
 
-    return [mdp.door_x, weights, run_info]
+    return [(mdp.size, mdp.wall_dim, mdp.goal, mdp.start, mdp.walls), weights, run_info]
 
 
 # Global parameters
 gamma = 0.99
-n_actions = 4
-state_dim = 2
+n_actions = 3
+state_dim = 22
 action_dim = 1
-render = False
+render = True
 verbose = True
 
 # Command line arguments
@@ -142,23 +153,21 @@ parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
 parser.add_argument("--batch_size", default=100)
 parser.add_argument("--max_iter", default=5000)
-parser.add_argument("--buffer_size", default=10000)
-parser.add_argument("--random_episodes", default=0)
-parser.add_argument("--exploration_fraction", default=0.2)
+parser.add_argument("--buffer_size", default=5000)
+parser.add_argument("--random_episodes", default=50)
+parser.add_argument("--exploration_fraction", default=0.3)
 parser.add_argument("--eps_start", default=1.0)
 parser.add_argument("--eps_end", default=0.02)
 parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha", default=0.001)
-parser.add_argument("--env", default="two-room-gw")
-parser.add_argument("--gw_size", default=5)
-# Door at -1 means random positions over all runs
-parser.add_argument("--door", default=-1)
-parser.add_argument("--door2", default=-1)
-parser.add_argument("--n_basis", default=6)
+parser.add_argument("--gw_size", default=10)
+parser.add_argument("--n_basis", default=11)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
+parser.add_argument("--l1", default=64)
+parser.add_argument("--l2", default=0)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 
 # Read arguments
@@ -177,26 +186,20 @@ train_freq = int(args.train_freq)
 eval_freq = int(args.eval_freq)
 mean_episodes = int(args.mean_episodes)
 alpha = float(args.alpha)
-env = str(args.env)
 gw_size = int(args.gw_size)
-door = float(args.door)
-door2 = float(args.door2)
 n_basis = int(args.n_basis)
 n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
-
-# Number of features
-K = n_basis ** 2 * n_actions
+l1 = int(args.l1)
+l2 = int(args.l2)
 
 # Generate tasks
-doors = [np.random.uniform(0.5, gw_size - 0.5) if door < 0 else door for _ in range(n_runs)]
-doors2 = [np.random.uniform(0.5, gw_size - 0.5) if door2 < 0 else door2 for _ in range(n_runs)]
-if env == "two-room-gw":
-    mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
-elif env == "three-room-gw":
-    mdps = [MarcellosGridworld(np.array([gw_size, gw_size]), door_x=(d1,d2)) for (d1,d2) in zip(doors,doors2)]
-eval_states = [np.array([0., 0.]) for _ in range(10)]
+mazes = utils.load_object("../scripts/mazes10x10")
+
+mdps = [Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4]) \
+            for maze in mazes]
+eval_states = [np.array([0., 0., 0.]) for _ in range(10)]
 
 if n_jobs == 1:
     results = [run(mdp) for mdp in mdps]
