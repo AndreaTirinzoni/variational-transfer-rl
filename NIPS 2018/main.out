@@ -1,0 +1,14 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Markov Decision Processes}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Variational Inference}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Variational Transfer Learning}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{Algorithm}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Gaussian Variational Transfer}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Mixture of Gaussian Variational Transfer}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Related Works}{}% 9
+\BOOKMARK [1][-]{section.5}{Experiments}{}% 10
+\BOOKMARK [2][-]{subsection.5.1}{Gridworld}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.2}{Classic Control}{section.5}% 12
+\BOOKMARK [2][-]{subsection.5.3}{Maze Navigation}{section.5}% 13
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 14

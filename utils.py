@@ -4,7 +4,8 @@ from time import sleep
 import matplotlib.pyplot as plt
 
 
-def evaluate_policy(mdp, policy, criterion='discounted', n_episodes=1, initial_states=None, render=False):
+def evaluate_policy(mdp, policy, criterion='discounted', n_episodes=1, initial_states=None,
+                    preprocess=lambda x: x, render=False):
     """
     Evaluates a policy on a given MDP.
 
@@ -27,15 +28,15 @@ def evaluate_policy(mdp, policy, criterion='discounted', n_episodes=1, initial_s
     assert criterion == 'average' or criterion == 'discounted'
 
     if initial_states is None or type(initial_states) is np.ndarray:
-        scores = [_single_eval(mdp, policy, criterion, initial_states, render) for _ in range(n_episodes)]
+        scores = [_single_eval(mdp, policy, criterion, initial_states, preprocess, render) for _ in range(n_episodes)]
     elif type(initial_states) is list:
-        scores = [_single_eval(mdp, policy, criterion, init_state, render) for init_state in initial_states]
+        scores = [_single_eval(mdp, policy, criterion, init_state, preprocess, render) for init_state in initial_states]
 
     scores = np.array(scores)
     return np.mean(scores[:, 0]), np.std(scores[:, 0]), np.mean(scores[:, 1]), np.std(scores[:, 1])
 
 
-def _single_eval(mdp, policy, criterion, initial_state, render):
+def _single_eval(mdp, policy, criterion, initial_state, preprocess, render):
 
     score = 0
     gamma = mdp.gamma if criterion == "discounted" else 1
@@ -45,7 +46,7 @@ def _single_eval(mdp, policy, criterion, initial_state, render):
 
     while t < mdp.horizon:
 
-        a = policy.sample_action(s)
+        a = policy.sample_action(preprocess(s))
         if render:
             mdp._render(a=a)
             sleep(0.01)
@@ -58,7 +59,7 @@ def _single_eval(mdp, policy, criterion, initial_state, render):
     return score if criterion == "discounted" else score / t, t
 
 
-def generate_episodes(mdp, policy, n_episodes=1, render=False):
+def generate_episodes(mdp, policy, n_episodes=1, preprocess=lambda x: x, render=False):
     """
     Generates episodes in a given mdp using a given policy
 
@@ -73,12 +74,12 @@ def generate_episodes(mdp, policy, n_episodes=1, render=False):
     A matrix where each row corresponds to a single sample (t,s,a,r,s',absorbing)
     """
 
-    episodes = [_single_episode(mdp, policy, render) for _ in range(n_episodes)]
+    episodes = [_single_episode(mdp, policy, preprocess, render) for _ in range(n_episodes)]
 
     return np.concatenate(episodes)
 
 
-def _single_episode(mdp, policy, render=False):
+def _single_episode(mdp, policy, preprocess, render=False):
     episode = np.zeros((mdp.horizon, 1 + mdp.state_dim + mdp.action_dim + 1 + mdp.state_dim + 1))
     a_idx = 1 + mdp.state_dim
     r_idx = a_idx + mdp.action_dim
@@ -92,7 +93,7 @@ def _single_episode(mdp, policy, render=False):
         episode[t, 0] = t
         episode[t, 1:a_idx] = s
 
-        a = policy.sample_action(s)
+        a = policy.sample_action(preprocess(s))
         s, r, done, _ = mdp.step(a)
         if render:
             mdp._render(a=a)
