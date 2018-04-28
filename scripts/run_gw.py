@@ -2,8 +2,8 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from envs.walled_gridworld import WalledGridworld
-from envs.marcellos_gridworld import MarcellosGridworld
+from envs.two_room_gw import TwoRoomGridworld
+from envs.three_room_gw import ThreeRoomGridworld
 from features.agrbf import build_features_gw_state
 from features.identity import Identity
 from approximators.linear import LinearQFunction
@@ -73,9 +73,9 @@ file_name = str(args.file_name)
 doors = [np.random.uniform(0.5, gw_size - 0.5) if door < 0 else door for _ in range(n_runs)]
 doors2 = [np.random.uniform(0.5, gw_size - 0.5) if door2 < 0 else door2 for _ in range(n_runs)]
 if env == "two-room-gw":
-    mdps = [WalledGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
+    mdps = [TwoRoomGridworld(np.array([gw_size, gw_size]), door_x=d) for d in doors]
 elif env == "three-room-gw":
-    mdps = [MarcellosGridworld(np.array([gw_size, gw_size]), door_x=(d1,d2)) for (d1,d2) in zip(doors,doors2)]
+    mdps = [ThreeRoomGridworld(np.array([gw_size, gw_size]), door_x=(d1,d2)) for (d1,d2) in zip(doors,doors2)]
 eval_states = [np.array([0., 0.]) for _ in range(10)]
 
 state_dim = mdps[0].state_dim

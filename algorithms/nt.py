@@ -128,4 +128,4 @@ def learn(mdp,
     run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf]
     weights = np.array(Q._w)
 
-    return [mdp.door_x, weights, run_info]
+    return [mdp.get_info(), weights, run_info]

@@ -15,13 +15,13 @@ Info
 """
 
 
-class WalledGridworld(gym.Env):
+class ThreeRoomGridworld(gym.Env):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 15
     }
 
-    def __init__(self, size=np.array([10, 10]), door_x=5, door_width=1):
+    def __init__(self, size=np.array([10, 10]), door_x=(5,5), door_width=(1,1)):
         # General MDP parameters
         self.horizon = 50
         self.gamma = 0.99
@@ -37,10 +37,14 @@ class WalledGridworld(gym.Env):
         self.step_length = 1
         self.door_x = door_x
         self.door_width = door_width
-        self.wall1_p1 = np.array([0, size[1] / 2])
-        self.wall1_p2 = np.array([max(0., door_x - door_width / 2), size[1] / 2])
-        self.wall2_p1 = np.array([min(door_x + door_width / 2, size[1]), size[1] / 2])
-        self.wall2_p2 = np.array([size[1], size[1] / 2])
+        self.wall1_p1 = np.array([0, size[1] * 2 / 3])
+        self.wall1_p2 = np.array([max(0., door_x[1] - door_width[1] / 2), size[1] * 2 / 3])
+        self.wall2_p1 = np.array([min(door_x[1] + door_width[1] / 2, size[0]), size[1] * 2 / 3])
+        self.wall2_p2 = np.array([size[1], size[1] * 2 / 3])
+        self.wall3_p1 = np.array([0, size[1] / 3])
+        self.wall3_p2 = np.array([max(0., door_x[0] - door_width[0] / 2), size[1] / 3])
+        self.wall4_p1 = np.array([min(door_x[0] + door_width[0] / 2, size[0]), size[1] / 3])
+        self.wall4_p2 = np.array([size[0], size[1] / 3])
 
         # State space: [0,width]x[0,height]
         self.observation_space = spaces.Box(low=np.array([0, 0]), high=size)
@@ -50,6 +54,9 @@ class WalledGridworld(gym.Env):
 
         self.reset()
         self.viewer = None
+
+    def get_info(self):
+        return ["three-room-gw", self.door_x]
 
     def reset(self, state=None):
         if state is None:
@@ -96,7 +103,9 @@ class WalledGridworld(gym.Env):
 
         # Check whether the agent hit a wall
         if self._check_intersect(s, self.current_position, self.wall1_p1, self.wall1_p2) or \
-                self._check_intersect(s, self.current_position, self.wall2_p1, self.wall2_p2):
+                self._check_intersect(s, self.current_position, self.wall2_p1, self.wall2_p2) or \
+                self._check_intersect(s, self.current_position, self.wall3_p1, self.wall3_p2) or \
+                self._check_intersect(s, self.current_position, self.wall4_p1, self.wall4_p2):
             self.current_position = s
 
         # Compute reward
@@ -149,6 +158,8 @@ class WalledGridworld(gym.Env):
 
         self.viewer.draw_line(self.wall1_p1, self.wall1_p2)
         self.viewer.draw_line(self.wall2_p1, self.wall2_p2)
+        self.viewer.draw_line(self.wall3_p1, self.wall3_p2)
+        self.viewer.draw_line(self.wall4_p1, self.wall4_p2)
         c = self.viewer.draw_circle(radius=0.2)
         c.set_color(0, 0, 0)
         if a == 0:
