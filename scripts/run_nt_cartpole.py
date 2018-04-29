@@ -68,6 +68,9 @@ n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 
+# Seed to get reproducible results
+np.random.seed(485)
+
 # Generate tasks
 mc = [np.random.uniform(0.5, 1.5) if cart_mass < 0 else cart_mass for _ in range(n_runs)]
 mp = [np.random.uniform(0.1, 0.2) if pole_mass < 0 else pole_mass for _ in range(n_runs)]
@@ -109,10 +112,11 @@ def run(mdp, seed=None):
                  verbose=verbose)
 
 
+seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+seeds = seeds[:n_runs]
 if n_jobs == 1:
-    results = [run(mdp) for mdp in mdps]
+    results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
 elif n_jobs > 1:
-    seeds = [np.random.randint(1000000) for _ in range(n_runs)]
     results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed) for (mdp,seed) in zip(mdps,seeds))
 
 utils.save_object(results, file_name)
