@@ -177,7 +177,7 @@ def learn(mdp,
         if i % train_freq == 0:
             # Estimate gradient
             g = gradient(buffer.sample_batch(batch_size), params, Q, mu_bar, Sigma_bar_inv, operator,
-                         n_init_samples + i + 1, lambda_, n_weights)
+                         i + 1, lambda_, n_weights)
             # Take a gradient step for \mu
             params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
             # Take a gradient step for L
@@ -213,7 +213,7 @@ def learn(mdp,
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
             fval = objective(buffer.sample_batch(batch_size), params, Q, mu_bar, Sigma_bar_inv, operator,
-                             n_init_samples + i + 1, lambda_, n_weights)
+                             i + 1, lambda_, n_weights)
 
             # Append results
             iterations.append(i)
