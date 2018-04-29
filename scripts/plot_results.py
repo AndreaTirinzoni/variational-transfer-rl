@@ -51,8 +51,9 @@ def plot_curves(x_data, y_mean_data, y_std_data=None, title="", x_label="Episode
     plt.show()
 
 
-files = ["nt_gw5x5","vt_gw5x5_lambda0.001_tc0","vt_gw5x5_lambda0.0001_tc0","vt_gw5x5_lambda0.001_tc1"]
-names = ["No Transfer", "Transfer (0.001)", "Transfer (0.0001)", "Transfer (TC)"]
+files = ["nt_gw10x10_rnd10","vt_gw10x10_basis11_ns10_rnd10_tc0","vt_gw10x10_basis11_ns10_rnd10_tc1"]
+files = ["results/" + f for f in files]
+names = ["NT", "GVT", "GVT (TC)"]
 
 x = []
 y_mean = []
@@ -63,8 +64,6 @@ y3_mean = []
 y3_std = []
 y4_mean = []
 y4_std = []
-y5_mean = []
-y5_std = []
 
 for file in files:
     results = [r[2] for r in utils.load_object(file)]
@@ -75,7 +74,6 @@ for file in files:
     eval_rew = []
     l_2 = []
     l_inf = []
-    sft = []
     for result in results:
         iterations.append(result[0])
         episodes.append(result[1])
@@ -84,7 +82,6 @@ for file in files:
         eval_rew.append(result[4])
         l_2.append(result[5])
         l_inf.append(result[6])
-        sft.append(result[7])
     iterations = np.array(iterations)
     x.append(np.mean(iterations,axis=0))
     n_samples = np.array(n_samples)
@@ -100,12 +97,8 @@ for file in files:
     l_inf = np.array(l_inf)
     y4_mean.append(np.mean(l_inf, axis=0))
     y4_std.append(2 * np.std(l_inf, axis=0) / np.sqrt(l_inf.shape[0]))
-    sft = np.array(sft)
-    y5_mean.append(np.mean(sft, axis=0))
-    y5_std.append(2 * np.std(sft, axis=0) / np.sqrt(sft.shape[0]))
 
 plot_curves([a[1:] for a in x], [a[1:] for a in y_mean], [a[1:] for a in y_std], title="", x_label="Iterations", y_label="Learning Reward", names=names, file_name="lrev")
 plot_curves(x, y2_mean, y2_std, title="", x_label="Iterations", y_label="Evaluation Reward", names=names, file_name="erew")
 plot_curves(x, y3_mean, y3_std, title="", x_label="Iterations", y_label="L_2", names=names, file_name="l2")
 plot_curves(x, y4_mean, y4_std, title="", x_label="Iterations", y_label="L_INF", names=names, file_name="linf")
-plot_curves(x, y5_mean, y5_std, title="", x_label="Iterations", y_label="Softmax Error", names=names, file_name="sft")
