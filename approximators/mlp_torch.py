@@ -15,17 +15,22 @@ class MLPQFunction(QFunction):
     """
     def __init__(self, state_dim, n_actions, layers=(32,), initial_params=None):
         self._nn = Net(state_dim, n_actions, layers)
-        self._w = np.random.randn(self._nn.n_weights) * 0.1 if initial_params is None else initial_params
+        self.__w = np.random.randn(self._nn.n_weights) * 0.1 if initial_params is None else initial_params
         self._state_dim = state_dim
         self._n_actions = n_actions
 
-    def update_weights(self, w):
+    @property
+    def _w(self):
+        return self.__w
+
+    @_w.setter
+    def _w(self, w):
         """Updates the regressor's weights"""
         if w.ndim == 1:
             assert w.size == self._nn.n_weights
         else:
             assert w.ndim == 2 and w.shape[1] == self._nn.n_weights
-        self._w = w
+        self.__w = w
         self._nn.set_weights(w)
 
     def value(self, sa, grad_required=False):
@@ -50,7 +55,7 @@ class MLPQFunction(QFunction):
     def value_weights(self, sa, weights=None, grad_required=False):
         """Computes Q(s,a) for any weight passed at each sa [NxM]"""
         if weights is not None:
-            self.update_weights(weights)
+            self._w = weights
         vals = self._nn.forward(sa[:, :-1])
         acts = torch.from_numpy(sa[:, -1]).type(torch.int64)
         ret = vals[:, torch.arange(sa.shape[0], dtype=torch.int64), acts] * 1
@@ -59,13 +64,12 @@ class MLPQFunction(QFunction):
     def value_actions_weights(self, states, weights=None, done=None, grad_required=False):
         """Computes Q(s,a) for any action and for any weight passed at each s [NxAxM]"""
         if weights is not None:
-            self.update_weights(weights)
+            self._w = weights
         vals = self._nn.forward(states)
         return np.transpose(vals.detach().numpy(), (1, 2, 0)) * (1 if done is None else 1 - done[:, np.newaxis, np.newaxis]) if not grad_required \
                 else vals.permute(1,2,0) * (1 if done is None else 1 - torch.from_numpy(done[:, np.newaxis, np.newaxis]))
 
     def gradient(self, prepare=False):
-
         if prepare:
             torch.autograd.enable_grad()
             self._nn.zero_grad() # prepare for gradient
