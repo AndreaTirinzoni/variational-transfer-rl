@@ -60,16 +60,16 @@ class MellowBellmanOperator(Operator):
         """General function for gradients of the Bellman error"""
         with torch.enable_grad():
             Q.gradient(prepare=True)    #zeros out old grads.
-            if weights is not None:     # TODO fix: some Variable is being modified in-place
+            if weights is not None:
                 be = (self._bellman_residual_surrogate(Q, samples, weights)).mean(dim=0)
-                m = torch.eye(weights.shape[0], dtype=torch.float64)
+                m = torch.eye(be.shape[0], dtype=torch.float64)
                 J = np.zeros(weights.shape)
-                for k in range(weights.shape[0]):
-                    be.backward(m[:,k], retain_graph=True)
-                    g1 = Q.gradient()
-                    # be.backward(torch.ones(weights.shape[0], dtype=torch.float64), retain_graph=True)
-                    # g2 = Q.gradient()
-                    J[k,:] = g1[k,:]
+                # for k in range(weights.shape[0]):
+                #     be.backward(m[:,k], retain_graph=True)
+                #     g1 = Q.gradient()
+                #     J[k, :] = g1[k, :]
+                be.backward(torch.ones(weights.shape[0], dtype=torch.float64), retain_graph=True)
+                J = Q.gradient()
                 return J
             else:
                 be = (self._bellman_residual_surrogate(Q, samples)).mean()
@@ -110,7 +110,8 @@ if __name__ == "__main__":
     action_dim = 1
     n_actions = 3
 
-
+    torch.manual_seed(400)
+    np.random.seed(400)
     # Create BellmanOperator
     operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
     # Create Q Function
@@ -120,7 +121,8 @@ if __name__ == "__main__":
     Q = MLPQFunction(state_dim, n_actions, layers=layers)
 
     w = Q._w
-
+    w = torch.randn(w.size).numpy()
+    Q.update_weights(w)
     weights = torch.randn(5, w.shape[0], requires_grad=True)
 
     samples = np.random.randn(10, 1 + state_dim + action_dim + 1 + state_dim + 1)
@@ -137,5 +139,9 @@ if __name__ == "__main__":
     g = operator.gradient_be(Q, samples)
 
 
+
     val = Q.value(samples[:, 1:1+state_dim+action_dim])
-    g = operator.gradient_be(Q, samples, weights.detach().numpy())
+    g1 = operator.gradient_be(Q, samples, weights.detach().numpy())
+    g2= operator.gradient_be(Q, samples, weights.detach().numpy())
+
+    h = 1
