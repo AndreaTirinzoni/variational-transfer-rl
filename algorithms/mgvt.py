@@ -265,7 +265,7 @@ def learn(mdp,
         w, _ = sample_gmm(random_episodes, c_bar, mu_bar, np.sqrt(Sigma_bar))
         for i in range(random_episodes):
             Q._w = w[i]
-            init_samples.append(utils.generate_episodes(mdp, pi_g, n_episodes=1))
+            init_samples.append(utils.generate_episodes(mdp, pi_g, n_episodes=1, preprocess=preprocess))
         init_samples = np.concatenate(init_samples)
 
         t, s, a, r, s_prime, absorbing, sa = utils.split_data(init_samples, mdp.state_dim, mdp.action_dim)
@@ -323,7 +323,7 @@ def learn(mdp,
         if i % train_freq == 0:
             # Estimate gradient
             g = gradient(buffer.sample_batch(batch_size), params, Q, c_bar, mu_bar, Sigma_bar, operator,
-                         n_init_samples + i + 1, phi, psi, n_weights, lambda_, max_iter_ukl, C, K, precision=Sigma_bar_inv)
+                         i + 1, phi, psi, n_weights, lambda_, max_iter_ukl, C, K, precision=Sigma_bar_inv)
             # Take a gradient step for \mu
             params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
             # Take a gradient step for L
@@ -363,7 +363,7 @@ def learn(mdp,
             l_2_err = np.average(br)
             l_inf_err = np.max(br)
             fval = objective(buffer.sample_batch(batch_size), params, Q, c_bar, mu_bar, Sigma_bar, operator,
-                             n_init_samples + i + 1, phi, psi, n_weights, lambda_, C, K, precision=Sigma_bar_inv)
+                             i + 1, phi, psi, n_weights, lambda_, C, K, precision=Sigma_bar_inv)
 
             # Append results
             iterations.append(i)

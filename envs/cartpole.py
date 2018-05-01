@@ -15,6 +15,8 @@ class CartPoleEnv(gym.Env):
 
     def __init__(self, mc=1.0, mp=0.1, l=0.5):
 
+        self.state_dim = 4
+        self.action_dim = 1
         self.gamma = 0.99
         self.horizon = 100
 
@@ -46,6 +48,9 @@ class CartPoleEnv(gym.Env):
         self.state = None
 
         self.steps_beyond_done = None
+
+    def get_info(self):
+        return ["cartpole", self.masscart, self.masspole, self.length]
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
