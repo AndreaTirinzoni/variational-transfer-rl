@@ -48,32 +48,33 @@ class MellowBellmanOperator(Operator):
             absorbing = torch.from_numpy(absorbing)
             qval = Q.value(sa, grad_required=True)
         else:
-            Qs_prime = Q.value_actions_weights(s_prime, weights, absorbing, grad_required=True)
+            Qs_prime = Q.value_actions_weights(s_prime, weights=weights, done=absorbing, grad_required=True)
             mmQs = mellow_max(Qs_prime, self._kappa, axis=1)
             r = torch.from_numpy(r).unsqueeze(1)
             absorbing = torch.from_numpy(absorbing).unsqueeze(1)
             qval = Q.value_weights(sa, grad_required=True)
-
         mean_weight = (r + self._gamma * mmQs * (1 - absorbing) - qval).detach()
-        return 2 * mean_weight * (r + self._xi * self._gamma * mmQs * (1-absorbing) - qval)
-
+        return 2 * mean_weight * (r + self._xi * self._gamma * mmQs * (1-absorbing) - qval) # TODO does the (1-done) goes in the derivative?
 
     def gradient_be(self, Q, samples, weights=None):
         """General function for gradients of the Bellman error"""
-        Q.gradient(prepare=True)  # zeroes out old grads.
-        if weights is not None:     # TODO fix: some variable is being modified in-place
-            be = (self._bellman_residual_surrogate(Q, samples, weights) ** 2).mean(dim=0)
-            m = torch.eye(weights.shape[0], dtype=torch.float64)
-            J = np.zeros(weights.shape)
-            for k in range(weights.shape[0]):
-                be.backward(m[:,k], retain_graph=True)
-                J[k, :] = Q.gradient()
-            return J
-        else:
-
-            be = (self._bellman_residual_surrogate(Q, samples)).mean()
-            be.backward()
-            return Q.gradient()
+        with torch.enable_grad():
+            Q.gradient(prepare=True)    #zeros out old grads.
+            if weights is not None:     # TODO fix: some Variable is being modified in-place
+                be = (self._bellman_residual_surrogate(Q, samples, weights)).mean(dim=0)
+                m = torch.eye(weights.shape[0], dtype=torch.float64)
+                J = np.zeros(weights.shape)
+                for k in range(weights.shape[0]):
+                    be.backward(m[:,k], retain_graph=True)
+                    g1 = Q.gradient()
+                    # be.backward(torch.ones(weights.shape[0], dtype=torch.float64), retain_graph=True)
+                    # g2 = Q.gradient()
+                    J[k,:] = g1[k,:]
+                return J
+            else:
+                be = (self._bellman_residual_surrogate(Q, samples)).mean()
+                be.backward()
+                return Q.gradient()
 
     def bellman_error(self, Q, samples, weights=None, grad_required=False):
         """General function for computing the Bellman error"""
@@ -126,7 +127,12 @@ if __name__ == "__main__":
     samples[:, -1] = 0.
 
 
-    val = Q.value_weights(samples[:, 1:1+state_dim+action_dim] , weights.detach().numpy())
+    val = Q.value_weights(samples[:, 1:1+state_dim+action_dim] , weights.detach().numpy(), grad_required=True)
+    r = val.mean()
+    r.backward()
+    g = Q.gradient()
+
+
     Q.update_weights(w)
     g = operator.gradient_be(Q, samples)
 
