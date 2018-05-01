@@ -54,7 +54,7 @@ class MLPQFunction(QFunction):
         vals = self._nn.forward(sa[:, :-1])
         acts = torch.from_numpy(sa[:, -1]).type(torch.int64)
         ret = vals[:, torch.arange(sa.shape[0], dtype=torch.int64), acts] * 1
-        return torch.einsum("sw->ws", (ret,)) if grad_required else ret.detach().numpy().T
+        return ret.t() if grad_required else ret.detach().numpy().T
 
     def value_actions_weights(self, states, weights=None, done=None, grad_required=False):
         """Computes Q(s,a) for any action and for any weight passed at each s [NxAxM]"""
@@ -62,11 +62,12 @@ class MLPQFunction(QFunction):
             self.update_weights(weights)
         vals = self._nn.forward(states)
         return np.transpose(vals.detach().numpy(), (1, 2, 0)) * (1 if done is None else 1 - done[:, np.newaxis, np.newaxis]) if not grad_required \
-                else torch.einsum("aws->wsa", (vals,)) * (1 if done is None else 1 - torch.from_numpy(done[:, np.newaxis, np.newaxis]))
+                else vals.permute(1,2,0) * (1 if done is None else 1 - torch.from_numpy(done[:, np.newaxis, np.newaxis]))
 
     def gradient(self, prepare=False):
-        torch.autograd.enable_grad()
+
         if prepare:
+            torch.autograd.enable_grad()
             self._nn.zero_grad() # prepare for gradient
         else:
             return self._nn.grad()
@@ -106,8 +107,7 @@ class Net(nn.Module):
             if w.shape[1] != self.weight_batch:
                 self.set_weight_batch(w.shape[0])
             for ow,shape,nw in zip(self._weights, self._shapes, np.split(w, self._indexes, axis=1)):
-                ow[:,:] = nw.reshape(shape)
-        self.zero_grad()
+                ow[:] = nw.reshape(shape)
 
     def set_weight_batch(self, size):
         assert size > 0
@@ -133,7 +133,7 @@ class Net(nn.Module):
     def grad(self):
         g = [p.grad.data.numpy() for p in self.parameters()]
         if self.weight_batch > 1:
-            g = np.concatenate([w.reshape(self.weight_batch, size) for (w,size) in zip(g,self._sizes)])
+            g = np.concatenate([w.reshape(self.weight_batch, size) for (w,size) in zip(g,self._sizes)], axis=1)
         else:
             g = np.concatenate([w.flatten() for w in g])
         return g
@@ -148,7 +148,7 @@ class BatchedWeightedLinear(nn.Linear):
         if self.weight.data.dim() == 2:
             return super(BatchedWeightedLinear, self).forward(x)
         elif self.weight.data.dim() == 3:
-            return torch.einsum("mni,mio->mno", (x, self.weight)) + self.bias.unsqueeze(1)
+            return torch.matmul(x.unsqueeze(2), self.weight.transpose(1,2).unsqueeze(1)).squeeze(2) + self.bias.unsqueeze(1)
         else:
             raise Exception("No more than one batch dimension supported for the weights")
 
@@ -159,7 +159,7 @@ class BatchedWeightedLinear(nn.Linear):
         assert size > 0
         self.weight_batch = size
         if size > 1:
-            self.weight = Parameter(torch.Tensor(size, self.in_features, self.out_features))
+            self.weight = Parameter(torch.Tensor(size, self.out_features, self.in_features))
             self.bias = Parameter(torch.Tensor(size, self.out_features))
         else:
             self.weight = Parameter(torch.Tensor(self.out_features, self.in_features))
