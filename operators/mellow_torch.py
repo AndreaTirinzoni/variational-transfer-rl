@@ -8,6 +8,7 @@ import torch
 def mellow_max(a, kappa, axis=0):
     """ Torch implementation of Mellowmax """
     mx, _ = torch.max(a, dim=axis, keepdim=True)
+    mx = mx.detach()
     return ((kappa * (a - mx)).exp()/a.shape[axis]).sum(dim=axis, keepdim=False).log()/kappa + mx.squeeze(dim=axis)
 
 
