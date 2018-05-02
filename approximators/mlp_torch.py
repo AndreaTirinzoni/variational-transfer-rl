@@ -15,7 +15,7 @@ class MLPQFunction(QFunction):
     """
     def __init__(self, state_dim, n_actions, layers=(32,), initial_params=None):
         self._nn = Net(state_dim, n_actions, layers)
-        self.__w = np.random.randn(self._nn.n_weights) * 0.1 if initial_params is None else initial_params
+        self._w = np.random.randn(self._nn.n_weights) * 0.1 if initial_params is None else initial_params
         self._state_dim = state_dim
         self._n_actions = n_actions
 
