@@ -8,7 +8,7 @@ import torch
 def mellow_max(a, kappa, axis=0):
     """ Torch implementation of Mellowmax """
     mx, _ = torch.max(a, dim=axis, keepdim=True)
-    return (kappa * (a - mx)).exp().sum(dim=axis, keepdim=False).log() + mx.squeeze(dim=axis)
+    return ((kappa * (a - mx)).exp()/a.shape[axis]).sum(dim=axis, keepdim=False).log()/kappa + mx.squeeze(dim=axis)
 
 
 class MellowBellmanOperator(Operator):
@@ -57,7 +57,7 @@ class MellowBellmanOperator(Operator):
             absorbing = torch.from_numpy(absorbing).unsqueeze(1)
             qval = Q.value_weights(sa, grad_required=True)
         mean_weight = (r + self._gamma * mmQs * (1 - absorbing) - qval).detach()
-        return 2 * mean_weight * (r + self._xi * self._gamma * mmQs  - qval) # TODO does the (1-done) goes in the derivative?
+        return 2 * mean_weight * (r + self._xi * self._gamma * mmQs - qval) # TODO does the (1-done) goes in the derivative?
 
     def gradient_be(self, Q, samples, weights=None):
         """General function for gradients of the Bellman error"""
@@ -125,10 +125,10 @@ if __name__ == "__main__":
     gamma = 0.99
     state_dim = 2
     action_dim = 1
-    n_actions = 2
+    n_actions = 10
 
-    torch.manual_seed(400)
-    np.random.seed(400)
+    # torch.manual_seed(300)
+    # np.random.seed(300)
     # Create BellmanOperator
     operator = MellowBellmanOperator(kappa, tau, xi, gamma, state_dim, action_dim)
     operator2 = mellow(kappa, tau, xi, gamma, state_dim, action_dim)
@@ -139,7 +139,6 @@ if __name__ == "__main__":
     Q = MLPQFunction(state_dim, n_actions, layers=layers)
     Q2 = mlp(state_dim, n_actions, layers)
 
-    print(Q._w)
     Q._w = np.random.randn(Q._w.size)
 
 
@@ -166,7 +165,7 @@ if __name__ == "__main__":
 
     g = operator.gradient_be(Q, samples)
     g2 = operator2.gradient_be(Q2, samples)
-    print(g-g2)
+    print(np.max(np.abs(g-g2)))
 
     Q._w = weights.detach().numpy()[3,:]
     Q2._w = weights.detach().numpy()[3,:]
@@ -174,10 +173,10 @@ if __name__ == "__main__":
     val2 = Q2.value(samples[:, 1:1 + state_dim + action_dim])
     g = operator.gradient_be(Q, samples)
     g2 = operator2.gradient_be(Q2, samples)
-    print(g - g2)
+    # print(g - g2)
 
     val = Q.value(samples[:, 1:1+state_dim+action_dim])
     g1 = operator.gradient_be(Q, samples[:2,:], weights.detach().numpy())
     g2 = operator2.gradient_be(Q2, samples[:2,:], weights.detach().numpy())
-    print(g1-g2)
+    # print(g1-g2)
     h = 1
