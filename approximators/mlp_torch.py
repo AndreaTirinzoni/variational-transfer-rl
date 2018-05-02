@@ -91,7 +91,7 @@ class Net(nn.Module):
             self.output_layer = BatchedWeightedLinear(layers[-1], n_actions)
 
         else:
-            self.input_layer = BatchedWeightedLinear(state_dim, n_actions, bias=True)   # TODO maybe add as parameter?
+            self.input_layer = BatchedWeightedLinear(state_dim, n_actions, bias=False)   # TODO maybe add as parameter?
 
         self._shapes = [list(p.size()) for p in list(self.parameters())]
         self._weights = [p.data.numpy() for p in list(self.parameters())]
@@ -161,7 +161,7 @@ class BatchedWeightedLinear(nn.Linear):
             return super(BatchedWeightedLinear, self).forward(x)
         elif self.weight.data.dim() == 3:
             return torch.matmul(x.unsqueeze(2), self.weight.transpose(1,2).unsqueeze(1)).squeeze(2)\
-                   + self.bias.unsqueeze(1) if self.bias is not None else 0.
+                   + (self.bias.unsqueeze(1) if self.bias is not None else 0.)
         else:
             raise Exception("No more than one batch dimension supported for the weights")
 
