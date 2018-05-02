@@ -2,7 +2,6 @@
 from approximators.qfunction import QFunction
 
 import torch
-from torch.nn import ReLU
 from torch import nn
 from torch.nn import functional as F
 from torch.nn import Parameter
@@ -79,15 +78,20 @@ class MLPQFunction(QFunction):
 class Net(nn.Module):
     """A neural network"""
 
-    def __init__(self, state_dim, n_actions, layers):
+    def __init__(self, state_dim, n_actions, layers=None):
         super(Net, self).__init__()
         self.double()
-        self.input_layer = BatchedWeightedLinear(state_dim, layers[0])
-        self.hidden_layers = []
-        for l in range(len(layers)-1):
-            self.hidden_layers.append(BatchedWeightedLinear(layers[l],layers[l+1]))
-            self.add_module("hidden_layer" + str(l), self.hidden_layers[-1])
-        self.output_layer = BatchedWeightedLinear(layers[-1], n_actions)
+        self.single_layer = layers is None or len(layers) == 0  # linear mapping
+        if not self.single_layer:
+            self.input_layer = BatchedWeightedLinear(state_dim, layers[0])
+            self.hidden_layers = []
+            for l in range(len(layers)-1):
+                self.hidden_layers.append(BatchedWeightedLinear(layers[l],layers[l+1]))
+                self.add_module("hidden_layer" + str(l), self.hidden_layers[-1])
+            self.output_layer = BatchedWeightedLinear(layers[-1], n_actions)
+
+        else:
+            self.input_layer = BatchedWeightedLinear(state_dim, n_actions)
 
         self._shapes = [list(p.size()) for p in list(self.parameters())]
         self._weights = [p.data.numpy() for p in list(self.parameters())]
@@ -117,9 +121,10 @@ class Net(nn.Module):
         assert size > 0
         if size != self.weight_batch:
             self.input_layer.set_batch_size(size)
-            self.output_layer.set_batch_size(size)
-            for l in self.hidden_layers:
-                l.set_batch_size(size)
+            if not self.single_layer:
+                self.output_layer.set_batch_size(size)
+                for l in self.hidden_layers:
+                    l.set_batch_size(size)
             self._shapes = [list(p.size()) for p in list(self.parameters())]
             self._weights = [p.data.numpy() for p in list(self.parameters())]
             self.weight_batch = size
@@ -128,10 +133,13 @@ class Net(nn.Module):
         x = torch.from_numpy(x)
         if self.weight_batch > 1:
             x = x.unsqueeze(0)
-        x = F.relu(self.input_layer(x))
-        for l in self.hidden_layers:
-            x = F.relu(l(x))
-        x = self.output_layer(x)
+        if not self.single_layer:
+            x = F.relu(self.input_layer(x))
+            for l in self.hidden_layers:
+                x = F.relu(l(x))
+            x = self.output_layer(x)
+        else:
+            x = self.input_layer(x)
         return x
 
     def grad(self):
@@ -173,10 +181,10 @@ class BatchedWeightedLinear(nn.Linear):
 
 if __name__== "__main__":
 
-    nn = Net(2,1,[32,])
+    nn = Net(10,2)
     w = torch.autograd.Variable(torch.randn((10, nn.n_weights)), requires_grad=True)
-    samples = np.random.rand(10,2)
-    t = torch.rand(10,1)
+    samples = np.random.rand(5,10)
+    t = torch.rand(5,2).double()
 
     nn.set_weights(w.data.numpy())
     loss = ((nn(samples)-t) ** 2).mean()
@@ -184,4 +192,7 @@ if __name__== "__main__":
     nn.set_weights(w1.data.numpy())
     loss = ((nn(samples) - t) ** 2).mean()
 
+
     loss.backward()
+    g = nn.grad()
+    g = 1
