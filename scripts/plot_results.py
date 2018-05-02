@@ -51,9 +51,11 @@ def plot_curves(x_data, y_mean_data, y_std_data=None, title="", x_label="Episode
     plt.show()
 
 
-files = ["nt_gw10x10_rnd10","vt_gw10x10_basis11_ns10_rnd10_tc0","vt_gw10x10_basis11_ns10_rnd10_tc1"]
+files = ["nt_mgw10x10_rnd10","gvt_mgw10x10_gen_ns10_rnd10_tc0","gvt_mgw10x10_gen_ns10_rnd10_tc1",
+         "mgvt_mgw10x10_gen_ns10_rnd10_tc0_c1", "mgvt_mgw10x10_gen_ns10_rnd10_tc1_c1",
+         "mgvt_mgw10x10_gen_ns10_rnd10_tc0_c2"]
 files = ["results/" + f for f in files]
-names = ["NT", "GVT", "GVT (TC)"]
+names = ["NT", "GVT", "GVT (TC)", "1-MGVT", "1-MGVT (TC)", "2-MGVT", "2-MGVT (TC)"]
 
 x = []
 y_mean = []
