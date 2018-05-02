@@ -252,7 +252,7 @@ def learn(mdp,
           seed=None,
           render=False,
           verbose=True,
-          ukl_tight_freq=100):
+          ukl_tight_freq=1):
 
     if seed is not None:
         np.random.seed(seed)
