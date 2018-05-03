@@ -12,14 +12,17 @@ class MLPQFunction(QFunction):
     """
     A Multi Layer Perceptron Q-function
     """
-    def __init__(self, state_dim, n_actions, layers=(32,), initial_params=None):
+    def __init__(self, state_dim, n_actions, layers=(32,)):
         self._nn = Net(state_dim, n_actions, layers)
-        self._w = np.random.randn(self._nn.n_weights) * 0.1 if initial_params is None else initial_params
         self._state_dim = state_dim
         self._n_actions = n_actions
+        self.init_weights()
 
     def init_weights(self):
-        self._w = np.random.randn(self._nn.n_weights) * 0.1
+        if self._nn.single_layer:
+            self._w = np.zeros(self._nn.n_weights)
+        else:
+            self._w = np.random.randn(self._nn.n_weights) * 0.1
 
     @property
     def _w(self):
