@@ -83,7 +83,7 @@ eval_states = [np.array([0., 0.]) for _ in range(10)]
 state_dim = mdps[0].state_dim
 action_dim = 1
 n_actions = mdps[0].action_space.n
-K = n_basis ** 2 * n_actions
+K = n_basis ** 2
 
 # Create BellmanOperator
 operator = MellowBellmanOperator(kappa, tau, xi, mdps[0].gamma, K, action_dim)
@@ -91,14 +91,6 @@ operator = MellowBellmanOperator(kappa, tau, xi, mdps[0].gamma, K, action_dim)
 Q = MLPQFunction(K, n_actions, layers=None)
 # Create RBFs
 rbf = build_features_gw_state(gw_size, n_basis, state_dim)
-
-
-# Create preprocess function
-def preprocess(s):
-    if s.ndim > 1:
-        return np.repeat(rbf(s), n_actions, axis=1)
-    else:
-        return np.squeeze(np.repeat(rbf(s), n_actions, axis=1))
 
 
 def run(mdp, seed=None):
@@ -117,7 +109,7 @@ def run(mdp, seed=None):
                  random_episodes=random_episodes,
                  eval_states=eval_states,
                  mean_episodes=mean_episodes,
-                 preprocess=preprocess,
+                 preprocess=rbf,
                  seed=seed,
                  render=render,
                  verbose=verbose)
