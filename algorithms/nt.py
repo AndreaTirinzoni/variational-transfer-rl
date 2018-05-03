@@ -1,5 +1,6 @@
 import numpy as np
 from policies import EpsilonGreedy, ScheduledEpsilonGreedy
+from approximators.mlp_torch import MLPQFunction
 from buffer import Buffer
 import utils
 import time
@@ -27,6 +28,10 @@ def learn(mdp,
           verbose=True):
     if seed is not None:
         np.random.seed(seed)
+
+    # Randomly initialize the weights in case an MLP is used
+    if isinstance(Q, MLPQFunction):
+        Q.init_weights()
 
     # Initialize policies
     schedule = np.linspace(eps_start, eps_end, exploration_fraction * max_iter)
