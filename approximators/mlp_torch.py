@@ -18,6 +18,9 @@ class MLPQFunction(QFunction):
         self._state_dim = state_dim
         self._n_actions = n_actions
 
+    def init_weights(self):
+        self._w = np.random.randn(self._nn.n_weights) * 0.1
+
     @property
     def _w(self):
         return self.__w
