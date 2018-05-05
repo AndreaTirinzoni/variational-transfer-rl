@@ -72,7 +72,7 @@ eval_episodes = 10
 
 # Generate tasks
 
-mazes = utils.load_object("../scripts/mazes10x10")
+mazes = utils.load_object("../scripts/mazes10")
 
 mdps = [Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4]) \
             for maze in mazes]
