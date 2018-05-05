@@ -21,13 +21,13 @@ class Maze(gym.Env):
 
     def __init__(self, size=np.array([10., 10.]), wall_dim=np.array((1.,1.)), start_pos=np.array((0., 0.)), goal_pos=None, walls=None):
         # General MDP parameters
-        self.horizon = 150
+        self.horizon = 100
         self.gamma = 0.99
         self.state_dim = 22
         self.absolute_state_dim = 3
         self.action_dim = 1
         self.time_step = 1
-        self.speed = 1.0
+        self.speed = 0.5
         self.angular_speed = np.pi/8
         self.wall_dim = wall_dim
         self.range = 2.
