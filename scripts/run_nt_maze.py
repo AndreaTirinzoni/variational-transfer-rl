@@ -42,6 +42,7 @@ parser.add_argument("--n_runs", default=1)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=32)
 parser.add_argument("--file_name", default="nt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
+parser.add_argument("--mazes_file", default="../scripts/mazes10")
 parser.add_argument("--dqn", default=False)
 
 # Read arguments
@@ -69,10 +70,10 @@ file_name = str(args.file_name)
 render = bool(args.render)
 dqn = bool(args.dqn)
 eval_episodes = 10
-
+mazes_file = args.mazes_file
 # Generate tasks
 
-mazes = utils.load_object("../scripts/mazes10")
+mazes = utils.load_object(mazes_file)
 
 mdps = [Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4]) \
             for maze in mazes]
