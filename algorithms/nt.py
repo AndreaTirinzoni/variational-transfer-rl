@@ -5,6 +5,8 @@ from buffer import Buffer
 import utils
 import time
 
+from operators.dqn import DQNOperator
+
 
 def learn(mdp,
           Q,
@@ -32,6 +34,8 @@ def learn(mdp,
     # Randomly initialize the weights in case an MLP is used
     if isinstance(Q, MLPQFunction):
         Q.init_weights()
+        if isinstance(operator, DQNOperator):
+            operator._q_target._w = Q._w
 
     # Initialize policies
     schedule = np.linspace(eps_start, eps_end, exploration_fraction * max_iter)
