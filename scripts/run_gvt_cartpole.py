@@ -3,8 +3,8 @@ sys.path.append("../")
 
 import numpy as np
 from envs.cartpole import CartPoleEnv
-from approximators.mlp import MLPQFunction
-from operators.mellow import MellowBellmanOperator
+from approximators.mlp_torch import MLPQFunction
+from operators.mellow_torch import MellowBellmanOperator
 from algorithms.gvt import learn
 import utils
 import argparse
@@ -31,11 +31,11 @@ parser.add_argument("--mean_episodes", default=20)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=0)
 parser.add_argument("--alpha_adam", default=0.001)
-parser.add_argument("--alpha_sgd", default=0.1)
-parser.add_argument("--lambda_", default=0.001)
+parser.add_argument("--alpha_sgd", default=0.00001)
+parser.add_argument("--lambda_", default=0.01)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=10)
-parser.add_argument("--n_source", default=50)
+parser.add_argument("--n_source", default=2)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
 # Cartpole parameters (default = randomize
@@ -45,7 +45,7 @@ parser.add_argument("--pole_length", default=-1)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--source_file", default="source_tasks/cartpole_nn32")
+parser.add_argument("--source_file", default="source_tasks/cartpole_100s_32nn")
 
 # Read arguments
 args = parser.parse_args()
@@ -82,8 +82,8 @@ np.random.seed(485)
 
 # Generate tasks
 mc = [np.random.uniform(0.5, 1.5) if cart_mass < 0 else cart_mass for _ in range(n_runs)]
-mp = [np.random.uniform(0.1, 0.2) if pole_mass < 0 else pole_mass for _ in range(n_runs)]
-l = [np.random.uniform(0.2, 0.8) if pole_length < 0 else pole_length for _ in range(n_runs)]
+mp = [np.random.uniform(0.1, 0.3) if pole_mass < 0 else pole_mass for _ in range(n_runs)]
+l = [np.random.uniform(0.2, 1.0) if pole_length < 0 else pole_length for _ in range(n_runs)]
 mdps = [CartPoleEnv(a,b,c) for a,b,c in zip(mc,mp,l)]
 n_eval_episodes = 5
 
