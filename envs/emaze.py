@@ -54,6 +54,9 @@ class Maze(gym.Env):
         self.reset()
         self.viewer = None
 
+    def get_info(self):
+        return ["enhanced maze", self.size, self.wall_dim, self.goal, self.walls]
+
     def reset(self, state=None):
         if state is None:
             self.walls[self.goal_tile] = -1.
@@ -353,7 +356,9 @@ class Maze(gym.Env):
 
 if __name__ == '__main__':
     import utils
-    mazes = utils.load_object("../scripts/mazes10x10")
+    from random import shuffle
+    mazes = utils.load_object("../scripts/mazes10")
+    i=0
     for maze in mazes:
         m = Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4])
 
@@ -387,33 +392,36 @@ if __name__ == '__main__':
         plt.plot(sq[(1, 3), -1, 0], sq[(1, 3), -1, 1], "g-")
         plt.plot(sq[(2, 3), -1, 0], sq[(2, 3), -1, 1], "g-")
 
+        plt.savefig("maze" + str(i) + ".pdf", format='pdf')
+
         plt.show()
+        i += 1
 
-        for i in range(1000):
-            a = np.random.randint(0, 3)
-            s, _, _, _ = m.step(a)
-
-            obstacles = s[4:13, np.newaxis] * (s[2:4])[np.newaxis]
-            orientation = o[:, np.newaxis] * (s[2:4])[np.newaxis] + s[:2][np.newaxis]
-            p = np.einsum("mnp,pn->pm", r, obstacles) + s[:2][np.newaxis]
-
-            plt.xlim((-0.5, 10.5))
-            plt.ylim((-0.5, 10.5))
-            plt.plot(p[:, 0], p[:, 1], "kD", s[0], s[1], "ro", orientation[:, 0], orientation[:, 1], "r-")
-            for k in range(sq.shape[1] - 1):
-                plt.plot(sq[(0, 1), k, 0], sq[(0, 1), k, 1], "k-")
-                plt.plot(sq[(0, 2), k, 0], sq[(0, 2), k, 1], "k-")
-                plt.plot(sq[(1, 3), k, 0], sq[(1, 3), k, 1], "k-")
-                plt.plot(sq[(2, 3), k, 0], sq[(2, 3), k, 1], "k-")
-
-            plt.plot(sq[(0, 1), -1, 0], sq[(0, 1), -1, 1], "g-")
-            plt.plot(sq[(0, 2), -1, 0], sq[(0, 2), -1, 1], "g-")
-            plt.plot(sq[(1, 3), -1, 0], sq[(1, 3), -1, 1], "g-")
-            plt.plot(sq[(2, 3), -1, 0], sq[(2, 3), -1, 1], "g-")
-
-            plt.show()
-
-            print("Iter {} State {} A {}".format(i,s,a))
-            print(m.get_binarized_observation())
-            # m._render(a=a)
-            time.sleep(1)
+        # for i in range(1000):
+        #     a = np.random.randint(0, 3)
+        #     s, _, _, _ = m.step(a)
+        #
+        #     obstacles = s[4:13, np.newaxis] * (s[2:4])[np.newaxis]
+        #     orientation = o[:, np.newaxis] * (s[2:4])[np.newaxis] + s[:2][np.newaxis]
+        #     p = np.einsum("mnp,pn->pm", r, obstacles) + s[:2][np.newaxis]
+        #
+        #     plt.xlim((-0.5, 10.5))
+        #     plt.ylim((-0.5, 10.5))
+        #     plt.plot(p[:, 0], p[:, 1], "kD", s[0], s[1], "ro", orientation[:, 0], orientation[:, 1], "r-")
+        #     for k in range(sq.shape[1] - 1):
+        #         plt.plot(sq[(0, 1), k, 0], sq[(0, 1), k, 1], "k-")
+        #         plt.plot(sq[(0, 2), k, 0], sq[(0, 2), k, 1], "k-")
+        #         plt.plot(sq[(1, 3), k, 0], sq[(1, 3), k, 1], "k-")
+        #         plt.plot(sq[(2, 3), k, 0], sq[(2, 3), k, 1], "k-")
+        #
+        #     plt.plot(sq[(0, 1), -1, 0], sq[(0, 1), -1, 1], "g-")
+        #     plt.plot(sq[(0, 2), -1, 0], sq[(0, 2), -1, 1], "g-")
+        #     plt.plot(sq[(1, 3), -1, 0], sq[(1, 3), -1, 1], "g-")
+        #     plt.plot(sq[(2, 3), -1, 0], sq[(2, 3), -1, 1], "g-")
+        #
+        #     plt.show()
+        #
+        #     print("Iter {} State {} A {}".format(i,s,a))
+        #     print(m.get_binarized_observation())
+        #     # m._render(a=a)
+        #     time.sleep(1)
