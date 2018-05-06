@@ -282,6 +282,21 @@ def sgd(params, grad, alpha=0.001):
     return params - alpha * grad
 
 
+def rmsprop(params, grad, v_t, alpha=0.001, beta=0.9, eps=1e-10):
+    """
+    Applies a gradient step to the given parameters based on RMSprop update rule
+    :param params: a numpy array of parameters
+    :param grad: the objective function gradient evaluated in params. This must have the same shape of params
+    :param v_t: second order momentum
+    :param alpha: base learning rate
+    :param beta: decay of second order momentum
+    :param eps: small constant
+    :return: the updated parameters and second order momentum
+    """
+    v_t = beta * v_t + (1 - beta) * grad ** 2
+    return params - alpha * grad / np.sqrt(v_t + eps), v_t
+
+
 def KL(mu1, Sigma1, mu2, Sigma2, precision=True):
     """
     Computes the KL divergence between two multivariate Gaussian distributions.
