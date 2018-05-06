@@ -32,11 +32,22 @@
 \usepackage{todonotes}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{thmtools, thm-restate}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
 
 \newcommand{\argmin}{\operatornamewithlimits{argmin}}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
 \newcommand{\mm}{\operatornamewithlimits{mm}}
-
+\newcommand{\wt}[1]{\widetilde{#1}}
+\newcommand{\wh}[1]{\widehat{#1}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
 \title{Formatting instructions for NIPS 2018}
 
 % The \author macro works with any number of authors. There are two
@@ -132,6 +143,17 @@ Intuitively, the best approximation is the one that maximizes the expected log-l
 
 \section{Theoretical Analysis}
 
+In this section, we theoretically analyze our variational transfer algorithm...
+
+A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{} \todo{Cite MM} that the mellow Bellman operator is a contraction under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the corresponding operator also monotonically converged to the optimal one. We confirm that this property actually holds in the following theorem.
+
+\begin{restatable}{theorem}{thmm} \label{th:mm}
+Let $V$ be the fixed-point of the optimal Bellman operator $T$, and $Q$ the corresponding action-value function. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{V}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{}\todo{Cite MM}). Let $\nu$ be a probability measure over the state-space and $p \geq 1$. Then:
+\begin{equation}
+\norm{V-\wt{V}}_{\nu,p}^p \leq\ \frac{2R_{max}}{1-\gamma}\norm{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g}}}_{\nu,p}^p
+\end{equation}
+\end{restatable}
+
 \section{Related Works}
 
 \section{Experiments}
@@ -153,5 +175,45 @@ Intuitively, the best approximation is the one that maximizes the expected log-l
 \appendix
 
 \section{Proofs of Theorems}
+
+\thmm*
+\begin{proof}
+We begin by noticing that:
+\begin{align*}
+\norm{V-\wt{V}}_{\nu,p}^p =\ & \norm{TV - \wt{T}\wt{V}}_{\nu,p}^p \\ =\ &
+\norm{TV - \wt{T}V + \wt{T}V - \wt{T}\wt{V}}_{\nu,p}^p \\ \leq\ &
+\norm{TV - \wt{T}V}_{\nu,p}^p + \norm{\wt{T}V - \wt{T}\wt{V}}_{\nu,p}^p \\ \leq\ &
+\norm{TV - \wt{T}V}_{\nu,p}^p + \gamma\norm{V - \wt{V}}_{\nu,p}^p
+\end{align*}
+where the first inequality follows from Minkowsky's inequality and the second one from the contraction property of the mellow Bellman operator. This implies that:
+\begin{align} \label{eq:mm1}
+\norm{V-\wt{V}}_{\nu,p}^p \leq \frac{1}{1-\gamma}\norm{TV - \wt{T}V}_{\nu,p}^p
+\end{align}
+Let us bound the norm on the right-hand side separately. In order to do that, we will bound the function $\abs{TV(s) - \wt{T}V(s)}$ point-wisely for any state $s$. By applying the definition of the optimal and mellow Bellman operators, we obtain:
+\begin{align*}
+\abs{TV(s) - \wt{T}V(s)} =\ & \abs{\max_{a}\lbrace R(s,a) + \gamma\mathbb{E}\left[V(s')\right] \rbrace - \mm_{a}\lbrace R(s,a) + \gamma\mathbb{E}\left[V(s')\right] \rbrace}\\ =\ & \abs{\max_a Q(s,a) - \mm_a Q(s,a)}
+\end{align*}
+Recall that applying the mellow-max is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
+\begin{align} \label{eq:mm2}
+\abs{\max_a Q(s,a) - \mm_a Q(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q(s,a) - \sum_a \pi_{\beta}(a|s)Q(s,a)}\notag\\ =\ & \abs{\sum_a Q(s,a) \left( \pi^*(a|s) - \pi_{\beta}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q(s,a)} \abs{\pi^*(a|s) - \pi_{\beta}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta}(a|s)}
+\end{align}
+where $\pi^*$ is the optimal (deterministic) policy w.r.t. $Q$ and $\pi_{\beta}$ is the Boltzmann distribution induced by $Q$ with inverse temperature $\beta$:
+\begin{align*}
+\pi_{\beta}(a|s) = \frac{e^{\beta Q(s,a)}}{\sum_{a'}e^{\beta Q(s,a')}}
+\end{align*}
+Denote by $a_1(s)$ the optimal action for state $s$ under $Q$. We can then write:
+\begin{align} \label{eq:mm3}
+\sum_a\abs{\pi^*(a|s) - \pi_{\beta}(a|s)} =\ & \abs{\pi^*(a_1(s)|s) - \pi_{\beta}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi^*(a|s) - \pi_{\beta}(a|s)}\notag\\ =\ & \abs{1 - \pi_{\beta}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi_{\beta}(a|s)}\notag\\ =\ & 2\abs{1 - \pi_{\beta}(a_1(s)|s)}
+\end{align}
+Finally, let us bound this last term:
+\begin{align} \label{eq:mm4}
+\abs{1 - \pi_{\beta}(a_1(s)|s)} =\ & \abs{1 - \frac{e^{\beta Q(s,a_1(s))}}{\sum_{a'}e^{\beta Q(s,a')}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta \left( Q(s,a_1(s)) - Q(s,a_2(s)) \right)}}{\sum_{a'}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta g(s)}}{\sum_{a'}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta g(s)}}{e^{\beta g(s)} + \sum_{a' \neq a_1(s)}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ \leq & \abs{1 - \frac{e^{\beta g(s)}}{e^{\beta g(s)} + \abs{\mathcal{A}}}}\notag\\ = & \abs{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g(s)}}}
+\end{align}
+Combining Eq. \eqref{eq:mm2}, \eqref{eq:mm3}, and \eqref{eq:mm4}, we obtain:
+\begin{align*}
+\abs{\max_a Q(s,a) - \mm_a Q(s,a)} \leq\ \frac{2R_{max}}{1-\gamma}\abs{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g(s)}}}
+\end{align*}
+Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
+\end{proof}
 
 \end{document}
