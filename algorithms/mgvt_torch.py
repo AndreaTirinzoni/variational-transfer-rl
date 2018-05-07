@@ -262,6 +262,16 @@ def learn(mdp,
     if isinstance(Q, MLPQFunction):
         Q.init_weights()
 
+    # Reset global variables
+    global prior_eigen
+    prior_eigen = None
+    global cholesky_mask
+    cholesky_mask = None
+    global prior_normal
+    prior_normal = None
+    global posterior_normal
+    posterior_normal = None
+
     # Initialize policies
     pi_g = EpsilonGreedy(Q, np.arange(mdp.action_space.n), epsilon=0)
 
