@@ -107,7 +107,7 @@
 
 \section{Introduction}
 
-\section{Background}
+\section{Preliminaries}
 
 \subsection{Markov Decision Processes}
 
@@ -148,9 +148,9 @@ In this section, we theoretically analyze our variational transfer algorithm...
 A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{} \todo{Cite MM} that the mellow Bellman operator is a contraction under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the corresponding operator also monotonically converged to the optimal one. We confirm that this property actually holds in the following theorem.
 
 \begin{restatable}{theorem}{thmm} \label{th:mm}
-Let $V$ be the fixed-point of the optimal Bellman operator $T$, and $Q$ the corresponding action-value function. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{V}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{}\todo{Cite MM}). Let $\nu$ be a probability measure over the state-space and $p \geq 1$. Then:
+Let $V$ be the fixed-point of the optimal Bellman operator $T$, and $Q$ the corresponding action-value function. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{V}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{}\todo{Cite MM}). Let $\nu$ be a probability measure over the state-space. Then, for any $p \geq 1$:
 \begin{equation}
-\norm{V-\wt{V}}_{\nu,p}^p \leq\ \frac{2R_{max}}{1-\gamma}\norm{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g}}}_{\nu,p}^p
+\norm{V-\wt{V}}_{\nu,p}^p \leq\ \frac{2R_{max}}{(1-\gamma)^2}\norm{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g}}}_{\nu,p}^p
 \end{equation}
 \end{restatable}
 
@@ -174,7 +174,7 @@ Let $V$ be the fixed-point of the optimal Bellman operator $T$, and $Q$ the corr
 \newpage
 \appendix
 
-\section{Proofs of Theorems}
+\section{Proofs}
 
 \thmm*
 \begin{proof}
@@ -214,6 +214,94 @@ Combining Eq. \eqref{eq:mm2}, \eqref{eq:mm3}, and \eqref{eq:mm4}, we obtain:
 \abs{\max_a Q(s,a) - \mm_a Q(s,a)} \leq\ \frac{2R_{max}}{1-\gamma}\abs{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g(s)}}}
 \end{align*}
 Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
+\end{proof}
+
+\begin{lemma}
+Let $p$ and $\nu$ denote probability measures over $Q$-functions and state-action pairs, respectively. Assume $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of a $Q$-function $Q$, the following holds:
+\begin{equation}
+\norm{Q - Q^*}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{B(Q)}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\end{equation}
+\end{lemma}
+\begin{proof}
+First notice that:
+\begin{align*}
+\norm{Q - Q^*} =\ & \norm{Q + TQ - TQ - TQ^*}\\ \leq\ & \norm{Q - TQ} + \norm{TQ - TQ^*}\\ \leq\ & \norm{Q - TQ} + \gamma\norm{Q - Q^*}\\ =\ & \norm{B(Q)} + \gamma\norm{Q - Q^*}
+\end{align*}
+which implies that:
+\begin{align*}
+\norm{Q - Q^*} \leq\ \frac{1}{1-\gamma}\norm{B(Q)}
+\end{align*}
+Then we can write:
+\begin{align*}
+P\left( \norm{Q - Q^*} > \epsilon \right) \leq P\left(\norm{B(Q)} > \epsilon (1-\gamma)\right) \leq \frac{\mathbb{E}_p\left[ \norm{B(Q)}_{\nu}^2 \right]}{(1-\gamma)\epsilon}
+\end{align*}
+Settings the right-hand side equal to $\delta$ and solving for $\epsilon$ concludes the proof.
+\end{proof}
+
+\begin{corollary}
+Let $p$ and $\nu$ denote probability measures over $Q$-functions and state-action pairs, respectively. Assume $\wt{Q}$ is the unique fixed-point of the mellow Bellman operator $\wt{T}$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of a $Q$-function $Q$, the following holds:
+\begin{equation}
+\norm{Q - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}(Q)}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\end{equation}
+\end{corollary}
+
+\begin{lemma}\label{lemma:l2}
+Assume $Q$-functions belong to a parametric space of functions bounded by $\frac{R_{max}}{1-\gamma}$. Let $p$ and $q$ be arbitrary distributions over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ samples and define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
+\begin{equation}\label{eq:lemma2-1}
+\mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] - \mathbb{E}_q\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{equation}
+\begin{equation}\label{eq:lemma2-2}
+\mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_q\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{equation}
+\end{lemma}
+\begin{proof}
+From Hoeffding's inequality we have:
+\begin{align*}
+P\left( \abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B(\bm{w})}_D^2\right] - \norm{B(\bm{w})}_D^2} > \epsilon \right) \leq 2exp\left( -\frac{2N\epsilon^2}{\left(2\frac{R_{max}}{1-\gamma}\right)^4} \right)
+\end{align*}
+which implies that, for any $\delta>0$, with probability at least $1-\delta$:
+\begin{align*}
+\abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B(\bm{w})}_D^2\right] - \norm{B(\bm{w})}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{align*}
+Under independence assumptions, the expected TD error can be re-written as:
+\begin{align*}
+\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B(\bm{w})}_D^2\right] =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[\frac{1}{N}\sum_{i=1}^N (r_i + \gamma \mm_{a'} Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i))^2\right]\\ =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[(R(s,a) + \gamma \mm_{a'} Q_{\bm{w}}(s',a') - Q_{\bm{w}}(s,a))^2\right]\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{P}}\left[b(\bm{w})^2\right]\right]\\ =\ & \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right] + \mathbb{E}_{\mathcal{P}}\left[b(\bm{w})\right]^2\right]\\ =\ & v(\bm{w}) + \norm{B(\bm{w})}_{\nu}^2
+\end{align*}
+where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Thus:
+\begin{align}\label{eq:hoeff}
+\abs{\norm{B(\bm{w})}_{\nu}^2 + v(\bm{w}) - \norm{B(\bm{w})}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{align}
+From the change of measure inequality \cite{}\todo{Find a reference for this}, we have that, for any measurable function $f(\bm{w})$ and any two probability measures $p$ and $q$:
+\begin{align*}
+\log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \geq \mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p)
+\end{align*}
+Thus, multiplying both sides of \eqref{eq:hoeff} by $\lambda^{-1}N$ and applying the change of measure inequality with $f(\bm{w}) = \lambda^{-1}N\abs{\norm{B(\bm{w})}_{\nu}^2 + v(\bm{w}) - \norm{B(\bm{w})}_D^2}$, we obtain:
+\begin{align*}
+\mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p) \leq \log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \leq 4\frac{R_{max}^2 \lambda^{-1}N}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{align*}
+where the second inequality holds since the right-hand side of \eqref{eq:hoeff} does not depend on $\bm{w}$. Finally, we can explicitly write:
+\begin{align*}
+\mathbb{E}_q\left[ \abs{\norm{B(\bm{w})}_{\nu}^2 + v(\bm{w}) - \norm{B(\bm{w})}_D^2} \right] \leq \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{align*}
+from which the lemma follows straightforwardly.
+\end{proof}
+
+\begin{lemma}
+Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+\end{lemma}
+\begin{proof}
+Let us use Lemma \ref{lemma:l2} for the specific choice $q=q_{\wh{\xi}}$. From Eq. \eqref{eq:lemma2-1}, we have:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_D^2 \right] - \mathbb{E}_{q_{\wh{\xi}}}\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ =\ & \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\end{align*}
+where the second inequality holds since $v(\bm{w}) > 0$, while the equality holds from the definition of $\wh{\xi}$. We can now use Eq. \eqref{eq:lemma2-2} to bound $\mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right]$, thus obtaining:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+This concludes the proof.
 \end{proof}
 
 \end{document}
