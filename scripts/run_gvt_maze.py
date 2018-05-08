@@ -23,8 +23,8 @@ parser.add_argument("--render", default=False)
 parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
-parser.add_argument("--batch_size", default=32)
-parser.add_argument("--max_iter", default=300000)
+parser.add_argument("--batch_size", default=50)
+parser.add_argument("--max_iter", default=20000)
 parser.add_argument("--buffer_size", default=50000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
@@ -36,7 +36,7 @@ parser.add_argument("--n_runs", default=1)
 parser.add_argument("--maze", default=-1)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=32)
-parser.add_argument("--file_name", default="nt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
+parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--mazes_file", default="../scripts/mazes10")
 
 #GVT parameters
@@ -47,7 +47,8 @@ parser.add_argument("--n_weights", default=20)
 parser.add_argument("--n_source", default=5)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
-parser.add_argument("--source_file", default="source_tasks/cartpole_100s_32nn")
+parser.add_argument("--source_file", default="../scripts/mazes10x10_ns20_32x32nn_uniqueInit")
+parser.add_argument("--time_coherent", default=False)
 
 # Read arguments
 args = parser.parse_args()
@@ -77,25 +78,30 @@ lambda_ = float(args.lambda_)
 n_weights = int(args.n_weights)
 sigma_reg = float(args.sigma_reg)
 cholesky_clip = float(args.cholesky_clip)
-parser.add_argument("--time_coherent", default=False)
-parser.add_argument("--n_source", default=5)
 n_source = int(args.n_source)
 source_file = str(args.source_file)
 time_coherent = bool(args.time_coherent)
+
 
 # Generate tasks
 
 np.random.seed(485)
 
 mazes = utils.load_object(mazes_file)
+weights = utils.load_object(source_file)
 
 mdps = [Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4]) \
             for maze in mazes]
+
+envs = list()
+sources = list()
+
 if maze == -1:
-    shuffle(mdps)
-    mdps = [mdps[i] for i in range(min(n_runs,len(mdps)))]
+    for i in range(min(n_runs, len(mdps))):
+        envs.append(mdps[i % len(mdps)])
+        sources.append([w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1])])
 else:
-    mdps = [mdps[maze]]
+    mdps = [mdps[maze] for i in range(n_runs)]
 
 state_dim = mdps[0].state_dim
 action_dim = 1
@@ -110,7 +116,7 @@ Q = MLPQFunction(state_dim, n_actions, layers=layers)
 # Create BellmanOperator
 operator = MellowBellmanOperator(kappa, tau, xi, mdps[0].gamma, state_dim, action_dim)
 
-def run(mdp, seed=None):
+def run(mdp, seed=None,sources=None):
     return learn(mdp,
                  Q,
                  operator,
@@ -133,16 +139,17 @@ def run(mdp, seed=None):
                  source_file=source_file,
                  seed=seed,
                  render=render,
-                 verbose=verbose)
+                 verbose=verbose,
+                 sources=sources)
 
 
 
-
+seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+seeds = seeds[:n_runs]
 if n_jobs == 1:
-    results = [run(mdp) for mdp in mdps]
+    results = [run(mdp,seed) for (mdp,seed,source) in zip(mdps,seeds,sources)]
 elif n_jobs > 1:
-    seeds = [np.random.randint(1000000) for _ in range(n_runs)]
-    results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed) for (mdp,seed) in zip(mdps,seeds))
+    results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed,source) for (mdp,seed,source) in zip(envs,seeds,sources))
 
 utils.save_object(results, file_name)
 
