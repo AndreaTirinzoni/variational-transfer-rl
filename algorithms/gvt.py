@@ -91,7 +91,8 @@ def learn(mdp,
           source_file=None,
           seed=None,
           render=False,
-          verbose=True):
+          verbose=True,
+          sources=None):
 
     if seed is not None:
         np.random.seed(seed)
@@ -107,7 +108,7 @@ def learn(mdp,
     K = Q._w.size
 
     # Load weights and construct prior distribution
-    weights = utils.load_object(source_file)
+    weights = utils.load_object(source_file) if sources is None else sources
     ws = np.array([w[1] for w in weights])
     np.random.shuffle(ws)
     # Take only the first n_source weights
@@ -117,7 +118,7 @@ def learn(mdp,
     # We use higher regularization for the prior to prevent the ELBO from diverging
     Sigma_bar_inv = np.linalg.inv(Sigma_bar + np.eye(K) * sigma_reg)
     # We initialize the parameters at the prior with smaller regularization (just to make sure Sigma_bar is pd)
-    params = clip(pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * cholesky_clip)), cholesky_clip, K)
+    params = clip(pack(mu_bar, np.linalg.cholesky(Sigma_bar + np.eye(K) * cholesky_clip**2)), cholesky_clip, K)
 
     # Add random episodes if needed
     if random_episodes > 0:
@@ -158,6 +159,9 @@ def learn(mdp,
     v_t = 0
     t = 0
 
+    # RMSprop for Variance
+    v_t_var = 0.
+
     # Init env
     s = mdp.reset()
     h = 0
@@ -187,6 +191,7 @@ def learn(mdp,
             params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
             # Take a gradient step for L
             params = utils.sgd(params, g, alpha=sgd_mask)
+            # params,v_t_var = utils.rmsprop(params, g, v_t_var, alpha=sgd_mask)
             # Clip parameters
             params = clip(params, cholesky_clip, K)
 

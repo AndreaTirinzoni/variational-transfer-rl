@@ -253,7 +253,8 @@ def learn(mdp,
           seed=None,
           render=False,
           verbose=True,
-          ukl_tight_freq=1):
+          ukl_tight_freq=1,
+          sources=None):
 
     if seed is not None:
         np.random.seed(seed)
@@ -280,7 +281,7 @@ def learn(mdp,
     C = post_components
 
     # Load weights and construct prior distribution
-    weights = utils.load_object(source_file)
+    weights = utils.load_object(source_file) if sources is None else sources
     ws = np.array([w[1] for w in weights])
     np.random.shuffle(ws)
     # Take only the first n_source weights
