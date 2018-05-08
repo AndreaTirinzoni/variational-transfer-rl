@@ -133,13 +133,29 @@ Intuitively, the best approximation is the one that maximizes the expected log-l
 
 \section{Variational Transfer Learning}
 
+In this section, we describe our variational approach to transfer in RL. In Section \ref{sec:alg}, we start by introducing our algorithm from a high-level perspective, in such a way that it can be used for any choice of prior and posterior distributions. Then, in Sections \ref{sec:gvt} and \ref{sec:mgvt}, we propose practical implementations based on Gaussian prior/posterior and mixture of Gaussian prior/posterior, respectively.
 
+\subsection{Algorithm}\label{sec:alg}
 
-\subsection{Algorithm}
+We begin with a simple consideration: the distribution $\mathcal{D}$ over tasks clearly induces a distribution over optimal $Q$-functions. Since, for any MDP, learning its optimal $Q$-function is sufficient for solving the problem, one can safely replace the distribution over tasks with the distribution over their optimal value functions. Furthermore, assume we know such distribution and we are given a new task $\tau$ to solve. Then, our main intuition is that it is possible to design an algorithm that efficiently explores $\tau$ so as to quickly adapt the prior distribution in a Bayesian fashion to put all probability mass over the optimal $Q$-function of $\tau$.
 
-\subsection{Gaussian Variational Transfer}
+We consider a parametric family of $Q$-functions $\mathcal{Q} = \left\{ Q_{\bm{w}} : \mathcal{S}\times\mathcal{A} \rightarrow \mathbb{R} \mid \bm{w}\in\mathbb{R}^K\right\}$. For simplicity, we assume each function in $\mathcal{Q}$ to be uniformly bounded by $\frac{R_{max}}{1-\gamma}$\footnote{In practice, this is easily achieved by truncation.}. Then, we can reduce our prior distribution over $Q$-functions to a prior distribution over weights $p(\bm{w})$. Assume that we are given a dataset $D=\left\{(s_i,a_i,s_i',r_i) \mid i = 1,2,\dots N\right\}$ of samples from some task $\tau$ we want to solve. Then, the posterior distribution over weights given such dataset can be computed by applying Bayes theorem as in Eq. \ref{eq:bayes}. Unfortunately, this cannot be directly used in practice since we do not have a model of the likelihood $p(D|\bm{w})$. In such case, it is very common to make strong assumptions on the MDPs or the $Q$-functions so as to get a tractable posterior \cite{}\todo{Cite somebody}. On the other hand, we take a PAC-Bayesian approach to derive a more general and meaningful posterior form. Recall that our final goal is move all probability mass over the weights minimizing some empirical loss measure, which in our case is the TD error $\norm{B(\bm{w})}_D^2$. Then, given a prior $p(\bm{w})$ we know from PAC-Bayesian theory that the optimal Gibbs posterior takes the form \cite{}\todo{Cite Catoni 2007}:
+\begin{equation}
+q(\bm{w}) = \frac{e^{-\Lambda\norm{B(\bm{w})}_D^2}p(\bm{w})}{\int e^{-\Lambda\norm{B(\bm{w}')}_D^2}p(d\bm{w}')}
+\end{equation}
+for some parameter $\Lambda > 0$. Since $\Lambda$ is typically chosen to increase with the number of samples $N$, we set it to $\lambda^{-1}N$, for some constant $\lambda > 0$. Notice that, whenever the term $e^{-\Lambda\norm{B(\bm{w})}_D^2}$ can be interpreted as the actual likelihood, $q$ becomes a classic Bayesian posterior. Unfortunately, the integral at the denominator of $q$ is still intractable to compute even for simple $Q$-function models. Thus, we propose a variational approximation $q_{\xi}$ in a simpler family of distributions parameterized by $\xi \in \Xi$. Then, our problem reduces to finding the variational parameters $\xi$ such that $q_{\xi}$ minimizes the KL divergence w.r.t. $q$:
+\begin{align} \label{eq:elbo}
+\min_{\bm{\xi}\in\Xi} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ q(\bm{w})\right) = \min_{\bm{\xi}\in\Xi}\mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B(\bm{w})}_D^2\right] - \frac{\lambda}{N}KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right)
+\end{align}
+where the last objective is the well-knwon \textit{evidence lower bound} (ELBO) \cite{}\todo{Cite}. Intuitively, the approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low TD error (first term), and staying close to the prior distribution (second term). Assuming that we are able to compute the gradients of \eqref{eq:elbo} w.r.t. the variational parameters, our objective can be easily optimized with any stochastic optimization algorithm. Notice, however, that differentiating w.r.t. $\bm{\xi}$ typically requires differentiating $\norm{B(\bm{w})}_D^2$ w.r.t. $\bm{w}$ (e.g., when using the reparameterization trick \cite{}\todo{Cite Deepmind}). Unfortunately, the TD error is well-known to be non-differentiable due to the presence of the max operator. In iterative approaches (e.g., DQNs), this is typically solved by keeping the targets fixed at each iteration, thus without differentiating them. However, our algorithm ... \todo{Find good motivation}. To solve this issue, we replace the optimal Bellman operator with the mellow Bellman operator introduced in \cite{}\todo{Cite MM}, which adopts a softened version of max called \textit{mellowmax}:
+\begin{equation}
+\mm_a Q_{\bm{w}}(s,a) = \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}
+\end{equation}
+where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions. The mellow Bellman operator, which we denote as $\wt{T}$, has several appealing properties that make it suitable for our settings: (i) it converges to the maximum as $\kappa \rightarrow \infty$, (ii) it has a unique fixed point, and (iii) it is \textit{differentiable}. Denoting by $\wt{B}(\bm{w}) = \wt{T}Q_{\bm{w}} - Q_{\bm{w}}$ the Bellman residual w.r.t. the mellow Bellman operator $\wt{T}$, we have that the corresponding TD error, $\norm{\wt{B}(\bm{w})}_D^2$, is now differentiable with respect to $\bm{w}$.
 
-\subsection{Mixture of Gaussian Variational Transfer}
+\subsection{Gaussian Variational Transfer}\label{sec:gvt}
+
+\subsection{Mixture of Gaussian Variational Transfer}\label{sec:mgvt}
 
 \section{Theoretical Analysis}
 
