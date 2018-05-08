@@ -3,8 +3,6 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from features.agrbf import build_features_gw_state
-from features.identity import Identity
 from envs.cartpole import CartPoleEnv
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
@@ -23,16 +21,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
-parser.add_argument("--batch_size", default=50)
+parser.add_argument("--batch_size", default=500)
 parser.add_argument("--max_iter", default=10000)
 parser.add_argument("--buffer_size", default=10000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=100)
 parser.add_argument("--mean_episodes", default=50)
-parser.add_argument("--alpha_adam", default=0.005)
+parser.add_argument("--alpha_adam", default=0.001)
 parser.add_argument("--alpha_sgd", default=0.0001)
-parser.add_argument("--lambda_", default=0.000001)
+parser.add_argument("--lambda_", default=0.00001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=10)
@@ -47,7 +45,7 @@ parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="mgvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default="source_tasks/")
-parser.add_argument("--eta", default=1e-5)  # learning rate for
+parser.add_argument("--eta", default=1e-6)  # learning rate for
 parser.add_argument("--eps", default=0.001)  # precision for the initial posterior approximation and upperbound tighting
 parser.add_argument("--bandwidth", default=.00001)  # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1)  # number of components of the posterior family
@@ -143,6 +141,7 @@ def run(mdp, seed=None):
 
 seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
 seeds = seeds[:n_runs]
+# seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
 elif n_jobs > 1:
