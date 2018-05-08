@@ -147,11 +147,43 @@ for some parameter $\Lambda > 0$. Since $\Lambda$ is typically chosen to increas
 \begin{align} \label{eq:elbo}
 \min_{\bm{\xi}\in\Xi} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ q(\bm{w})\right) = \min_{\bm{\xi}\in\Xi}\mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B(\bm{w})}_D^2\right] - \frac{\lambda}{N}KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right)
 \end{align}
-where the last objective is the well-knwon \textit{evidence lower bound} (ELBO) \cite{}\todo{Cite}. Intuitively, the approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low TD error (first term), and staying close to the prior distribution (second term). Assuming that we are able to compute the gradients of \eqref{eq:elbo} w.r.t. the variational parameters, our objective can be easily optimized with any stochastic optimization algorithm. Notice, however, that differentiating w.r.t. $\bm{\xi}$ typically requires differentiating $\norm{B(\bm{w})}_D^2$ w.r.t. $\bm{w}$ (e.g., when using the reparameterization trick \cite{}\todo{Cite Deepmind}). Unfortunately, the TD error is well-known to be non-differentiable due to the presence of the max operator. In iterative approaches (e.g., DQNs), this is typically solved by keeping the targets fixed at each iteration, thus without differentiating them. However, our algorithm ... \todo{Find good motivation}. To solve this issue, we replace the optimal Bellman operator with the mellow Bellman operator introduced in \cite{}\todo{Cite MM}, which adopts a softened version of max called \textit{mellowmax}:
+where the last objective is the well-knwon \textit{evidence lower bound} (ELBO) \cite{}\todo{Cite}. Intuitively, the approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low TD error (first term), and staying close to the prior distribution (second term). Assuming that we are able to compute the gradients of \eqref{eq:elbo} w.r.t. the variational parameters, our objective can be easily optimized with any stochastic optimization algorithm. Notice, however, that differentiating w.r.t. $\bm{\xi}$ typically requires differentiating $\norm{B(\bm{w})}_D^2$ w.r.t. $\bm{w}$ (e.g., when using the reparameterization trick \cite{}\todo{Cite Deepmind}). Unfortunately, the TD error is well-known to be non-differentiable due to the presence of the max operator. This rarely represents a problem since typical value-based algorithm are actually semi-gradient methods, i.e., they do not differentiate the targets (see, e.g., Chapter 11 of \cite{}\todo{Cite Sutton}). However, in our case ... \todo[inline]{What is a good motivation for the fact that we need a residual algorithm?} To solve this issue, we replace the optimal Bellman operator with the mellow Bellman operator introduced in \cite{}\todo{Cite MM}, which adopts a softened version of max called \textit{mellowmax}:
 \begin{equation}
 \mm_a Q_{\bm{w}}(s,a) = \frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_a e^{\kappa Q_{\bm{w}}(s,a)}
 \end{equation}
-where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions. The mellow Bellman operator, which we denote as $\wt{T}$, has several appealing properties that make it suitable for our settings: (i) it converges to the maximum as $\kappa \rightarrow \infty$, (ii) it has a unique fixed point, and (iii) it is \textit{differentiable}. Denoting by $\wt{B}(\bm{w}) = \wt{T}Q_{\bm{w}} - Q_{\bm{w}}$ the Bellman residual w.r.t. the mellow Bellman operator $\wt{T}$, we have that the corresponding TD error, $\norm{\wt{B}(\bm{w})}_D^2$, is now differentiable with respect to $\bm{w}$.
+where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions. The mellow Bellman operator, which we denote as $\wt{T}$, has several appealing properties that make it suitable for our settings: (i) it converges to the maximum as $\kappa \rightarrow \infty$, (ii) it has a unique fixed point, and (iii) it is \textit{differentiable}. Denoting by $\wt{B}(\bm{w}) = \wt{T}Q_{\bm{w}} - Q_{\bm{w}}$ the Bellman residual w.r.t. the mellow Bellman operator $\wt{T}$, we have that the corresponding TD error, $\norm{\wt{B}(\bm{w})}_D^2$, is now differentiable with respect to $\bm{w}$. \todo[inline]{Here we need to talk about residual algorithms and their improved gradient} We show our main algorithm in Alg. \ref{alg:transfer}. We start by estimating a prior distribution from the given set of source $Q$-functions (line 1) and we initialize the variational parameters by minimizing the KL divergence w.r.t. such distribution\footnote{If the prior and approximate posterior were in the same family of distributions we could simply set $\bm{\xi}$ to the prior parameters, however this does not always hold in practice.} (line 2). Then, at each time step of interaction, we re-sample the weights from the current approximate posterior and act greedily w.r.t. the corresponding $Q$-function (lines 7,8). This resembles the well-known Thompson sampling adopted in multi-armed bandits \cite{}\todo{Cite somebody} and allows our algorithm to efficiently explore the target task. In some sense, at each time we guess what is the task we are trying to solve based on our current belief and we act as if such guess were actually true. After collecting and storing the new experience (lines 9-11), we draw a batch of samples from the replay buffer and a batch of weights from the posterior (line 12). We use these to approximate the ELBO, compute its gradient, and finally update the variational parameters (lines 13-15). 
+
+The main advantage of our approach is that it exploits knowledge from the source tasks to perform an efficient adaptive exploration. Intuitively, during the first steps of interaction, our algorithm has no idea about what is the current task. However, it can rely on the learned prior to take early informed decisions. As the learning process goes on, it will quickly figure out which task is being solved, thus moving all probability mass over the weights minimizing TD error. From that point, sampling from the posterior is approximately equivalent to deterministically taking the best weights, and no more exploration will be performed.
+
+\begin{algorithm}
+\begin{algorithmic}
+\REQUIRE Target task $\tau$, source $Q$-function weights $\mathcal{W}_s$, batch sizes $M_D$ and $M_{\mathcal{W}}$, prior weight $\lambda$
+\\\hrulefill
+
+\STATE{Estimate prior $p(\bm{w})$ from $\mathcal{W}_s$}
+\STATE{Initialize variational parameters: $\bm{\xi} \leftarrow \argmin_{\bm{\xi}} KL(q_{\bm{\xi}}||p)$}
+\STATE{Initialize replay buffer: $D = \emptyset$}
+\REPEAT
+
+\STATE{Sample initial state: $s_0 \sim p_0^{(\tau)}$}
+
+\WHILE{$s_h$ is not terminal}
+\STATE{Sample weights: $\bm{w} \sim q_{\bm{\xi}}(\bm{w})$}
+\STATE{Take action $a_h = \argmax_a Q_{\bm{w}}(s_h,a)$}
+\STATE{Observe transition $s_{h+1} \sim \mathcal{P}^{(\tau)}(\cdot | s_h,a_h)$}
+\STATE{Collect reward $r_h = \mathcal{R}^{(\tau)}(s_h,a_h)$}
+\STATE{Add sample to the replay buffer: $D \leftarrow D \cup \langle s_h,a_h,r_h,s_{h+1} \rangle$}
+\STATE{Sample mini-batch $D' = \langle s_i,a_i,r_i,s_i' \rangle_{i=1}^{M_D}$ from $D$ and $\mathcal{W} = \left\{ \bm{w}_1, \bm{w}_2, \dots, \bm{w}_{M_{\mathcal{W}}} \right\}$ from $q_{\bm{\xi}}$}
+\STATE{Approximate ELBO: $\mathcal{L}(\bm{\xi}) = \frac{1}{M_{\mathcal{W}}}\sum_{\bm{w}\in\mathcal{W}}\norm{B(\bm{w})}_{D'}^2 - \frac{\lambda}{N}KL\left(q_{\bm{\xi}}\ ||\ p\right)$}
+\STATE{Compute the gradient $\nabla_{\bm{\xi}}\mathcal{L}(\bm{\xi})$}
+\STATE{Update $\bm{\xi}$ in the direction of $\nabla_{\bm{\xi}}\mathcal{L}(\bm{\xi})$ using any stochastic optimizer (e.g., ADAM)}
+\ENDWHILE
+
+
+\UNTIL{forever}
+\end{algorithmic}
+\caption{Variational Transfer} \label{alg:transfer}
+\end{algorithm}
 
 \subsection{Gaussian Variational Transfer}\label{sec:gvt}
 
