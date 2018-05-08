@@ -76,7 +76,7 @@ def normal_KL3(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, L=None, precision=None):
     Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
     inv_b = torch.from_numpy(Sigma_bar_inv[np.newaxis])
     if prior_eigen is None:
-        prior_eigen_torch, _ = torch.from_numpy(np.linalg.eig(Sigma_bar[np.newaxis]))
+        prior_eigen_torch = torch.from_numpy(np.real(np.linalg.eig(Sigma_bar[np.newaxis])[0]))
     else:
         prior_eigen_torch = torch.from_numpy(prior_eigen)
 

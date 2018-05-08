@@ -5,7 +5,7 @@ import numpy as np
 from envs.emaze import Maze
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
-from algorithms.gvt import learn
+from algorithms.gvt_torch import learn
 import utils
 import argparse
 from joblib import Parallel, delayed
@@ -40,10 +40,10 @@ parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now
 parser.add_argument("--mazes_file", default="../scripts/mazes10")
 
 #GVT parameters
-parser.add_argument("--alpha_adam", default=0.01)
+parser.add_argument("--alpha_adam", default=0.001)
 parser.add_argument("--alpha_sgd", default=0.0001)
 parser.add_argument("--lambda_", default=0.0001)
-parser.add_argument("--n_weights", default=20)
+parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=5)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
