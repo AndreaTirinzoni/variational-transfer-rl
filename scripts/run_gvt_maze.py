@@ -101,7 +101,9 @@ if maze == -1:
         envs.append(mdps[i % len(mdps)])
         sources.append([w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1])])
 else:
-    mdps = [mdps[maze] for i in range(n_runs)]
+    envs = [mdps[maze] for i in range(n_runs)]
+    sources = [w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1])]
+    sources = [sources for i in range(n_runs)]
 
 state_dim = mdps[0].state_dim
 action_dim = 1
