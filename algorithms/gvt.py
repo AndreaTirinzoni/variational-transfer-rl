@@ -146,6 +146,7 @@ def learn(mdp,
     evaluation_rewards = []
     learning_rewards = []
     episode_rewards = [0.0]
+    episode_t = []
     l_2 = []
     l_inf = []
     fvals = []
@@ -206,6 +207,7 @@ def learn(mdp,
             s = mdp.reset()
             h = 0
             Q._w = sample_posterior(params, K)
+            episode_t.append(i)
 
         # Evaluate model
         if i % eval_freq == 0:
@@ -249,7 +251,7 @@ def learn(mdp,
                 print("Iter {} Episodes {} Rew(G) {} Rew(L) {} Fval {} L2 {} L_inf {} time {:.1f} s".format(
                     i, episodes[-1], rew, learning_rew, fval, l_2_err, l_inf_err, elapsed_time))
 
-    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, fvals]
+    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, fvals, episode_rewards[:len(episode_t)], episode_t]
     weights = np.array(mu)
 
     return [mdp.get_info(), weights, run_info]

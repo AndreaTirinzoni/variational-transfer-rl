@@ -33,7 +33,7 @@ def learn(mdp,
 
     # Randomly initialize the weights in case an MLP is used
     if isinstance(Q, MLPQFunction):
-        Q.init_weights()
+        # Q.init_weights()
         if isinstance(operator, DQNOperator):
             operator._q_target._w = Q._w
 
@@ -65,6 +65,7 @@ def learn(mdp,
     evaluation_rewards = []
     learning_rewards = []
     episode_rewards = [0.0]
+    episode_t = []
     l_2 = []
     l_inf = []
 
@@ -106,6 +107,7 @@ def learn(mdp,
             episode_rewards.append(0.0)
             s = mdp.reset()
             h = 0
+            episode_t.append(i)
 
         # Evaluate model
         if i % eval_freq == 0:
@@ -137,8 +139,11 @@ def learn(mdp,
             if verbose:
                 print("Iter {} Episodes {} Rew(G) {} Rew(L) {} L2 {} L_inf {} time {:.1f} s".format(
                     i, episodes[-1], rew, learning_rew, l_2_err, l_inf_err, elapsed_time))
+        # if np.mean(episode_rewards[-mean_episodes - 1:-1]) > -80:
+        #     render=True
 
-    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf]
+
+    run_info = [iterations, episodes, n_samples, learning_rewards, evaluation_rewards, l_2, l_inf, episode_rewards[:len(episode_t)], episode_t]
     weights = np.array(Q._w)
 
     return [mdp.get_info(), weights, run_info]
