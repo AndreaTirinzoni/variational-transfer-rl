@@ -255,7 +255,7 @@ def softmax(a, tau, axis=-1):
     return num / np.sum(num, axis=axis, keepdims=True)
 
 
-def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8, clip=1000.):
+def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1e-8, clip=1e3):
     """
     Applies a gradient step to the given parameters based on ADAM update rule
     :param params: a numpy array of parameters
@@ -271,7 +271,7 @@ def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1
     """
 
     grad[grad > clip] = clip
-    grad[grad < clip] = clip
+    grad[grad < -clip] = -clip
 
     t += 1
     m_t = beta_1 * m_t + (1 - beta_1) * grad
@@ -281,9 +281,9 @@ def adam(params, grad, t, m_t, v_t, alpha=0.001, beta_1=0.9, beta_2=0.999, eps=1
     return params - alpha * m_t_hat / (np.sqrt(v_t_hat) + eps), t, m_t, v_t
 
 
-def sgd(params, grad, alpha=0.001, clip=1000.):
+def sgd(params, grad, alpha=0.001, clip=1e3):
     grad[grad > clip] = clip
-    grad[grad < clip] = clip
+    grad[grad < -clip] = -clip
     """Applies a gradient step to the given parameters based on SGD update rule"""
     return params - alpha * grad
 
