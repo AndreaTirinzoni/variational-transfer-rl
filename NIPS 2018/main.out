@@ -1,16 +1,15 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.2}{Preliminaries}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Markov Decision Processes}{section.2}% 3
-\BOOKMARK [2][-]{subsection.2.2}{Variational Inference}{section.2}% 4
-\BOOKMARK [1][-]{section.3}{Variational Transfer Learning}{}% 5
-\BOOKMARK [2][-]{subsection.3.1}{Algorithm}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.2}{Gaussian Variational Transfer}{section.3}% 7
-\BOOKMARK [2][-]{subsection.3.3}{Mixture of Gaussian Variational Transfer}{section.3}% 8
-\BOOKMARK [1][-]{section.4}{Theoretical Analysis}{}% 9
-\BOOKMARK [1][-]{section.5}{Related Works}{}% 10
-\BOOKMARK [1][-]{section.6}{Experiments}{}% 11
-\BOOKMARK [2][-]{subsection.6.1}{Gridworld}{section.6}% 12
-\BOOKMARK [2][-]{subsection.6.2}{Classic Control}{section.6}% 13
-\BOOKMARK [2][-]{subsection.6.3}{Maze Navigation}{section.6}% 14
-\BOOKMARK [1][-]{section.7}{Conclusion}{}% 15
-\BOOKMARK [1][-]{appendix.A}{Proofs}{}% 16
+\BOOKMARK [1][-]{section.3}{Variational Transfer Learning}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Algorithm}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{Gaussian Variational Transfer}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{Mixture of Gaussian Variational Transfer}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{Optimizing the TD error}{section.3}% 7
+\BOOKMARK [1][-]{section.4}{Theoretical Analysis}{}% 8
+\BOOKMARK [1][-]{section.5}{Related Works}{}% 9
+\BOOKMARK [1][-]{section.6}{Experiments}{}% 10
+\BOOKMARK [2][-]{subsection.6.1}{Gridworld}{section.6}% 11
+\BOOKMARK [2][-]{subsection.6.2}{Classic Control}{section.6}% 12
+\BOOKMARK [2][-]{subsection.6.3}{Maze Navigation}{section.6}% 13
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 14
+\BOOKMARK [1][-]{appendix.A}{Proofs}{}% 15
