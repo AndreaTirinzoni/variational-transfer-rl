@@ -7,7 +7,10 @@ from approximators.mlp_torch import MLPQFunction
 from buffer import Buffer
 import utils
 import time
+import torch
 
+
+prior_eigen_torch = None
 
 def unpack(params, K):
     """Unpacks a parameter vector into mu and L"""
@@ -51,6 +54,37 @@ def objective(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples, la
     return likelihood + lambda_ * kl / n_samples
 
 
+def normal_KL3(mu, Sigma, mu_bar, Sigma_bar, L=None, precision=None):
+    """ Computes the KL between normals for two GMMs using pytorch tensors """
+    #mu, sigma, L must be torch tensors
+    global prior_eigen_torch
+    Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
+    inv_b = torch.from_numpy(Sigma_bar_inv)
+    if prior_eigen_torch is None:
+        eig, _ = np.linalg.eig(Sigma_bar_inv)
+        prior_eigen_torch = torch.from_numpy(np.real(eig))
+        prior_eigen_torch = 1/prior_eigen_torch
+
+    diag_mask = torch.eye(mu.shape[0]).double()
+    posterior_eigen = ((L*diag_mask).sum(dim=-1))**2
+    posterior_eigen[posterior_eigen < 0] = 1e-10
+    mu_diff = mu - torch.from_numpy(mu_bar)
+    return 0.5 * (((prior_eigen_torch / posterior_eigen).log() + posterior_eigen / prior_eigen_torch).sum() +
+                  torch.matmul(torch.matmul(mu_diff.unsqueeze(0), inv_b), mu_diff.unsqueeze(1)) -
+                  mu.shape[0])
+
+def gradient_KL(mu, L, mu_bar, precision):
+    # Cache the pairwise KL
+    mu = torch.from_numpy(mu).requires_grad_()
+    L = torch.from_numpy(L).requires_grad_()
+    normalkl = normal_KL3(mu, None, mu_bar, None, L=L, precision=precision)
+
+    normalkl.backward()
+    grad_mu = mu.grad.data.numpy()
+    grad_L = L.grad.data.numpy()
+    return grad_mu, grad_L
+
+
 def gradient(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples, lambda_, n_weights):
     """Computes the objective function gradient"""
     mu, L = unpack(params, Q._w.size)
@@ -60,7 +94,7 @@ def gradient(samples, params, Q, mu_bar, Sigma_bar_inv, operator, n_samples, lam
     ebe_grad_mu = np.average(be_grad, axis=0)
     # Gradient of the expected Bellman error wrt L.
     ebe_grad_L = np.average(be_grad[:, :, np.newaxis] * vs[:, np.newaxis, :], axis=0)
-    kl_grad_mu, kl_grad_L = utils.gradient_KL(mu, L, mu_bar, Sigma_bar_inv)
+    kl_grad_mu, kl_grad_L = gradient_KL(mu, L, mu_bar, Sigma_bar_inv)
     grad_mu = ebe_grad_mu + lambda_ * kl_grad_mu / n_samples
     grad_L = ebe_grad_L + lambda_ * kl_grad_L / n_samples
 
@@ -100,6 +134,9 @@ def learn(mdp,
     # Randomly initialize the weights in case an MLP is used
     if isinstance(Q, MLPQFunction):
         Q.init_weights()
+
+    global prior_eigen_torch
+    prior_eigen_torch = None
 
     # Initialize policies
     pi_g = EpsilonGreedy(Q, np.arange(mdp.action_space.n), epsilon=0)

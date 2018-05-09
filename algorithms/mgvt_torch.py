@@ -76,7 +76,7 @@ def normal_KL3(c, mu, Sigma, c_bar, mu_bar, Sigma_bar, L=None, precision=None):
     Sigma_bar_inv = np.linalg.inv(Sigma_bar) if precision is None else precision
     inv_b = torch.from_numpy(Sigma_bar_inv[np.newaxis])
     if prior_eigen is None:
-        prior_eigen_torch, _ = torch.from_numpy(np.linalg.eig(Sigma_bar[np.newaxis]))
+        prior_eigen_torch = torch.from_numpy(np.real(np.linalg.eig(Sigma_bar[np.newaxis])[0]))
     else:
         prior_eigen_torch = torch.from_numpy(prior_eigen)
 
@@ -253,7 +253,8 @@ def learn(mdp,
           seed=None,
           render=False,
           verbose=True,
-          ukl_tight_freq=1):
+          ukl_tight_freq=1,
+          sources=None):
 
     if seed is not None:
         np.random.seed(seed)
@@ -280,7 +281,7 @@ def learn(mdp,
     C = post_components
 
     # Load weights and construct prior distribution
-    weights = utils.load_object(source_file)
+    weights = utils.load_object(source_file) if sources is None else sources
     ws = np.array([w[1] for w in weights])
     np.random.shuffle(ws)
     # Take only the first n_source weights
