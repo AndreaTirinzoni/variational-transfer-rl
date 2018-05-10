@@ -52,6 +52,7 @@ parser.add_argument("--eps", default=0.001)  # precision for the initial posteri
 parser.add_argument("--bandwidth", default=.00001)  # Bandwidth for the Kernel Estimator
 parser.add_argument("--post_components", default=1)  # number of components of the posterior family
 parser.add_argument("--max_iter_ukl", default=60)
+parser.add_argument("--fixed_seed", default=-1)
 
 # Read arguments
 args = parser.parse_args()
@@ -83,7 +84,7 @@ eta = float(args.eta)
 post_components = int(args.post_components)
 bandwidth = float(args.bandwidth)
 max_iter_ukl = int(args.max_iter_ukl)
-
+fixed_seed = int(args.fixed_seed)
 
 n_eval_episodes = 10
 mazes_file = args.mazes_file
@@ -157,8 +158,11 @@ def run(mdp, seed=None, source=None):
                  sources=source)
 
 
-seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
-seeds = seeds[:n_runs]
+if fixed_seed < 0:
+    seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+    seeds = seeds[:n_runs]
+else:
+    seeds = [fixed_seed for _ in range(n_runs)]
 # seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed,source) in zip(mdps,seeds,sources)]
