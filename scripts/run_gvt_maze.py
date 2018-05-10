@@ -47,7 +47,7 @@ parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=5)
 parser.add_argument("--sigma_reg", default=0.0001)
 parser.add_argument("--cholesky_clip", default=0.0001)
-parser.add_argument("--source_file", default="../scripts/mazes10x10_ns20_32x32nn_uniqueInit")
+parser.add_argument("--source_file", default="source_tasks/mazes10x10_ns20_32x32nn_sources")
 parser.add_argument("--time_coherent", default=False)
 
 parser.add_argument("--fixed_seed", default=-1)
@@ -155,7 +155,7 @@ if fixed_seed < 0:
 else:
     seeds = [fixed_seed for _ in range(n_runs)]
 if n_jobs == 1:
-    results = [run(mdp,seed) for (mdp,seed,source) in zip(mdps,seeds,sources)]
+    results = [run(mdp,seed) for (mdp,seed,source) in zip(envs,seeds,sources)]
 elif n_jobs > 1:
     results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed,source) for (mdp,seed,source) in zip(envs,seeds,sources))
 

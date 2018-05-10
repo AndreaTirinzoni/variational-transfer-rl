@@ -165,7 +165,7 @@ else:
     seeds = [fixed_seed for _ in range(n_runs)]
 # seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 if n_jobs == 1:
-    results = [run(mdp,seed) for (mdp,seed,source) in zip(mdps,seeds,sources)]
+    results = [run(mdp,seed) for (mdp,seed,source) in zip(envs,seeds,sources)]
 elif n_jobs > 1:
     results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed,source) for (mdp,seed,source) in zip(envs,seeds,sources))
 
