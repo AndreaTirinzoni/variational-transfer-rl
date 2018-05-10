@@ -29,7 +29,7 @@ parser.add_argument("--buffer_size", default=50000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=100)
-parser.add_argument("--mean_episodes", default=100)
+parser.add_argument("--mean_episodes", default=25)
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 
