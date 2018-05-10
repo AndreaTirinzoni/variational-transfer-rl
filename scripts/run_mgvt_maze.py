@@ -169,4 +169,5 @@ if n_jobs == 1:
 elif n_jobs > 1:
     results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed,source) for (mdp,seed,source) in zip(envs,seeds,sources))
 
+file_name = file_name + "_seed" + str(fixed_seed) if fixed_seed > 0 else file_name
 utils.save_object(results, file_name)

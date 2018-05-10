@@ -50,6 +50,8 @@ parser.add_argument("--cholesky_clip", default=0.0001)
 parser.add_argument("--source_file", default="../scripts/mazes10x10_ns20_32x32nn_uniqueInit")
 parser.add_argument("--time_coherent", default=False)
 
+parser.add_argument("--fixed_seed", default=-1)
+
 # Read arguments
 args = parser.parse_args()
 kappa = float(args.kappa)
@@ -81,6 +83,7 @@ cholesky_clip = float(args.cholesky_clip)
 n_source = int(args.n_source)
 source_file = str(args.source_file)
 time_coherent = bool(args.time_coherent)
+fixed_seed = int(args.fixed_seed)
 
 
 # Generate tasks
@@ -146,13 +149,17 @@ def run(mdp, seed=None,sources=None):
 
 
 
-seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
-seeds = seeds[:n_runs]
+if fixed_seed < 0:
+    seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+    seeds = seeds[:n_runs]
+else:
+    seeds = [fixed_seed for _ in range(n_runs)]
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed,source) in zip(mdps,seeds,sources)]
 elif n_jobs > 1:
     results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed,source) for (mdp,seed,source) in zip(envs,seeds,sources))
 
+file_name = file_name + "_seed" + str(fixed_seed) if fixed_seed > 0 else file_name
 utils.save_object(results, file_name)
 
 
