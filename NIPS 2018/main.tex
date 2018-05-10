@@ -48,7 +48,7 @@
 \newcommand{\wh}[1]{\widehat{#1}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
-\title{Formatting instructions for NIPS 2018}
+\title{What the hell is the title of this paper?}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -106,6 +106,35 @@
 \end{abstract}
 
 \section{Introduction}
+
+Recent advances have allowed reinforcement learning (RL) \cite{}\todo{cite Sutton} to solve a wide variety complex tasks, ranging from playing Atari \cite{} and the game of Go \cite{} to the control of sophisticated robotics systems \cite{}. The main drawback is that RL algorithms still require an enormous amount of experience samples before successfully learning such complicated tasks. One of the most promising solutions is transfer learning, which focuses on reusing past knowledge available to the agent in order to reduce the sample-complexity for learning new tasks. In the typical settings of transfer in RL \cite{}, the agent is assumed to have already solved a set of \textit{source tasks} generated from some unknown distribution. Then, given a \textit{target task} drawn from the same distribution, or a slightly different one, the agent can rely on knowledge from the source tasks to speed-up the learning process. This constitutes a significant advantage over plain RL, where the agent learns each new task from scratch independently of previously learned tasks. Several algorithms have been proposed in the literature to transfer experience samples \cite{}, policies/options \cite{}, rewards \cite{}, value functions \cite{}, features \cite{}, and so on. We refer the reader to \cite{} for a thorough survey on transfer in RL.
+
+One of the most relevant problems in this context is how to efficiently explore the target task based on knowledge from the source tasks. Intuitively, assuming tasks in the family under consideration share some similarities due to the common distribution, much better exploration strategies than uninformed ones (e.g., $\epsilon$-greedy) can be adopted for quickly learning the target task. Appealing approaches for this problem are the Bayesian ones (e.g., \cite{}), which are able to model the uncertainty over the current task based on previous knowledge and drive exploration so that this uncertainty is reduced as quickly as possible, or the model-based ones (e.g., \cite{}), which typically transfer samples to improve the estimate of the current task model and adopt classic count-based exploration. However, we believe all this approaches to have several limitations that reduce their practical applicability.\todo{mention some}
+
+In this work, we tackle such limitations by taking a more general approach. Similarly to \cite{}, we assume tasks to share similarities in their value functions and use the given source tasks to learn the distribution over such functions. Then, we use this distribution as a prior for learning the target task and we propose and efficient variational approximation of the corresponding posterior. Leveraging on recent ideas from randomized value functions (\cite{}), we design a Thompson sampling-based algorithm which efficiently explores the target task by repeatedly sampling from the posterior and acting greedily w.r.t. (with respect to) the sampled value function. We show that our approach is very general, in the sense that it does not require any specific choice of function approximator or prior/posterior distribution models. \todo[inline]{Maybe mention something about theory/experiments here}
+
+The rest of this document is organized as follows... \todo[inline]{Complete this when the structure is defined or simply remove it to save space.}
+
+Transfer approaches to mention:
+\begin{itemize}
+\item Taylor 2009: survey
+\item Konidaris and Barto transfer shaped reward functions PROs: this allows the agent to have a more goal-directed behavior, thus limiting unnecessary random exploration CONs: applicable only to simple problems, does not scale
+\item Wilson 2007 propose a hierarchical Bayesian model for the distribution over tasks PROs it explicitly models the uncertainty over which tasks are being solved, thus quickly adapting to new ones and allowing informed exploration decisions to be taken
+\item Lazaric 2008 transfer samples PROs select good samples, can scale to continuous domains CONs eps greedy is used
+\item Taylor 2008 transfer samples for model-based RL PROs good exploration via model-based RL CONs does not scale, can negatively transfer when tasks are very different
+\item Lazaric 2010 propose a hierarchical bayesian model for the distribution over value functions PROs quickly adapts to new tasks, non-parameteric (GP) models CONs scaling, strong assumptions (GPTD)
+\item Fernandez and veloso 2006 propose an exploration strategy based on probabilistic policy reuse PROs good exploration (?) CONs Do not try to figure out which policies are good or bad
+\item Brunskill propose a method to transfer in model based RL (E3) - PROs theory, exploration CONs scaling
+\item Barreto use successor features PROs simple, theory CONs eps-greedy exploration
+\end{itemize}
+
+Exploration approaches to mention:
+\begin{itemize}
+\item Osband 2014 propose a method to efficiently explore via randomized value functions
+\item Osband 2016 adapt such algorithm to DQNs
+\item Houthooft 2016 use variational inference to approximate the posterior distribution over parameters of the dynamics, and use that to drive exploration
+\item Azizzadenesheli 2018 extend Osband 2016 to use Bayesian DQN instead. Still makes Gaussian assumptions though
+\end{itemize}
 
 \section{Preliminaries}
 
