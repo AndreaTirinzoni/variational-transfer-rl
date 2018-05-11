@@ -373,9 +373,9 @@ def learn(mdp,
                          t_step=i, ukl_tight_freq=ukl_tight_freq)
 
             # Take a gradient step for \mu
-            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask + sgd_mask)
+            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
             # Take a gradient step for L
-            # params = utils.sgd(params, g, alpha=sgd_mask)
+            params = utils.sgd(params, g, alpha=sgd_mask)
             # Clip parameters
             params = clip(params, cholesky_clip, C, K)
 
