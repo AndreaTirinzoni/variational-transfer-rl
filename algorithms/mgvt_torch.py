@@ -213,8 +213,8 @@ def gradient(samples, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_samples, 
     ebe_grad_mu = np.average(be_grad, axis=1)
     # Gradient of the expected Bellman error wrt L.
     ebe_grad_L = np.average(np.matmul(be_grad[:, :, :, np.newaxis], vs.reshape(C, n_weights, K)[:,:,np.newaxis]), axis=1)
-    # ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
-    # ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
+    ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
+    ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
 
     kl_grad_c, kl_grad_mu, kl_grad_L, phi, psi = gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi,
                                                              max_iter_ukl, C, K, precision=precision,
