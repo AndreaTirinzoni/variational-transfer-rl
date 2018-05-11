@@ -12,6 +12,7 @@ prior_eigen = None
 cholesky_mask = None
 prior_normal = None
 posterior_normal = None
+sigma_inv = None
 
 def unpack(params, C, K):
     """Unpacks a parameter vector into c, mu, L"""
@@ -190,7 +191,7 @@ def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, C, K, cholesky_
                                                             C, K, precision=precision, tight_bound=False)
         params = clip(params - eta * pack(grad_c, grad_mu, grad_L), cholesky_clip, C, K)
         c, mu, L = unpack(params, C, K)
-        ukl = UKL(c, mu, None, c_bar, mu_bar, Sigma_bar, phi, psi, L=L)
+        ukl = UKL(c, mu, None, c_bar, mu_bar, Sigma_bar, phi, psi, L=L, precision=precision)
         done = np.abs(ukl-ukl_prev) < eps
         ukl_prev = ukl
         i += 1
@@ -212,8 +213,8 @@ def gradient(samples, params, Q, c_bar, mu_bar, Sigma_bar, operator, n_samples, 
     ebe_grad_mu = np.average(be_grad, axis=1)
     # Gradient of the expected Bellman error wrt L.
     ebe_grad_L = np.average(np.matmul(be_grad[:, :, :, np.newaxis], vs.reshape(C, n_weights, K)[:,:,np.newaxis]), axis=1)
-    ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
-    ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
+    # ebe_grad_mu = c[:, np.newaxis] * ebe_grad_mu
+    # ebe_grad_L = c[:, np.newaxis, np.newaxis] * ebe_grad_L
 
     kl_grad_c, kl_grad_mu, kl_grad_L, phi, psi = gradient_KL(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi,
                                                              max_iter_ukl, C, K, precision=precision,
@@ -370,10 +371,11 @@ def learn(mdp,
             g = gradient(buffer.sample_batch(batch_size), params, Q, c_bar, mu_bar, Sigma_bar, operator,
                          i + 1, phi, psi, n_weights, lambda_, max_iter_ukl, C, K, precision=Sigma_bar_inv,
                          t_step=i, ukl_tight_freq=ukl_tight_freq)
+
             # Take a gradient step for \mu
-            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
+            params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask + sgd_mask)
             # Take a gradient step for L
-            params = utils.sgd(params, g, alpha=sgd_mask)
+            # params = utils.sgd(params, g, alpha=sgd_mask)
             # Clip parameters
             params = clip(params, cholesky_clip, C, K)
 
