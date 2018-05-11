@@ -12,6 +12,7 @@ prior_eigen = None
 cholesky_mask = None
 prior_normal = None
 posterior_normal = None
+sigma_inv = None
 
 def unpack(params, C, K):
     """Unpacks a parameter vector into c, mu, L"""
@@ -190,7 +191,7 @@ def init_posterior(c, mu, L, c_bar, mu_bar, Sigma_bar, phi, psi, C, K, cholesky_
                                                             C, K, precision=precision, tight_bound=False)
         params = clip(params - eta * pack(grad_c, grad_mu, grad_L), cholesky_clip, C, K)
         c, mu, L = unpack(params, C, K)
-        ukl = UKL(c, mu, None, c_bar, mu_bar, Sigma_bar, phi, psi, L=L)
+        ukl = UKL(c, mu, None, c_bar, mu_bar, Sigma_bar, phi, psi, L=L, precision=precision)
         done = np.abs(ukl-ukl_prev) < eps
         ukl_prev = ukl
         i += 1
@@ -370,6 +371,7 @@ def learn(mdp,
             g = gradient(buffer.sample_batch(batch_size), params, Q, c_bar, mu_bar, Sigma_bar, operator,
                          i + 1, phi, psi, n_weights, lambda_, max_iter_ukl, C, K, precision=Sigma_bar_inv,
                          t_step=i, ukl_tight_freq=ukl_tight_freq)
+
             # Take a gradient step for \mu
             params, t, m_t, v_t = utils.adam(params, g, t, m_t, v_t, alpha=adam_mask)
             # Take a gradient step for L
