@@ -51,6 +51,30 @@ def plot_curves(x_data, y_mean_data, y_std_data=None, title="", x_label="Episode
     plt.show()
 
 
+def learning_rew(iterations, episodes_time, episode_rew, mean_episodes=5):
+    """
+    :param iterations: list of list of iterations to which compute a sample of learning reward
+    :param episodes_time: list of lists of iterations in which an episode finished
+    :param episode_rew: list of lists of rewards associated to the episode
+    :param mean_episodes: number of episodes to take for the moving average
+    :return:
+    """
+    learning_rew = []
+    for run in range(len(episodes_time)):
+        t = 0
+        rew = []
+        for i in range(len(iterations[run])):
+            iter = iterations[run][i]
+            while t < len(episodes_time[run]) and iter > episodes_time[run][t]:
+                t += 1
+
+            r = sum(episode_rew[run][max(0, t-mean_episodes):t])/float(len(episode_rew[run][max(0, t-mean_episodes):t])) if t > 0 else 0.
+            rew.append(r)
+        learning_rew.append(np.array(rew))
+
+    return np.array(learning_rew)
+
+
 files = ["nt_mgw10x10_rnd10","gvt_mgw10x10_gen_ns10_rnd10_tc0","gvt_mgw10x10_gen_ns10_rnd10_tc1",
          "mgvt_mgw10x10_gen_ns10_rnd10_tc0_c1", "mgvt_mgw10x10_gen_ns10_rnd10_tc1_c1",
          "mgvt_mgw10x10_gen_ns10_rnd10_tc0_c2"]
