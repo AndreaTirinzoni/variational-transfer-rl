@@ -276,11 +276,15 @@ The idea of exploration via value function randomization we build upon was first
 
 \section{Experiments}
 
-\subsection{Gridworld}
+In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare the behavior of our variational transfer algorithm with Gaussian distributions (GVT) and with mixture of Gaussians (MGVT). To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
 
-\subsection{Classic Control}
+\subsection{The Rooms Problem} \label{sec:gw}
 
-\subsection{Maze Navigation}
+We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach a goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. In particular, we consider two versions of the environment, with two rooms (Fig. \ref{} top) and three rooms (Fig. \ref{} bottom), respectively. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state, however it is clear that there should be a preference over actions up and right, rather than low and left. Thus, we expect our algorithm to efficiently explore any target task.
+
+\subsection{Classic Control} \label{sec:cc}
+
+\subsection{Maze Navigation} \label{sec:mn}
 
 \section{Conclusion}
 
