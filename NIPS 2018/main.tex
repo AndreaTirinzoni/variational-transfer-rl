@@ -280,7 +280,25 @@ In this section, we provide an experimental evaluation of our approach. We begin
 
 \subsection{The Rooms Problem} \label{sec:gw}
 
-We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach a goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. In particular, we consider two versions of the environment, with two rooms (Fig. \ref{} top) and three rooms (Fig. \ref{} bottom), respectively. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state, however it is clear that there should be a preference over actions up and right, rather than low and left. Thus, we expect our algorithm to efficiently explore any target task.
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\includegraphics[trim=1.0cm 0.9cm 1.0cm 0.9cm,clip=true,height=2.5cm]{images/rooms.pdf} \hfill
+\includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=2.5cm]{images/three-room/lrev.pdf}
+\caption{Bla bla bla}
+    \label{fig:puddleworld}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/three-room-gen/lrev.pdf} \hfill
+\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/three-room/lrev.pdf}
+\caption{Bla bla bla}
+    \label{fig:acrobot}
+\end{minipage}
+\end{figure*}
+
+We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach the goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. In particular, we consider two versions of the environment, with two rooms (Fig. \ref{} top) and three rooms (Fig. \ref{} bottom), respectively. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state. However, it is clear that there should be a preference over actions up and right, rather than down and left (which are worse in all tasks). Thus, we expect our algorithm to efficiently explore any target task.
 
 \subsection{Classic Control} \label{sec:cc}
 
@@ -469,6 +487,14 @@ where the second inequality holds since $v(\bm{w}) > 0$, while the equality hold
 \end{align*}
 This concludes the proof.
 \end{proof}
+
+\section{Additional Details on the Experiments}
+
+\subsection{The Rooms Problem}
+
+\subsection{Classic Control}
+
+\subsection{Maze Navigation}
 
 Transfer approaches to mention:
 \begin{itemize}
