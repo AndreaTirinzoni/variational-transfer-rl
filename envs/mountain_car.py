@@ -10,7 +10,14 @@ class MountainCarEnv(gym.Env):
         'video.frames_per_second': 30
     }
 
-    def __init__(self):
+    def __init__(self, speed=0.001):
+
+        self.state_dim = 2
+        self.action_dim = 1
+        self.gamma = 0.99
+        self.horizon = 200
+        self.speed = speed
+
         self.min_position = -1.2
         self.max_position = 0.6
         self.max_speed = 0.07
@@ -31,11 +38,14 @@ class MountainCarEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def get_info(self):
+        return ["Mountain Car", self.speed]
+
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         position, velocity = self.state
-        velocity += (action-1)*0.001 + math.cos(3*position)*(-0.0025)
+        velocity += (action-1)*self.speed + math.cos(3*position)*(-0.0025)
         velocity = np.clip(velocity, -self.max_speed, self.max_speed)
         position += velocity
         position = np.clip(position, self.min_position, self.max_position)
@@ -43,18 +53,20 @@ class MountainCarEnv(gym.Env):
 
         done = bool(position >= self.goal_position)
         reward = -1.0
-
         self.state = (position, velocity)
         return np.array(self.state), reward, done, {}
 
-    def reset(self):
-        self.state = np.array([self.np_random.uniform(low=-0.6, high=-0.4), 0])
+    def reset(self, initial_state=None):
+        if initial_state is not None:
+            self.state = initial_state
+        else:
+            self.state = np.array([np.random.uniform(low=-0.9, high=0.), 0])
         return np.array(self.state)
 
     def _height(self, xs):
         return np.sin(3 * xs)*.45+.55
 
-    def render(self, mode='human'):
+    def _render(self, a=0, mode='human'):
         screen_width = 600
         screen_height = 400
 
