@@ -1,5 +1,18 @@
 \begin{thebibliography}{10}
 
+\bibitem{asadi2017alternative}
+Kavosh Asadi and Michael~L Littman.
+\newblock An alternative softmax operator for reinforcement learning.
+\newblock In {\em International Conference on Machine Learning}, pages
+  243--252, 2017.
+
+\bibitem{baird1995residual}
+Leemon Baird.
+\newblock Residual algorithms: Reinforcement learning with function
+  approximation.
+\newblock In {\em Machine Learning Proceedings 1995}, pages 30--37. Elsevier,
+  1995.
+
 \bibitem{barreto2017successor}
 Andr{\'e} Barreto, Will Dabney, R{\'e}mi Munos, Jonathan~J Hunt, Tom Schaul,
   Hado~P van Hasselt, and David Silver.
@@ -130,6 +143,11 @@ Danilo~Jimenez Rezende, Shakir Mohamed, and Daan Wierstra.
   generative models.
 \newblock {\em arXiv preprint arXiv:1401.4082}, 2014.
 
+\bibitem{schaul2015prioritized}
+Tom Schaul, John Quan, Ioannis Antonoglou, and David Silver.
+\newblock Prioritized experience replay.
+\newblock {\em arXiv preprint arXiv:1511.05952}, 2015.
+
 \bibitem{scott2015multivariate}
 David~W Scott.
 \newblock {\em Multivariate density estimation: theory, practice, and
@@ -158,6 +176,11 @@ Matthew~E Taylor, Nicholas~K Jong, and Peter Stone.
 Matthew~E Taylor and Peter Stone.
 \newblock Transfer learning for reinforcement learning domains: A survey.
 \newblock {\em Journal of Machine Learning Research}, 10(Jul):1633--1685, 2009.
+
+\bibitem{van2016deep}
+Hado Van~Hasselt, Arthur Guez, and David Silver.
+\newblock Deep reinforcement learning with double q-learning.
+\newblock 2016.
 
 \bibitem{wilson2007multi}
 Aaron Wilson, Alan Fern, Soumya Ray, and Prasad Tadepalli.
