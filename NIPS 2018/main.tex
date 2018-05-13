@@ -276,7 +276,7 @@ The idea of exploration via value function randomization we build upon was first
 
 \section{Experiments}
 
-In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare the behavior of our variational transfer algorithm with Gaussian distributions (GVT) and with mixture of Gaussians (MGVT). To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
+In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare our variational transfer algorithm with Gaussian distributions (GVT) and with mixture of Gaussians (MGVT) to plain no-transfer RL (NT). To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
 
 \subsection{The Rooms Problem} \label{sec:gw}
 
@@ -292,7 +292,7 @@ In this section, we provide an experimental evaluation of our approach. We begin
 \begin{minipage}[t]{0.49\linewidth}
 \centering
 \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/three-room-gen/lrev.pdf} \hfill
-\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/three-room/lrev.pdf}
+\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/likelihood/lrew.pdf}
 \caption{Bla bla bla}
     \label{fig:acrobot}
 \end{minipage}
