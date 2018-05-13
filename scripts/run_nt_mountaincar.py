@@ -26,7 +26,7 @@ parser.add_argument("--batch_size", default=32)
 parser.add_argument("--max_iter", default=10000)
 parser.add_argument("--buffer_size", default=50000)
 parser.add_argument("--random_episodes", default=0)
-parser.add_argument("--exploration_fraction", default=0.5)
+parser.add_argument("--exploration_fraction", default=0.1)
 parser.add_argument("--eps_start", default=1.0)
 parser.add_argument("--eps_end", default=0.01)
 parser.add_argument("--train_freq", default=1)
@@ -69,11 +69,11 @@ file_name = str(args.file_name)
 dqn = bool(args.dqn)
 
 # Seed to get reproducible results
-np.random.seed(485)
+# np.random.seed(485)
 # torch.manual_seed(485)
 
 # Generate tasks
-vel = [np.random.uniform(0.001, 0.0025) if speed < 0 else speed for _ in range(n_runs)]
+vel = [np.random.uniform(0.0005, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
 print(vel)
 mdps = [MountainCarEnv(vel[i]) for i in range(n_runs)]
 n_eval_episodes = 5
