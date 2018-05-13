@@ -282,6 +282,13 @@ The idea of exploration via value function randomization we build upon was first
 
 \subsection{Maze Navigation}
 
+For this setting we propose a maze environment, such as those in Fig. *, for a robotic agent to navigate. We created a set of 20 mazes of size $10\times10$ with continuous space within which we ensured four groups: each group with the goal position in one of the corners of the maze. In order to simulate a robotic agent, we set an action space that allows to control the linear and angular motion by a fixed distance/angle each time an action is performed: \emph{move forward, rotate counter- and clockwise}. Moreover, we enhanced the state space to include, in addition to the absolute position and orientation, a set of distance measures to the nearest obstacles from the agent's perspective with maximum range of 2 and a field of vision from -90º to 90º relative to its orientation. In this way, we provide the agent with information that a robot would normally collect from LIDARs, sonars and other sensors alike. Finally, in the same field of perception, we provide a boolean vector indicating whether the goal is within the range of observation. Regarding rewards, the agent gets 1 whenever it enters the goal area and 0 in any other situation. 
+
+The main motivation for this set-up is that a robot is able to exploit locally-sensed information in addition to its estimation of the actual position---as opposed to the Rooms problem presented above---and it is such information that the robotic agent could learn to use and, also, exploit  in different maze configurations leveraging its previous experience. Moreover, simple variations in the maze structure could, potentially, produce big differences in the value function with respect to the ones seen in previous tasks which makes the setting very good to assess how robust our algorithm is robust to negative transfer.
+
+These mazes were solved using Deep Q Networks (DQN) [] \todo{cite DQN?} with a multilayer perceptron with hidden layers $32\times32$  and, in order to perform the knowledge transfer, the target maze would be excluded from the source tasks given to the algorithm. Finally, the MGVT algorithm, with one component for the posterior distribution, was used to solve the target tasks shown in Fig. *. 
+
+
 \section{Conclusion}
 
 {\small 
