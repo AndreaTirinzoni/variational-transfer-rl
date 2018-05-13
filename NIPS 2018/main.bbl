@@ -7,6 +7,12 @@ Andr{\'e} Barreto, Will Dabney, R{\'e}mi Munos, Jonathan~J Hunt, Tom Schaul,
 \newblock In {\em Advances in neural information processing systems}, pages
   4055--4065, 2017.
 
+\bibitem{catoni2007pac}
+Olivier Catoni.
+\newblock Pac-bayesian supervised classification: the thermodynamics of
+  statistical learning.
+\newblock {\em arXiv preprint arXiv:0712.0248}, 2007.
+
 \bibitem{doshi2016hidden}
 Finale Doshi-Velez and George Konidaris.
 \newblock Hidden parameter markov decision processes: A semiparametric
