@@ -7,45 +7,45 @@ Warning--I didn't find a database entry for ""
 Warning--empty booktitle in konidaris2007building
 Warning--empty year in konidaris2007building
 Warning--can't use both volume and number fields in sutton1998reinforcement
-You've used 21 entries,
+You've used 25 entries,
             2118 wiz_defined-function locations,
-            619 strings with 8361 characters,
-and the built_in function-call counts, 9110 in all, are:
-= -- 902
-> -- 461
+            644 strings with 9126 characters,
+and the built_in function-call counts, 10501 in all, are:
+= -- 1040
+> -- 538
 < -- 13
-+ -- 181
-- -- 160
-* -- 620
-:= -- 1418
-add.period$ -- 69
-call.type$ -- 21
-change.case$ -- 139
++ -- 211
+- -- 186
+* -- 733
+:= -- 1658
+add.period$ -- 81
+call.type$ -- 25
+change.case$ -- 163
 chr.to.int$ -- 0
-cite$ -- 24
-duplicate$ -- 370
-empty$ -- 682
-format.name$ -- 160
-if$ -- 1980
+cite$ -- 28
+duplicate$ -- 413
+empty$ -- 780
+format.name$ -- 186
+if$ -- 2257
 int.to.chr$ -- 0
-int.to.str$ -- 21
-missing$ -- 23
-newline$ -- 107
-num.names$ -- 42
-pop$ -- 178
+int.to.str$ -- 25
+missing$ -- 27
+newline$ -- 127
+num.names$ -- 50
+pop$ -- 196
 preamble$ -- 1
-purify$ -- 120
+purify$ -- 140
 quote$ -- 0
-skip$ -- 292
+skip$ -- 321
 stack$ -- 0
-substring$ -- 553
-swap$ -- 140
+substring$ -- 648
+swap$ -- 144
 text.length$ -- 13
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 80
+type$ -- 96
 warning$ -- 3
-while$ -- 80
-width$ -- 23
-write$ -- 234
+while$ -- 94
+width$ -- 27
+write$ -- 277
 (There were 4 warnings)

@@ -7,6 +7,19 @@ Andr{\'e} Barreto, Will Dabney, R{\'e}mi Munos, Jonathan~J Hunt, Tom Schaul,
 \newblock In {\em Advances in neural information processing systems}, pages
   4055--4065, 2017.
 
+\bibitem{blei2017variational}
+David~M Blei, Alp Kucukelbir, and Jon~D McAuliffe.
+\newblock Variational inference: A review for statisticians.
+\newblock {\em Journal of the American Statistical Association},
+  112(518):859--877, 2017.
+
+\bibitem{bubeck2012regret}
+S{\'e}bastien Bubeck, Nicolo Cesa-Bianchi, et~al.
+\newblock Regret analysis of stochastic and nonstochastic multi-armed bandit
+  problems.
+\newblock {\em Foundations and Trends{\textregistered} in Machine Learning},
+  5(1):1--122, 2012.
+
 \bibitem{catoni2007pac}
 Olivier Catoni.
 \newblock Pac-bayesian supervised classification: the thermodynamics of
@@ -25,6 +38,12 @@ Fernando Fern{\'a}ndez and Manuela Veloso.
 \newblock Probabilistic policy reuse in a reinforcement learning agent.
 \newblock In {\em Proceedings of the fifth international joint conference on
   Autonomous agents and multiagent systems}, pages 720--727. ACM, 2006.
+
+\bibitem{hoffman2013stochastic}
+Matthew~D Hoffman, David~M Blei, Chong Wang, and John Paisley.
+\newblock Stochastic variational inference.
+\newblock {\em The Journal of Machine Learning Research}, 14(1):1303--1347,
+  2013.
 
 \bibitem{killian2017robust}
 Taylor~W Killian, Samuel Daulton, George Konidaris, and Finale Doshi-Velez.
@@ -97,6 +116,12 @@ Martin~L. Puterman.
 \newblock {\em Markov Decision Processes: Discrete Stochastic Dynamic
   Programming}.
 \newblock John Wiley \& Sons, Inc., New York, NY, USA, 1994.
+
+\bibitem{rezende2014stochastic}
+Danilo~Jimenez Rezende, Shakir Mohamed, and Daan Wierstra.
+\newblock Stochastic backpropagation and approximate inference in deep
+  generative models.
+\newblock {\em arXiv preprint arXiv:1401.4082}, 2014.
 
 \bibitem{silver2016mastering}
 David Silver, Aja Huang, Chris~J Maddison, Arthur Guez, Laurent Sifre, George
