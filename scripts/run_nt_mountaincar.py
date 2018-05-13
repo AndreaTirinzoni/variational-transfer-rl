@@ -73,7 +73,7 @@ dqn = bool(args.dqn)
 # torch.manual_seed(485)
 
 # Generate tasks
-vel = [np.random.uniform(0.0005, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
+vel = [np.random.uniform(0.001, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
 print(vel)
 mdps = [MountainCarEnv(vel[i]) for i in range(n_runs)]
 n_eval_episodes = 5
