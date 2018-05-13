@@ -13,7 +13,10 @@
 \BOOKMARK [2][-]{subsection.6.3}{Maze Navigation}{section.6}% 13
 \BOOKMARK [1][-]{section.7}{Conclusion}{}% 14
 \BOOKMARK [1][-]{appendix.A}{Proofs}{}% 15
-\BOOKMARK [1][-]{appendix.B}{Additional Details on the Experiments}{}% 16
-\BOOKMARK [2][-]{subsection.B.1}{The Rooms Problem}{appendix.B}% 17
-\BOOKMARK [2][-]{subsection.B.2}{Classic Control}{appendix.B}% 18
-\BOOKMARK [2][-]{subsection.B.3}{Maze Navigation}{appendix.B}% 19
+\BOOKMARK [1][-]{appendix.B}{Additional Details on the Algorithms}{}% 16
+\BOOKMARK [2][-]{subsection.B.1}{Gaussian Variational Transfer}{appendix.B}% 17
+\BOOKMARK [2][-]{subsection.B.2}{Mixture of Gaussian Variational Transfer}{appendix.B}% 18
+\BOOKMARK [1][-]{appendix.C}{Additional Details on the Experiments}{}% 19
+\BOOKMARK [2][-]{subsection.C.1}{The Rooms Problem}{appendix.C}% 20
+\BOOKMARK [2][-]{subsection.C.2}{Classic Control}{appendix.C}% 21
+\BOOKMARK [2][-]{subsection.C.3}{Maze Navigation}{appendix.C}% 22
