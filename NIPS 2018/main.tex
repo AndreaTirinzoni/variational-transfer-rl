@@ -33,6 +33,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{thmtools, thm-restate}
+\usepackage{subcaption}
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
@@ -233,7 +234,7 @@ KL(p||q) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{i,j} \chi^{(2)}_{j,i}KL(f_i^{(p
 \end{theorem}
 Our new algorithm replaces the KL with the above-mentioned upper bound. Each time we require its value, we have to recompute the parameters $\chi^{(1)}$ and $\chi^{(2)}$ that tighten the bound. As shown in \cite{}\todo{cite them again}, this can be achieved by a simple fixed-point procedure. Furthermore, both terms in the approximate negative ELBO are now linear combinations of functions of the variational parameters for different components, thus their gradients can be straightforwardly derived from the ones of the Gaussian case.
 
-\subsection{Optimizing the TD error}
+\subsection{Optimizing the TD error} \label{sec:td}
 
 From Sections \ref{sec:gvt} and \ref{sec:mgvt}, we know that differentiating the negative ELBO $\mathcal{L}$ w.r.t. $\bm{\xi}$ requires differentiating $\norm{B(\bm{w})}_D^2$ w.r.t. $\bm{w}$. Unfortunately, the TD error is well-known to be non-differentiable due to the presence of the max operator. This rarely represents a problem since typical value-based algorithms are actually semi-gradient methods, i.e., they do not differentiate the targets (see, e.g., Chapter 11 of \cite{}\todo{Cite Sutton}). However, our transfer settings are rather different than common RL. In fact, our algorithm is likely to always start from $Q$-functions that are very close to the optimum, and the only thing that needs to be done is to adapt the weights in a direction of lower error (i.e., higher likelihood) so as to quickly converge to the solution of the task that is being solved. Unfortunately, this property cannot be guaranteed for most semi-gradient algorithms. Even worse, many online RL algorithms combined with complex function approximators (e.g., DQNs) are well-known to be unstable, especially when approaching the optimum, and require a lot of tuning and tricks to work well. This is obviously an undesirable property in our case, as we only aim at adapting already good solutions. Thus, we consider using a residual gradient algorithm (after \cite{}\todo{Baird}). In order to differentiate the targets, we replace the optimal Bellman operator with the mellow Bellman operator introduced in \cite{}\todo{Cite MM}, which adopts a softened version of max called \textit{mellowmax}:
 \begin{equation}
@@ -276,29 +277,38 @@ The idea of exploration via value function randomization we build upon was first
 
 \section{Experiments}
 
-In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare our variational transfer algorithm with Gaussian distributions (GVT) and with mixture of Gaussians (MGVT) to plain no-transfer RL (NT). To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
+In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare our Gaussian variational transfer algorithm (GVT) and the version using mixture of Gaussians with $c$ components ($c$-MGVT) to plain no-transfer RL (NT) with $\epsilon$-greedy exploration. To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
 
 \subsection{The Rooms Problem} \label{sec:gw}
 
-\begin{figure*}[t]
-\centering
-\begin{minipage}[t]{0.49\linewidth}
-\centering
-\includegraphics[trim=1.0cm 0.9cm 1.0cm 0.9cm,clip=true,height=2.5cm]{images/rooms.pdf} \hfill
-\includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=2.5cm]{images/three-room/lrev.pdf}
-\caption{Bla bla bla}
-    \label{fig:puddleworld}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.49\linewidth}
-\centering
-\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/three-room-gen/lrev.pdf} \hfill
-\includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.5cm]{images/likelihood/lrew.pdf}
-\caption{Bla bla bla}
-    \label{fig:acrobot}
-\end{minipage}
+\begin{figure*}[t] 
+  \begin{subfigure}[b]{0.15\textwidth}
+    \includegraphics[trim=1.0cm 0.9cm 1.0cm 0.9cm,clip=true,height=2.0cm]{images/rooms.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.27\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
+    \caption{}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.27\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/three-room-gen/lrev.pdf}
+    \caption{}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.27\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/likelihood/lrew.pdf}
+    \caption{}
+  \end{subfigure}
+  \caption{(a) the rooms environment, (b) transfer from $10$ source tasks with both doors moving, (c) transfer from $10$ source tasks with only one door moving, and (d) transfer performance as a function of how likely the target task is according to the prior.}
+  \label{fig:dipfdbsgraphplots}
 \end{figure*}
 
-We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach the goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. In particular, we consider two versions of the environment, with two rooms (Fig. \ref{} top) and three rooms (Fig. \ref{} bottom), respectively. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state. However, it is clear that there should be a preference over actions up and right, rather than down and left (which are worse in all tasks). Thus, we expect our algorithm to efficiently explore any target task.
+We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach the goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state. However, it is clear that there should be a preference over actions up and right, rather than down and left (which are worse in all tasks). Thus, we expect our algorithm to efficiently explore any target task.
+
+In order to prove that our guesses are correct, we generate a set of $50$ source tasks for the three-room environment of Fig. \ref{} by sampling both door positions uniformly, and solve all of them by directly minimizing the TD error as presented in Sec. \ref{sec:td}. In order to make sure that their solutions are accurate enough, we allow sampling the initial state uniformly in the environment and run until converge. Then, we use our algorithms to transfer from $10$ source tasks sampled from the previously generated set. The average return over the last $50$ learning episodes as a function of the number of iterations is shown in Fig. \ref{}. Each curve is the result of $20$ independent runs, each resampling the target and source tasks. $95\%$ confidence intervals are shown. Further details on the parameters adopted in this experiment are given in App. \ref{}. As expected, the no-transfer algorithm NT fails at learning the task in so few iterations due to the limited exploration provided by an $\epsilon$-greedy policy. On the other hand, all our algorithms achieve a significant speed-up and are able to converge to the optimal performance in few iterations, with GVT being slightly slower. Interestingly, we notice that there is no advantage in adopting more than $1$ component for the posterior in MGVT. This is intuitive since, when the algorithm quickly figures out which task is being solved, it will move all components in the same direction.
+
+To better understand the differences between GVT and MGVT, we now consider transferring from a slightly different distribution than the one from which target tasks are drawn. We generate again $50$ source tasks but this time with the bottom door fixed in the center and the other one moving. Then, we repeat the previous experiment, allowing both doors to move when sampling target tasks. The results are shown in Fig. \ref{}. Interestingly, MGVT seems almost unaffected by this change, proving that is has sufficient representation power to generalize to slightly different task distributions. The same does not hold for GVT, which now is not able to solve many of the sampled target tasks (this is the reason for the very high variance). This proves again that assuming Gaussian distributions can pose severe limitations in our transfer settings.
+
+Finally, we analyze the transfer performance as a function of how likely the target task is according to the prior. We consider a two-room version of the environment of Fig. \ref{}. Differently from before, we generate tasks by sampling the door position from a Gaussian with mean $5$, and standard deviation $1.8$, so that tasks where the door is close to the sides are very unlikely. Fig. \ref{} shows the performance reached by GVT and MGVT with $1$ component at fixed iterations as a function of how likely the target task is according to such distribution. As expected GVT achieves poor performance on very unlikely tasks, even after many iterations. In fact, estimating a single Gaussian distribution definitely implies some information loss, especially about the unlikely tasks. On the other hand, MGVT keeps such information and, consequently, performs much better. Perhaps not surprisingly, MGVT reaches the optimal performance in $4k$ iterations no matter what task is being solved.
 
 \subsection{Classic Control} \label{sec:cc}
 
