@@ -1,9 +1,124 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
+
+\bibitem{barreto2017successor}
+Andr{\'e} Barreto, Will Dabney, R{\'e}mi Munos, Jonathan~J Hunt, Tom Schaul,
+  Hado~P van Hasselt, and David Silver.
+\newblock Successor features for transfer in reinforcement learning.
+\newblock In {\em Advances in neural information processing systems}, pages
+  4055--4065, 2017.
+
+\bibitem{doshi2016hidden}
+Finale Doshi-Velez and George Konidaris.
+\newblock Hidden parameter markov decision processes: A semiparametric
+  regression approach for discovering latent task parametrizations.
+\newblock In {\em IJCAI: proceedings of the conference}, volume 2016, page
+  1432. NIH Public Access, 2016.
+
+\bibitem{fernandez2006probabilistic}
+Fernando Fern{\'a}ndez and Manuela Veloso.
+\newblock Probabilistic policy reuse in a reinforcement learning agent.
+\newblock In {\em Proceedings of the fifth international joint conference on
+  Autonomous agents and multiagent systems}, pages 720--727. ACM, 2006.
+
+\bibitem{killian2017robust}
+Taylor~W Killian, Samuel Daulton, George Konidaris, and Finale Doshi-Velez.
+\newblock Robust and efficient transfer learning with hidden parameter markov
+  decision processes.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  6250--6261, 2017.
+
+\bibitem{kober2009policy}
+Jens Kober and Jan~R Peters.
+\newblock Policy search for motor primitives in robotics.
+\newblock In {\em Advances in neural information processing systems}, pages
+  849--856, 2009.
+
+\bibitem{konidaris2006autonomous}
+George Konidaris and Andrew Barto.
+\newblock Autonomous shaping: Knowledge transfer in reinforcement learning.
+\newblock In {\em Proceedings of the 23rd international conference on Machine
+  learning}, pages 489--496. ACM, 2006.
+
+\bibitem{konidaris2007building}
+George Konidaris and Andrew~G Barto.
+\newblock Building portable options: Skill transfer in reinforcement learning.
+
+\bibitem{lazaric2010bayesian}
+Alessandro Lazaric and Mohammad Ghavamzadeh.
+\newblock Bayesian multi-task reinforcement learning.
+\newblock In {\em ICML-27th International Conference on Machine Learning},
+  pages 599--606. Omnipress, 2010.
+
+\bibitem{lazaric2008transfer}
+Alessandro Lazaric, Marcello Restelli, and Andrea Bonarini.
+\newblock Transfer of samples in batch reinforcement learning.
+\newblock In {\em Proceedings of the 25th international conference on Machine
+  learning}, pages 544--551. ACM, 2008.
+
+\bibitem{levine2016end}
+Sergey Levine, Chelsea Finn, Trevor Darrell, and Pieter Abbeel.
+\newblock End-to-end training of deep visuomotor policies.
+\newblock {\em The Journal of Machine Learning Research}, 17(1):1334--1373,
+  2016.
+
+\bibitem{lillicrap2015continuous}
+Timothy~P Lillicrap, Jonathan~J Hunt, Alexander Pritzel, Nicolas Heess, Tom
+  Erez, Yuval Tassa, David Silver, and Daan Wierstra.
+\newblock Continuous control with deep reinforcement learning.
+\newblock {\em arXiv preprint arXiv:1509.02971}, 2015.
+
+\bibitem{maillard2010finite}
+Odalric-Ambrym Maillard, R{\'e}mi Munos, Alessandro Lazaric, and Mohammad
+  Ghavamzadeh.
+\newblock Finite-sample analysis of bellman residual minimization.
+\newblock In {\em Proceedings of 2nd Asian Conference on Machine Learning},
+  pages 299--314, 2010.
+
+\bibitem{mnih2015human}
+Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei~A Rusu, Joel Veness,
+  Marc~G Bellemare, Alex Graves, Martin Riedmiller, Andreas~K Fidjeland, Georg
+  Ostrovski, et~al.
+\newblock Human-level control through deep reinforcement learning.
+\newblock {\em Nature}, 518(7540):529, 2015.
+
+\bibitem{osband2014generalization}
+Ian Osband, Benjamin Van~Roy, and Zheng Wen.
+\newblock Generalization and exploration via randomized value functions.
+\newblock {\em arXiv preprint arXiv:1402.0635}, 2014.
 
 \bibitem{puterman1994markov}
 Martin~L. Puterman.
 \newblock {\em Markov Decision Processes: Discrete Stochastic Dynamic
   Programming}.
 \newblock John Wiley \& Sons, Inc., New York, NY, USA, 1994.
+
+\bibitem{silver2016mastering}
+David Silver, Aja Huang, Chris~J Maddison, Arthur Guez, Laurent Sifre, George
+  Van Den~Driessche, Julian Schrittwieser, Ioannis Antonoglou, Veda
+  Panneershelvam, Marc Lanctot, et~al.
+\newblock Mastering the game of go with deep neural networks and tree search.
+\newblock {\em nature}, 529(7587):484--489, 2016.
+
+\bibitem{sutton1998reinforcement}
+Richard~S Sutton and Andrew~G Barto.
+\newblock {\em Reinforcement learning: An introduction}, volume~1.
+\newblock MIT press Cambridge, 1998.
+
+\bibitem{taylor2008transferring}
+Matthew~E Taylor, Nicholas~K Jong, and Peter Stone.
+\newblock Transferring instances for model-based reinforcement learning.
+\newblock In {\em Joint European Conference on Machine Learning and Knowledge
+  Discovery in Databases}, pages 488--505. Springer, 2008.
+
+\bibitem{taylor2009transfer}
+Matthew~E Taylor and Peter Stone.
+\newblock Transfer learning for reinforcement learning domains: A survey.
+\newblock {\em Journal of Machine Learning Research}, 10(Jul):1633--1685, 2009.
+
+\bibitem{wilson2007multi}
+Aaron Wilson, Alan Fern, Soumya Ray, and Prasad Tadepalli.
+\newblock Multi-task reinforcement learning: a hierarchical bayesian approach.
+\newblock In {\em Proceedings of the 24th international conference on Machine
+  learning}, pages 1015--1022. ACM, 2007.
 
 \end{thebibliography}
