@@ -39,6 +39,13 @@ Fernando Fern{\'a}ndez and Manuela Veloso.
 \newblock In {\em Proceedings of the fifth international joint conference on
   Autonomous agents and multiagent systems}, pages 720--727. ACM, 2006.
 
+\bibitem{hershey2007approximating}
+John~R Hershey and Peder~A Olsen.
+\newblock Approximating the kullback leibler divergence between gaussian
+  mixture models.
+\newblock In {\em Acoustics, Speech and Signal Processing, 2007. ICASSP 2007.
+  IEEE International Conference on}, volume~4, pages IV--317. IEEE, 2007.
+
 \bibitem{hoffman2013stochastic}
 Matthew~D Hoffman, David~M Blei, Chong Wang, and John Paisley.
 \newblock Stochastic variational inference.
@@ -122,6 +129,12 @@ Danilo~Jimenez Rezende, Shakir Mohamed, and Daan Wierstra.
 \newblock Stochastic backpropagation and approximate inference in deep
   generative models.
 \newblock {\em arXiv preprint arXiv:1401.4082}, 2014.
+
+\bibitem{scott2015multivariate}
+David~W Scott.
+\newblock {\em Multivariate density estimation: theory, practice, and
+  visualization}.
+\newblock John Wiley \& Sons, 2015.
 
 \bibitem{silver2016mastering}
 David Silver, Aja Huang, Chris~J Maddison, Arthur Guez, Laurent Sifre, George
