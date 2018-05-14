@@ -204,7 +204,7 @@ Although the Gaussian assumption of the previous section is very appealing as it
 Given the source tasks' weights $\mathcal{W}_s$, we model our estimated prior as a mixture of Gaussians with one equally weighted isotropic Gaussian centered at each weight: $p(\bm{w}) = \frac{1}{\abs{\mathcal{W}_s}}\sum_{\bm{w}_s \in \mathcal{W}_s}\mathcal{N}(\bm{w}|\bm{w}_s,\sigma_p^2\bm{I})$. This resembles a kernel density estimator \cite{scott2015multivariate} and, due to its nonparametric nature, it allows capturing arbitrarily complex distribution. Consistently with the prior, we model our approximate posterior as a mixture of Gaussians. However, we allow a different number of components (typically much less than the prior's) and we adopt full covariances instead of only diagonals, so that our posterior has the potential to match complex distributions with less components. Using $C$ components, our posterior is $q_{\bm{\xi}}(\bm{w}) = \frac{1}{C}\sum_{i=1}^C\mathcal{N}(\bm{w}|\bm{\mu}_i,\bm{\Sigma}_i)$, with variational parameters $\bm{\xi} = (\bm{\mu}_1,\dots,\bm{\mu}_C,\bm{\Sigma}_1,\dots,\bm{\Sigma}_C)$. Once again, we learn Cholesky factors instead of full covariances.
 
 Although this new model has the potential to capture much more complex distributions, it poses a major complication: the KL divergence between two mixture of Gaussians has no closed-form expression. To solve this issue, we rely on an upper bound to such quantity, so that negative ELBO still upper bounds the KL between the approximate and true posterior. Among the many upper bounds available in the literature, we adopt the one proposed in \cite{hershey2007approximating}, which we report here for the sake of completeness. We refer the reader to the original paper for the proof.
-\begin{theorem}[\cite{hershey2007approximating}]
+\begin{theorem}[\cite{hershey2007approximating}]\label{th:ukl}
 Let $p = \sum_{i} c_i^{(p)} f_i^{(p)}$ and $q = \sum_{j} c_j^{(q)} f_j^{(q)}$ be two mixture of Gaussian distributions, where $f_i^{(p)} = \mathcal{N}(\bm{\mu}_i^{(p)},\bm{\Sigma}_i^{(p)})$ denotes the i-th component of $p$, $c_i^{(p)}$ denotes its weight, and similarly for $q$. Introduce two vectors $\chi^{(1)}$ and $\chi^{(2)}$ such that $c_i^{(p)} = \sum_j \chi^{(2)}_{j,i}$ and $c_j^{(q)} = \sum_i \chi^{(1)}_{i,j}$. Then:
 \begin{equation}
 KL(p||q) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{i,j} \chi^{(2)}_{j,i}KL(f_i^{(p)}||f_j^{(q)})
@@ -515,21 +515,41 @@ Under Gaussian distributions, all quantities of interest for using Alg. \ref{alg
 KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bm{\Sigma}_p \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bm{\Sigma}_p^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bm{\mu}_p)^T \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p) -K \right)
 \end{equation}
 for $\bm{\xi} = (\bm{\mu},\bm{L})$ and $\bm{\Sigma} = \bm{LL}^T$. Its gradients with respect to the variational parameters are:
-\begin{equation}
+\begin{equation}\label{eq:klgradmu}
 \nabla_{\bm{\mu}} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p)
 \end{equation}
-\begin{equation}
-\nabla_{\bm{L}} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \bm{\Sigma}_p^{-1}\bm{L} - (\bm{L}^{-1})^T
+\begin{equation}\label{eq:klgradL}
+\nabla_{\bm{L}} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \bm{\Sigma}_p^{-1}\bm{L} - (\bm{L}^{-1})^T 
 \end{equation}
 Finally, the gradients w.r.t. the expected likelihood term of the variational objective \eqref{eq:elbo} can be computed using the reparameterization trick (e.g., \cite{hoffman2013stochastic,rezende2014stochastic}):
-\begin{equation}
+\begin{equation}\label{eq:tdgradmu}
 \nabla_{\bm{\mu}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
-\end{equation}
-\begin{equation}
+\end{equation} 
+\begin{equation}\label{eq:tdgradL}
 \nabla_{\bm{L}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \cdot \bm{v}^T \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
 
 \subsection{Mixture of Gaussian Variational Transfer}
+
+For the implementation of the Mixture of Gaussian Variational Transfer, we use the upper bound on the KL divergence between two Mixtures of Gaussians, as in Theorem\ref{th:ukl}, to obtain an upper bound on the negative ELBO in Equation\ref{eq:elbo}. Consider we have $C$ components for the posterior family $q_{\bm{\xi}}(\bm{w}) = \frac{1}{C}\sum_{i=1}^C\mathcal{N}(\bm{w}|\bm{\mu}_i,\bm{\Sigma}_i)$ and a prior distribution, constructed from the set of weights $\mathcal{W}_s = \left\lbrace \bm{w}_1,..., \bm{w}_{|\mathcal{W}_s|} \right\rbrace$ of the sources' optimal $Q$-functions, $p(\bm{w}) = \frac{1}{\abs{\mathcal{W}_s}}\sum_{j=1}^{|\mathcal{W}_s|}\mathcal{N}(\bm{w}|\bm{w}_j,\sigma_p^2\bm{I})$.
+
+\begin{equation}\label{eq:ukl}
+KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)}KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
+\end{equation}
+
+And substituting \ref{eq:ukl} in the negative ELBO in \ref{eq:elbo} we get the following upper bound.
+
+\begin{equation}
+\mathcal{L}(\bm{\xi}) \leq  \widetilde{\mathcal{L}}(\bm{\xi}) = \mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B(\bm{w})}_D^2\right] + KL(\chi^{(2)}||\chi^{(1)}) + \frac{\lambda}{N}\sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)}KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
+\end{equation}
+
+Finally, using this upper bound as objective of our optimization problem, we can then exploit the linearity of the expectation operator to obtain
+
+\begin{equation}
+\widetilde{\mathcal{L}}(\bm{\xi}) = \frac{1}{C}\sum_{i=1}^C \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)}\left[\norm{B(\bm{w})}_D^2\right] + KL(\chi^{(2)}||\chi^{(1)}) + \frac{\lambda}{N}\sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)} KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
+\end{equation}
+
+that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\mu}_C, \bm{\Sigma}_1,..., \bm{\Sigma}_C)$ using the Eq. \ref{eq:klgradmu}, \ref{eq:klgradL}, \ref{eq:tdgradmu}, \ref{eq:tdgradL}.
 
 \section{Additional Details on the Experiments}
 
