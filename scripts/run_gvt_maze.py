@@ -41,8 +41,8 @@ parser.add_argument("--mazes_file", default="../scripts/mazes10")
 
 #GVT parameters
 parser.add_argument("--alpha_adam", default=0.001)
-parser.add_argument("--alpha_sgd", default=0.0001)
-parser.add_argument("--lambda_", default=0.0001)
+parser.add_argument("--alpha_sgd", default=0.000001)
+parser.add_argument("--lambda_", default=0.000001)
 parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=5)
 parser.add_argument("--sigma_reg", default=0.0001)
@@ -102,10 +102,10 @@ sources = list()
 if maze == -1:
     for i in range(min(n_runs, len(mdps))):
         envs.append(mdps[i % len(mdps)])
-        sources.append([w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1])])
+        sources.append([w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1].goal)])
 else:
     envs = [mdps[maze] for i in range(n_runs)]
-    sources = [w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1])]
+    sources = [w for w in weights if not np.array_equal(w[0][-1], envs[-1].walls) and not np.array_equal(w[0][-2], envs[-1].goal)]
     sources = [sources for i in range(n_runs)]
 
 state_dim = mdps[0].state_dim
