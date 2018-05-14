@@ -249,13 +249,13 @@ Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the act
 
 \section{Related Works}
 
-Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves again the importance of capturing more complicated task distributions. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over tasks. Differently from our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. This approach was recently extended in \cite{killian2017robust}, where the authors replace GPs with Bayesian neural networks to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
+Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves again the importance of capturing more complicated task distributions. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over tasks. Differently from our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. Recently, \cite{killian2017robust} extended this approach by replacing GPs with Bayesian neural networks, so as to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
 
-In the RL community, our approach is related to value function randomization\cite{osband2014generalization}. The authors extend the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
+In the RL community, our approach is related to value function randomization\cite{osband2014generalization}, which extends the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
 
 \section{Experiments}
 
-In this section, we provide an experimental evaluation of our approach. We begin by analyzing the behavior of our algorithm on a toy problem in Sec. \ref{sec:gw}. Then, in Sec. \ref{sec:cc}, we consider two classic control benchmarks, namely cartpole and mountain car. We conclude with a complex maze navigation task in Sec. \ref{sec:mn}. In all experiments, we compare our Gaussian variational transfer algorithm (GVT) and the version using mixture of Gaussians with $c$ components ($c$-MGVT) to plain no-transfer RL (NT) with $\epsilon$-greedy exploration. To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
+In this section, we provide an experimental evaluation of our approach in three different domains with increasing level of difficulty. In all experiments, we compare our Gaussian variational transfer algorithm (GVT) and the version using a $c$-component mixture of Gaussians ($c$-MGVT) to plain no-transfer RL (NT) with $\epsilon$-greedy exploration. To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?} 
 
 \subsection{The Rooms Problem} \label{sec:gw}
 
@@ -491,14 +491,14 @@ Under Gaussian distributions, all quantities of interest for using Alg. \ref{alg
 \begin{equation}
 KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bm{\Sigma}_p \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bm{\Sigma}_p^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bm{\mu}_p)^T \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p) -K \right)
 \end{equation}
-for $\bm{\xi} = (\bm{\mu},\bm{L})$ and $\bm{\Sigma} = \bm{LL}^T$. Its gradients with respect to the variational parameters are \cite{}\todo{Cite matrix cookboox}:
+for $\bm{\xi} = (\bm{\mu},\bm{L})$ and $\bm{\Sigma} = \bm{LL}^T$. Its gradients with respect to the variational parameters are:
 \begin{equation}
 \nabla_{\bm{\mu}} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p)
 \end{equation}
 \begin{equation}
 \nabla_{\bm{L}} KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \bm{\Sigma}_p^{-1}\bm{L} - (\bm{L}^{-1})^T
 \end{equation}
-Finally, the gradients w.r.t. the expected likelihood term of the variational objective \eqref{eq:elbo} can be computed using the reparameterization trick (e.g., \cite{}\todo{Cite deepmind and another}):
+Finally, the gradients w.r.t. the expected likelihood term of the variational objective \eqref{eq:elbo} can be computed using the reparameterization trick (e.g., \cite{hoffman2013stochastic,rezende2014stochastic}):
 \begin{equation}
 \nabla_{\bm{\mu}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
@@ -515,26 +515,5 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 \subsection{Classic Control}
 
 \subsection{Maze Navigation}
-
-Transfer approaches to mention:
-\begin{itemize}
-\item Taylor 2009: survey
-\item Konidaris and Barto transfer shaped reward functions PROs: this allows the agent to have a more goal-directed behavior, thus limiting unnecessary random exploration CONs: applicable only to simple problems, does not scale
-\item Wilson 2007 propose a hierarchical Bayesian model for the distribution over tasks PROs it explicitly models the uncertainty over which tasks are being solved, thus quickly adapting to new ones and allowing informed exploration decisions to be taken
-\item Lazaric 2008 transfer samples PROs select good samples, can scale to continuous domains CONs eps greedy is used
-\item Taylor 2008 transfer samples for model-based RL PROs good exploration via model-based RL CONs does not scale, can negatively transfer when tasks are very different
-\item Lazaric 2010 propose a hierarchical bayesian model for the distribution over value functions PROs quickly adapts to new tasks, non-parameteric (GP) models CONs scaling, strong assumptions (GPTD)
-\item Fernandez and veloso 2006 propose an exploration strategy based on probabilistic policy reuse PROs good exploration (?) CONs Do not try to figure out which policies are good or bad
-\item Brunskill propose a method to transfer in model based RL (E3) - PROs theory, exploration CONs scaling
-\item Barreto use successor features PROs simple, theory CONs eps-greedy exploration
-\end{itemize}
-
-Exploration approaches to mention:
-\begin{itemize}
-\item Osband 2014 propose a method to efficiently explore via randomized value functions
-\item Osband 2016 adapt such algorithm to DQNs
-\item Houthooft 2016 use variational inference to approximate the posterior distribution over parameters of the dynamics, and use that to drive exploration
-\item Azizzadenesheli 2018 extend Osband 2016 to use Bayesian DQN instead. Still makes Gaussian assumptions though
-\end{itemize}
 
 \end{document}
