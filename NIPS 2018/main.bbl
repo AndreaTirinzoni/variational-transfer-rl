@@ -6,6 +6,11 @@ Kavosh Asadi and Michael~L Littman.
 \newblock In {\em International Conference on Machine Learning}, pages
   243--252, 2017.
 
+\bibitem{azizzadenesheli2018efficient}
+Kamyar Azizzadenesheli, Emma Brunskill, and Animashree Anandkumar.
+\newblock Efficient exploration through bayesian deep q-networks.
+\newblock {\em arXiv preprint arXiv:1802.04412}, 2018.
+
 \bibitem{baird1995residual}
 Leemon Baird.
 \newblock Residual algorithms: Reinforcement learning with function
@@ -25,6 +30,10 @@ David~M Blei, Alp Kucukelbir, and Jon~D McAuliffe.
 \newblock Variational inference: A review for statisticians.
 \newblock {\em Journal of the American Statistical Association},
   112(518):859--877, 2017.
+
+\bibitem{boyan1999least}
+Justin~A Boyan.
+\newblock Least-squares temporal difference learning.
 
 \bibitem{bubeck2012regret}
 S{\'e}bastien Bubeck, Nicolo Cesa-Bianchi, et~al.

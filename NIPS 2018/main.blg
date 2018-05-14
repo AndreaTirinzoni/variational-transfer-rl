@@ -4,49 +4,51 @@ The top-level auxiliary file: main.aux
 The style file: plain.bst
 Database file #1: biblio.bib.bib
 Warning--I didn't find a database entry for ""
+Warning--empty booktitle in boyan1999least
+Warning--empty year in boyan1999least
 Warning--empty booktitle in konidaris2007building
 Warning--empty year in konidaris2007building
 Warning--can't use both volume and number fields in sutton1998reinforcement
 Warning--empty booktitle in van2016deep
-You've used 31 entries,
+You've used 33 entries,
             2118 wiz_defined-function locations,
-            673 strings with 10066 characters,
-and the built_in function-call counts, 12605 in all, are:
-= -- 1250
-> -- 619
+            681 strings with 10324 characters,
+and the built_in function-call counts, 13100 in all, are:
+= -- 1292
+> -- 644
 < -- 17
-+ -- 244
-- -- 212
-* -- 849
-:= -- 1983
-add.period$ -- 101
-call.type$ -- 31
-change.case$ -- 193
++ -- 254
+- -- 220
+* -- 877
+:= -- 2070
+add.period$ -- 106
+call.type$ -- 33
+change.case$ -- 203
 chr.to.int$ -- 0
-cite$ -- 35
-duplicate$ -- 514
-empty$ -- 963
-format.name$ -- 212
-if$ -- 2727
+cite$ -- 39
+duplicate$ -- 537
+empty$ -- 1006
+format.name$ -- 220
+if$ -- 2827
 int.to.chr$ -- 0
-int.to.str$ -- 31
-missing$ -- 34
-newline$ -- 157
-num.names$ -- 62
-pop$ -- 244
+int.to.str$ -- 33
+missing$ -- 36
+newline$ -- 166
+num.names$ -- 66
+pop$ -- 261
 preamble$ -- 1
-purify$ -- 165
+purify$ -- 173
 quote$ -- 0
-skip$ -- 394
+skip$ -- 407
 stack$ -- 0
-substring$ -- 762
-swap$ -- 176
+substring$ -- 772
+swap$ -- 178
 text.length$ -- 17
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 118
-warning$ -- 4
-while$ -- 115
-width$ -- 33
-write$ -- 342
-(There were 5 warnings)
+type$ -- 126
+warning$ -- 6
+while$ -- 119
+width$ -- 35
+write$ -- 359
+(There were 7 warnings)
