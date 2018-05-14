@@ -463,10 +463,10 @@ aaa
 \end{theorem}
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
-\begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
-\end{align*}
-where the second inequality is due to the fact, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
+\begin{align}\label{eq:thg-4}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align}
+where the second inequality is due to the fact that, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
 
 \paragraph*{Bounding the expected TD error}
 
@@ -500,19 +500,38 @@ where the second inequality follows from Cauchy-Schwarz inequality. Going back t
 \end{align*}
 Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}c\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\sqrt{c}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
 \end{align*}
 From Cauchy-Schwarz inequality:
 \begin{align*}
-c\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & c\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
+\sqrt{c}\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & \sqrt{c}\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & \sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
 \end{align*}
-Then, the random variable over which the variance is computed is limited in $[-c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
+Then, the random variable over which the variance is computed is limited in $[-\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
 \end{align*}
 We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
 \begin{align*}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\end{align*}
+
+\paragraph*{Bounding the KL divergence}
+
+We have:
+\begin{align*}
+KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^K} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -K \right)\\ \leq\ & \frac{1}{2}K\log\frac{\sigma_{max}}{c} + \frac{1}{2}K\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}
+\end{align*}
+Now, putting all together into \ref{eq:thg-4}:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \upsilon(\bm{w}^*)\sqrt{c}\\ &\ + \frac{\lambda}{N}K\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}K\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+where $\upsilon(\bm{w}^*) = \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$. Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + \frac{1}{\sqrt{N}}\left(\upsilon(\bm{w}^*) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\log\frac{2}{\delta}}\right)
+\end{align*}
+Finally, defining the constants $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, and $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, we obtain:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}
 \end{align*}
 \end{proof}
 
@@ -538,10 +557,6 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 \begin{equation}
 \nabla_{\bm{L}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \cdot \bm{v}^T \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
-
-\paragraph*{Bounding the KL divergence}
-
-We have:
 
 \subsection{Mixture of Gaussian Variational Transfer}
 
