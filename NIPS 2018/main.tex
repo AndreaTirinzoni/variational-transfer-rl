@@ -563,14 +563,35 @@ Finally, using this upper bound as objective of our optimization problem, we can
 \widetilde{\mathcal{L}}(\bm{\xi}) = \frac{1}{C}\sum_{i=1}^C \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)}\left[\norm{B(\bm{w})}_D^2\right] + KL(\chi^{(2)}||\chi^{(1)}) + \frac{\lambda}{N}\sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)} KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
 \end{equation}
 
-that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\mu}_C, \bm{\Sigma}_1,..., \bm{\Sigma}_C)$ using the Eq. \ref{eq:klgradmu}, \ref{eq:klgradL}, \ref{eq:tdgradmu}, \ref{eq:tdgradL}.
+that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\mu}_C, \bm{\Sigma}_1,..., \bm{\Sigma}_C)$ using the Eq. \ref{eq:klgradmu}, \ref{eq:klgradL}, \ref{eq:tdgradmu}, \ref{eq:tdgradL} derived for the Gaussian case.
 
 \section{Additional Details on the Experiments}
+
+In the present section we present the hyper-parameters and corresponding values that were used for the experiments presented in this paper. 
+
+For all the algorithms implemented for the empirical evaluation, we used a Replay Buffer ($Buffer\_size$) with a fixed size and batches of a given size ($Batch\_size$) sampled randomly from it to perform the gradient steps. 
+
+In the case of no-transfer-based algorithms we used a linearly scheduled $\epsilon$-greedy exploration for which we could specify the starting and final values of $\epsilon$, $\epsilon_s$ and $\epsilon_f$ respectively, and the \emph{Exploration Fraction} of the maximum number of iterations for which the linear schedule would be used. As the learning procedure is done by gradient descent, we also have $\alpha$ as the learning rate. Additionally, in the case of the DDQNs we have the \emph{Target Update Frequency} that specifies the number of iterations before setting the target neural network to the current parameters of the online network. 
+
+As presented in Sec. \ref{sec:td}, for the minimization procedure of the TD error based on \emph{mellow-max} we also have to set $\kappa$ to control the approximation to the maximum operator and $\psi \in \left[0,1\right]$ to control the proportion between the full residual gradient and the semi-gradient approach used. 
+
+For the transfer algorithms proposed here, namely, GVT and MGVT we have the following parameters. As presented in Sec. \ref{sec:alg}, we have $\lambda \geq 0$ to control the trade-off between the prior knowledge and the loss measure---i.e. the TD error---in the target task. Moreover, we allow to control the learning rates differently for the gradients related to the means and covariance matrices, the Cholesky factor L to be precise: $\alpha_{\mu}$ and $\alpha_L$. In order to approximate the expectation of the TD error, we used a fixed number of $weights$ sampled from the posterior distribution. Specifically, for MGVT it is necessary to specify the value of the variance $\sigma_p^2$ for the prior model and the number of components $C$ for the posterior family to be used. Furthermore, as explained in Sec. \ref{sec:mgvt}, to perform the initialization of the posterior by minimizing the KL divergence we set the a maximum number of iterations (\emph{UKL max iterations}) and the precision to reach during this optimization $\varepsilon$ and its learning rate $\eta$. Finally, to avoid problems with the positive-definiteness of the covariances being learned, we specify a hyper-parameter $\sigma_{min}$ as the minimum value the diagonal elements of the Cholesky factor can reach.
+
+In the following sections we present the configurations used for the experiments presented in this paper. For all our experiments we set $\psi=0.5$, $UKL\_max\_iterations=600$, $\eta=10^{-6}$, $\varepsilon=0.001$, $\sigma_{min}=0.0001$. Also, we used ADAM optimizer---with parameters $\beta_1=0.9$, $\beta_2=0.999$---for the gradients steps related to the means and simple SGD for gradients steps of the Cholesky factors L in GVT and MGVT. For the non-transfer algorithms only ADAM was used with the same mentioned parameters.
 
 \subsection{The Rooms Problem}
 
 \subsection{Classic Control}
 
+For the Cartpole environment, we generated tasks by uniformly sampling the cart mass in the range $\left[0.5,1.5\right]$, the pole mass in $\left[0.1,0.3\right]$ and the pole length in $\left[0.2,1.0\right]$. 
+
+During the training of the source tasks, we used a $Batch\_size = 32$, $Buffer\_size = 50000$. For DDQN with a $Target\_Update\_Frequency = 500$ and $Exploration\_fraction = 0.35$ with $\epsilon_s=1$ and $\epsilon_f=0.1$. The function approximator was a Multilayer Perceptron (MLP) with ReLU as activation function and a hidden layer of $32$ neurons. For the transfer experiments we set $Batch\_size=500$ and $weights=5$, $\lambda=0.001$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. In the case of MGVT we set $\sigma_p^2=10^{-5}$.
+
+In the case of Mountain Car, to generate tasks we sampled uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. We trained DDQN with $Target\_Update\_Frequency = 500$ and $Exploration\_fraction = 0.15$ with $\epsilon_s=1$ and $\epsilon_f=0.1$ and used  an MLP with single hidden layer of $64$ neurons with ReLU activation. For the transfer experiments we set the $Batch\_size=50$, $weights=10$, $\lambda=10^{-5}$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. For MGVT we set $\sigma_p^2=10^{-5}$.
+
+
 \subsection{Maze Navigation}
+
+
 
 \end{document}
