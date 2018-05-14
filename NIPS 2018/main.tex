@@ -49,7 +49,7 @@
 \newcommand{\wh}[1]{\widehat{#1}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
-\title{What the hell is the title of this paper?}
+\title{Variational Approximations for Transfer in Reinforcement Learning}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -233,31 +233,20 @@ In this section, we theoretically analyze our variational transfer algorithm...
 
 A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{} \todo{Cite MM} that the mellow Bellman operator is a contraction under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the corresponding operator also monotonically converged to the optimal one. We confirm that this property actually holds in the following theorem.
 
-\begin{restatable}{theorem}{thmmv} \label{th:mmv}
-Let $V$ be the fixed-point of the optimal Bellman operator $T$, and $Q$ the corresponding action-value function. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{V}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). Let $\nu$ be a probability measure over the state-space. Then, for any $p \geq 1$:
-\begin{equation}
-\norm{V-\wt{V}}_{\nu,p}^p \leq\ \frac{2R_{max}}{(1-\gamma)^2}\norm{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g}}}_{\nu,p}^p
-\end{equation}
-\end{restatable}
-
 \begin{restatable}{theorem}{thmm} \label{th:mm}
-Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{Q}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta_{\kappa} > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). Let $\nu$ be a probability measure over the state-action space. Then, for any $p \geq 1$:
+Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{Q}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta_{\kappa} > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). Let $\nu$ be a probability measure over the state-action space. Then, for any $p \geq 1$:\todo{Correct measure on the rhs}
 \begin{equation}
 \norm{Q^*-\wt{Q}}_{\nu,p}^p \leq\ \frac{2\gamma R_{max}}{(1-\gamma)^2}\norm{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g}}}_{\nu,p}^p
 \end{equation}
 \end{restatable}
-
-\section{Related Works}
-
-Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves again the importance of capturing more complicated task distributions. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over tasks. Differently from our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. Recently, \cite{killian2017robust} extended this approach by replacing GPs with Bayesian neural networks, so as to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
-
-In the RL community, our approach is related to value function randomization\cite{osband2014generalization}, which extends the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
 
 \section{Experiments}
 
 In this section, we provide an experimental evaluation of our approach in three different domains with increasing level of difficulty. In all experiments, we compare our Gaussian variational transfer algorithm (GVT) and the version using a $c$-component mixture of Gaussians ($c$-MGVT) to plain no-transfer RL (NT) with $\epsilon$-greedy exploration. To the best of our knowledge, no existing transfer algorithm is directly comparable to our approach from an experimental perspective. \todo{Any better motivation?}
 
 \subsection{The Rooms Problem} \label{sec:gw}
+
+We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach the goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state. However, it is clear that there should be a preference over actions up and right, rather than down and left (which are worse in all tasks). Thus, we expect our algorithm to efficiently explore any target task.
 
 \begin{figure*}[t] 
   \begin{subfigure}[b]{0.15\textwidth}
@@ -280,8 +269,6 @@ In this section, we provide an experimental evaluation of our approach in three 
   \label{fig:dipfdbsgraphplots}
 \end{figure*}
 
-We consider an agent navigating in the rooms environment depicted in Fig. \ref{}. The agent starts in the bottom-left corner and must move from one room to another to reach the goal position in the top-right corner. The rooms are connected by small doors whose positions are unknown to the agent. The state-space is modeled as a $10 \times 10$ continuous grid, while the action-space is the set of $4$ movement directions (up, right, down, left). After each action, the agent moves by $1$ in the chosen direction and the final position is corrupted by Gaussian noise with $0.2$ standard deviation. In case the agent hits a wall, its position remains unchanged. The reward is $1$ when reaching the goal (after which the process terminates) and $0$ otherwise, while the discount factor is $\gamma = 0.99$. We consider a distribution over tasks in which doors have a fixed width of $1$, while their positions are sampled uniformly in $[0.5,9.5]$. Since the agent does not know where the doors are located in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to quickly figure out the door positions. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. This does not hold for positions nearby the start state. However, it is clear that there should be a preference over actions up and right, rather than down and left (which are worse in all tasks). Thus, we expect our algorithm to efficiently explore any target task.
-
 In order to prove that our guesses are correct, we generate a set of $50$ source tasks for the three-room environment of Fig. \ref{} by sampling both door positions uniformly, and solve all of them by directly minimizing the TD error as presented in Sec. \ref{sec:td}. In order to make sure that their solutions are accurate enough, we allow sampling the initial state uniformly in the environment and run until convergence. Then, we use our algorithms to transfer from $10$ source tasks sampled from the previously generated set. The average return over the last $50$ learning episodes as a function of the number of iterations is shown in Fig. \ref{}. Each curve is the result of $20$ independent runs, each resampling the target and source tasks. $95\%$ confidence intervals are shown. Further details on the parameters adopted in this experiment are given in App. \ref{}. As expected, the no-transfer (NT) algorithm fails at learning the task in so few iterations due to the limited exploration provided by an $\epsilon$-greedy policy. On the other hand, all our algorithms achieve a significant speed-up and are able to converge to the optimal performance in few iterations, with GVT being slightly slower. Interestingly, we notice that there is no advantage in adopting more than $1$ component for the posterior in MGVT. This is intuitive since, when the algorithm quickly figures out which task is being solved, it will move all components in the same direction.
 
 To better understand the differences between GVT and MGVT, we now consider transferring from a slightly different distribution than the one from which target tasks are drawn. We generate again $50$ source tasks but this time with the bottom door fixed in the center and the other one moving. Then, we repeat the previous experiment, allowing both doors to move when sampling target tasks. The results are shown in Fig. \ref{}. Interestingly, MGVT seems almost unaffected by this change, proving that is has sufficient representation power to generalize to slightly different task distributions. The same does not hold for GVT, which now is not able to solve many of the sampled target tasks,thus the very high variance. This proves again that assuming Gaussian distributions can pose severe limitations in our transfer settings.
@@ -289,6 +276,10 @@ To better understand the differences between GVT and MGVT, we now consider trans
 Finally, we analyze the transfer performance as a function of how likely the target task is according to the prior. We consider a two-room version of the environment of Fig. \ref{}. Differently from before, we generate tasks by sampling the door position from a Gaussian with mean $5$, and standard deviation $1.8$, so that tasks where the door is near the sides are very unlikely. Fig. \ref{} shows the performance reached by GVT and MGVT with $1$ component at fixed iterations as a function of how likely the target task is according to such distribution. As expected GVT achieves poor performance on very unlikely tasks, even after many iterations. In fact, estimating a single Gaussian distribution definitely entails some information loss, especially about the unlikely tasks. On the other hand, MGVT keeps such information and, consequently, performs much better. Perhaps not surprisingly, MGVT reaches the optimal performance in $4k$ iterations no matter what task is being solved.
 
 \subsection{Classic Control} \label{sec:cc}
+
+To evaluate the performance of our transfer algorithms in more common benchmarks, we chose to use the well-known classic control environments: Cartpole and Mountain Car as defined in \citep{sutton1998reinforcement}. In the case of Cartpole we generated $20$ source tasks by uniformly sampling the cart mass, the pole mass and length. Instead, for Mountain Car, we generated the $20$ sources by uniformly sampling the base speed of the car. We kept a discount factor of $\gamma=0.99$ for both environments. Moreover, to train the source tasks we chose to use a Multilayer Perceptron (MLP) as approximator. We trained all source tasks until convergence and to transfer, in both settings, we used GVT and 1-MGVT choosing randomly $10$ of the trained sources. Analogously to Sec. \ref{sec:gw}, in Fig. \ref{} and \ref{} we show the expected return---as the average of the last $50$ episodes of lerning---of transfer for $20$ independent runs randomizing the sources and target tasks. In Fig. \ref{}, that corresponds to Cartpole, it is easily noticeable a near-optimal jump-start, in both GVT and 1-MGVT, that during the following iterations converges to the optimal performance. Furthermore, transfer in Mountain Car as shown in Fig. \ref{}, a more complicated task than Cartpole, causes GVT to struggle to solve the target task but 1-MGVT reaches convergence, within the same number of iterations, to the optimal performances.
+
+\subsection{Maze Navigation} \label{sec:mn}
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.15\textwidth}
@@ -311,16 +302,17 @@ Finally, we analyze the transfer performance as a function of how likely the tar
   \label{fig:ccmazeplots}
 \end{figure*}
 
-To evaluate the performance of our transfer algorithms in more common benchmarks, we chose to use the well-known classic control environments: Cartpole and Mountain Car as defined in \citep{sutton1998reinforcement}. In the case of Cartpole we generated $20$ source tasks by uniformly sampling the cart mass, the pole mass and length. Instead, for Mountain Car, we generated the $20$ sources by uniformly sampling the base speed of the car. We kept a discount factor of $\gamma=0.99$ for both environments. Moreover, to train the source tasks we chose to use a Multilayer Perceptron (MLP) as approximator. We trained all source tasks until convergence and to transfer, in both settings, we used GVT and 1-MGVT choosing randomly $10$ of the trained sources. Analogously to Sec. \ref{sec:gw}, in Fig. \ref{} and \ref{} we show the expected return---as the average of the last $50$ episodes of lerning---of transfer for $20$ independent runs randomizing the sources and target tasks. In Fig. \ref{}, that corresponds to Cartpole, it is easily noticeable a near-optimal jump-start, in both GVT and 1-MGVT, that during the following iterations converges to the optimal performance. Furthermore, transfer in Mountain Car as shown in Fig. \ref{}, a more complicated task than Cartpole, causes GVT to struggle to solve the target task but 1-MGVT reaches convergence, within the same number of iterations, to the optimal performances.
-
-
-\subsection{Maze Navigation} \label{sec:mn}
-
 For this setting we propose a maze environment, such as those in Fig. \ref{}, for a robotic agent to navigate. We created a set of 20 mazes---see App \ref{}---of size $10\times10$ with continuous space within which we ensured four groups: each group with the goal position in one of the corners of the maze. In order to simulate a robotic agent, we set an action space that allows to control the linear and angular motion by a fixed distance of $0.5$ (\emph{move forward}) and a fixed angle of $\pm 22.5º$ (\emph{rotate counter- and clockwise}). Moreover, we enhanced the state space to include, in addition to the absolute position and orientation, a set of distance measurements to the nearest obstacles from the agent's perspective with maximum range of $2$ and a field of vision of $9$ equally-spaced directions in $[-90,90º]$ relative to its orientation. In this way, we provide the agent with information that a robot would normally collect from LIDARs, sonars and other sensors alike. Finally, in the same field of perception, we provide a boolean vector indicating whether the goal is within the range of observation. Regarding rewards, the agent gets 1 whenever it enters the goal area and 0 in any other situation and the MDP has a discount factor of $\gamma = 0.99$.
 
 The main motivation for this set-up is that a robot is able to exploit locally-sensed information in addition to its estimation of the actual position---as opposed to the Rooms problem presented above---and it is such information that the robotic agent could learn to use and, also, exploit in different maze configurations leveraging its previous experience. Moreover, simple variations in the maze structure could, potentially, produce big differences in the value function with respect to the ones seen in previous tasks which makes the setting suitable to assess how robust our algorithm is to negative transfer.
 
 The mazes were solved using Deep Q Networks (DQN) [] \todo{cite DQN?} with an MLP with hidden layers $32\times32$ and, in order to perform the knowledge transfer, the target maze would be excluded from the source tasks given to the algorithm. Finally, the 1-MGVT algorithm was used to solve the target tasks---Mazes 6 and 13. As before, $20$ independent runs with randomized sources to transfer are averaged and shown in Fig. \ref{}, in this case $5$ source tasks were used for each trial. While these mazes pose a challenge for our algorithm, we can see that 1-MGVT is capable to still capture useful information from the sources and adapt to the target mazes which is demonstrated by the increased slope in the learning curve. \todo{actually, decide how to improve these results}
+
+\section{Related Works}
+
+Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves again the importance of capturing more complicated task distributions. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over tasks. Differently from our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. Recently, \cite{killian2017robust} extended this approach by replacing GPs with Bayesian neural networks, so as to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
+
+In the RL community, our approach is related to value function randomization\cite{osband2014generalization}, which extends the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
 
 \section{Conclusion}
 
@@ -333,46 +325,6 @@ The mazes were solved using Deep Q Networks (DQN) [] \todo{cite DQN?} with an ML
 \appendix
 
 \section{Proofs}
-
-\thmmv*
-\begin{proof}
-We begin by noticing that:
-\begin{align*}
-\norm{V-\wt{V}}_{\nu,p}^p =\ & \norm{TV - \wt{T}\wt{V}}_{\nu,p}^p \\ =\ &
-\norm{TV - \wt{T}V + \wt{T}V - \wt{T}\wt{V}}_{\nu,p}^p \\ \leq\ &
-\norm{TV - \wt{T}V}_{\nu,p}^p + \norm{\wt{T}V - \wt{T}\wt{V}}_{\nu,p}^p \\ \leq\ &
-\norm{TV - \wt{T}V}_{\nu,p}^p + \gamma\norm{V - \wt{V}}_{\nu,p}^p
-\end{align*}
-where the first inequality follows from Minkowsky's inequality and the second one from the contraction property of the mellow Bellman operator. This implies that:
-\begin{align} \label{eq:mm1}
-\norm{V-\wt{V}}_{\nu,p}^p \leq \frac{1}{1-\gamma}\norm{TV - \wt{T}V}_{\nu,p}^p
-\end{align}
-Let us bound the norm on the right-hand side separately. In order to do that, we will bound the function $\abs{TV(s) - \wt{T}V(s)}$ point-wisely for any state $s$. By applying the definition of the optimal and mellow Bellman operators, we obtain:
-\begin{align*}
-\abs{TV(s) - \wt{T}V(s)} =\ & \abs{\max_{a}\lbrace R(s,a) + \gamma\mathbb{E}\left[V(s')\right] \rbrace - \mm_{a}\lbrace R(s,a) + \gamma\mathbb{E}\left[V(s')\right] \rbrace}\\ =\ & \abs{\max_a Q(s,a) - \mm_a Q(s,a)}
-\end{align*}
-Recall that applying the mellow-max is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
-\begin{align} \label{eq:mm2}
-\abs{\max_a Q(s,a) - \mm_a Q(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q(s,a) - \sum_a \pi_{\beta}(a|s)Q(s,a)}\notag\\ =\ & \abs{\sum_a Q(s,a) \left( \pi^*(a|s) - \pi_{\beta}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q(s,a)} \abs{\pi^*(a|s) - \pi_{\beta}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta}(a|s)}
-\end{align}
-where $\pi^*$ is the optimal (deterministic) policy w.r.t. $Q$ and $\pi_{\beta}$ is the Boltzmann distribution induced by $Q$ with inverse temperature $\beta$:
-\begin{align*}
-\pi_{\beta}(a|s) = \frac{e^{\beta Q(s,a)}}{\sum_{a'}e^{\beta Q(s,a')}}
-\end{align*}
-Denote by $a_1(s)$ the optimal action for state $s$ under $Q$. We can then write:
-\begin{align} \label{eq:mm3}
-\sum_a\abs{\pi^*(a|s) - \pi_{\beta}(a|s)} =\ & \abs{\pi^*(a_1(s)|s) - \pi_{\beta}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi^*(a|s) - \pi_{\beta}(a|s)}\notag\\ =\ & \abs{1 - \pi_{\beta}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi_{\beta}(a|s)}\notag\\ =\ & 2\abs{1 - \pi_{\beta}(a_1(s)|s)}
-\end{align}
-Finally, let us bound this last term:
-\begin{align} \label{eq:mm4}
-\abs{1 - \pi_{\beta}(a_1(s)|s)} =\ & \abs{1 - \frac{e^{\beta Q(s,a_1(s))}}{\sum_{a'}e^{\beta Q(s,a')}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta \left( Q(s,a_1(s)) - Q(s,a_2(s)) \right)}}{\sum_{a'}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta g(s)}}{\sum_{a'}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta g(s)}}{e^{\beta g(s)} + \sum_{a' \neq a_1(s)}e^{\beta \left( Q(s,a') - Q(s,a_2(s))\right)}}}\notag\\ \leq & \abs{1 - \frac{e^{\beta g(s)}}{e^{\beta g(s)} + \abs{\mathcal{A}}}}\notag\\ = & \abs{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g(s)}}}
-\end{align}
-Combining Eq. \eqref{eq:mm2}, \eqref{eq:mm3}, and \eqref{eq:mm4}, we obtain:
-\begin{align*}
-\abs{\max_a Q(s,a) - \mm_a Q(s,a)} \leq\ \frac{2R_{max}}{1-\gamma}\abs{1 - \frac{1}{1 + \abs{\mathcal{A}}e^{-\beta g(s)}}}
-\end{align*}
-Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
-\end{proof}
 
 \thmm*
 \begin{proof}
@@ -488,7 +440,7 @@ where the second inequality holds since the right-hand side of \eqref{eq:hoeff} 
 from which the lemma follows straightforwardly.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{lemma:general-bound}
 Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
@@ -504,6 +456,64 @@ where the second inequality holds since $v(\bm{w}) > 0$, while the equality hold
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
 \end{align*}
 This concludes the proof.
+\end{proof}
+
+\begin{theorem}\label{th:main-gaussian}
+aaa
+\end{theorem}
+\begin{proof}
+Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+where the second inequality is due to the fact, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
+
+\paragraph*{Bounding the expected TD error}
+
+We have:
+\begin{align}\label{eq:thg-3}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]
+\end{align}
+Let us bound these two terms point-wisely for each $s,a$. For the first expectation, we have:
+\begin{align}\label{eq:thg-1}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\notag\\ =\ & R(s,a) + \gamma\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] - \bm{w}^{*T}\bm{\phi}(s,a)
+\end{align}
+To bound the second term, we adopt Jensen's inequality:
+\begin{align}\label{eq:thg-2}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^T\bm{\phi}(s',a') }\right]\notag\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right]
+\end{align}
+Now, since we know that $\bm{w}^T\bm{\phi}(s',a') \sim \mathcal{N}(\bm{w}^{*T}\bm{\phi}(s',a'),c\ \bm{\phi}(s',a')^T\bm{\phi}(s',a'))$, $e^{\kappa\bm{w}^T\bm{\phi}(s',a')}$ follows a log-normal distribution with mean $e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}$. Thus:
+\begin{align*}
+\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right] =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}}\\ =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')} + \frac{1}{2}\kappa c\bm{\phi}_{max}\\ =\ & \mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa c\bm{\phi}_{max}
+\end{align*}
+Plugging this into \ref{eq:thg-2} and then into \ref{eq:thg-1}, we obtain:
+\begin{align*}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max} - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}(\bm{w}^{*}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}
+\end{align*}
+This implies:
+\begin{align*}
+\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\end{align*}
+where the second inequality follows from Cauchy-Schwarz inequality. Going back to \ref{eq:thg-3}, the first term can now be upper bounded by:
+\begin{align*}
+\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\end{align*}
+Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
+\begin{align*}
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}c\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
+\end{align*}
+From Cauchy-Schwarz inequality:
+\begin{align*}
+c\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & c\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
+\end{align*}
+Then, the random variable over which the variance is computed is limited in $[-c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
+\begin{align*}
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\end{align*}
+We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
+\begin{align*}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\end{align*}
 \end{proof}
 
 \section{Additional Details on the Algorithms}
@@ -528,6 +538,10 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 \begin{equation}\label{eq:tdgradL}
 \nabla_{\bm{L}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \cdot \bm{v}^T \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
+
+\paragraph*{Bounding the KL divergence}
+
+We have:
 
 \subsection{Mixture of Gaussian Variational Transfer}
 
