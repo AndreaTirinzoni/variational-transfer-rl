@@ -4,48 +4,51 @@ The top-level auxiliary file: main.aux
 The style file: plain.bst
 Database file #1: biblio.bib.bib
 Warning--I didn't find a database entry for ""
+Warning--empty booktitle in boyan1999least
+Warning--empty year in boyan1999least
 Warning--empty booktitle in konidaris2007building
 Warning--empty year in konidaris2007building
 Warning--can't use both volume and number fields in sutton1998reinforcement
-You've used 20 entries,
+Warning--empty booktitle in van2016deep
+You've used 33 entries,
             2118 wiz_defined-function locations,
-            615 strings with 8221 characters,
-and the built_in function-call counts, 8906 in all, are:
-= -- 882
-> -- 454
-< -- 13
-+ -- 178
-- -- 158
-* -- 612
-:= -- 1379
-add.period$ -- 66
-call.type$ -- 20
-change.case$ -- 135
+            681 strings with 10324 characters,
+and the built_in function-call counts, 13100 in all, are:
+= -- 1292
+> -- 644
+< -- 17
++ -- 254
+- -- 220
+* -- 877
+:= -- 2070
+add.period$ -- 106
+call.type$ -- 33
+change.case$ -- 203
 chr.to.int$ -- 0
-cite$ -- 23
-duplicate$ -- 360
-empty$ -- 665
-format.name$ -- 158
-if$ -- 1939
+cite$ -- 39
+duplicate$ -- 537
+empty$ -- 1006
+format.name$ -- 220
+if$ -- 2827
 int.to.chr$ -- 0
-int.to.str$ -- 20
-missing$ -- 22
-newline$ -- 102
-num.names$ -- 40
-pop$ -- 174
+int.to.str$ -- 33
+missing$ -- 36
+newline$ -- 166
+num.names$ -- 66
+pop$ -- 261
 preamble$ -- 1
-purify$ -- 117
+purify$ -- 173
 quote$ -- 0
-skip$ -- 285
+skip$ -- 407
 stack$ -- 0
-substring$ -- 548
-swap$ -- 139
-text.length$ -- 13
+substring$ -- 772
+swap$ -- 178
+text.length$ -- 17
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 76
-warning$ -- 3
-while$ -- 78
-width$ -- 22
-write$ -- 224
-(There were 4 warnings)
+type$ -- 126
+warning$ -- 6
+while$ -- 119
+width$ -- 35
+write$ -- 359
+(There were 7 warnings)

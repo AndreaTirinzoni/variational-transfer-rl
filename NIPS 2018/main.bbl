@@ -1,11 +1,52 @@
 \begin{thebibliography}{10}
 
+\bibitem{asadi2017alternative}
+Kavosh Asadi and Michael~L Littman.
+\newblock An alternative softmax operator for reinforcement learning.
+\newblock In {\em International Conference on Machine Learning}, pages
+  243--252, 2017.
+
+\bibitem{azizzadenesheli2018efficient}
+Kamyar Azizzadenesheli, Emma Brunskill, and Animashree Anandkumar.
+\newblock Efficient exploration through bayesian deep q-networks.
+\newblock {\em arXiv preprint arXiv:1802.04412}, 2018.
+
+\bibitem{baird1995residual}
+Leemon Baird.
+\newblock Residual algorithms: Reinforcement learning with function
+  approximation.
+\newblock In {\em Machine Learning Proceedings 1995}, pages 30--37. Elsevier,
+  1995.
+
 \bibitem{barreto2017successor}
 Andr{\'e} Barreto, Will Dabney, R{\'e}mi Munos, Jonathan~J Hunt, Tom Schaul,
   Hado~P van Hasselt, and David Silver.
 \newblock Successor features for transfer in reinforcement learning.
 \newblock In {\em Advances in neural information processing systems}, pages
   4055--4065, 2017.
+
+\bibitem{blei2017variational}
+David~M Blei, Alp Kucukelbir, and Jon~D McAuliffe.
+\newblock Variational inference: A review for statisticians.
+\newblock {\em Journal of the American Statistical Association},
+  112(518):859--877, 2017.
+
+\bibitem{boyan1999least}
+Justin~A Boyan.
+\newblock Least-squares temporal difference learning.
+
+\bibitem{bubeck2012regret}
+S{\'e}bastien Bubeck, Nicolo Cesa-Bianchi, et~al.
+\newblock Regret analysis of stochastic and nonstochastic multi-armed bandit
+  problems.
+\newblock {\em Foundations and Trends{\textregistered} in Machine Learning},
+  5(1):1--122, 2012.
+
+\bibitem{catoni2007pac}
+Olivier Catoni.
+\newblock Pac-bayesian supervised classification: the thermodynamics of
+  statistical learning.
+\newblock {\em arXiv preprint arXiv:0712.0248}, 2007.
 
 \bibitem{doshi2016hidden}
 Finale Doshi-Velez and George Konidaris.
@@ -19,6 +60,19 @@ Fernando Fern{\'a}ndez and Manuela Veloso.
 \newblock Probabilistic policy reuse in a reinforcement learning agent.
 \newblock In {\em Proceedings of the fifth international joint conference on
   Autonomous agents and multiagent systems}, pages 720--727. ACM, 2006.
+
+\bibitem{hershey2007approximating}
+John~R Hershey and Peder~A Olsen.
+\newblock Approximating the kullback leibler divergence between gaussian
+  mixture models.
+\newblock In {\em Acoustics, Speech and Signal Processing, 2007. ICASSP 2007.
+  IEEE International Conference on}, volume~4, pages IV--317. IEEE, 2007.
+
+\bibitem{hoffman2013stochastic}
+Matthew~D Hoffman, David~M Blei, Chong Wang, and John Paisley.
+\newblock Stochastic variational inference.
+\newblock {\em The Journal of Machine Learning Research}, 14(1):1303--1347,
+  2013.
 
 \bibitem{killian2017robust}
 Taylor~W Killian, Samuel Daulton, George Konidaris, and Finale Doshi-Velez.
@@ -92,6 +146,23 @@ Martin~L. Puterman.
   Programming}.
 \newblock John Wiley \& Sons, Inc., New York, NY, USA, 1994.
 
+\bibitem{rezende2014stochastic}
+Danilo~Jimenez Rezende, Shakir Mohamed, and Daan Wierstra.
+\newblock Stochastic backpropagation and approximate inference in deep
+  generative models.
+\newblock {\em arXiv preprint arXiv:1401.4082}, 2014.
+
+\bibitem{schaul2015prioritized}
+Tom Schaul, John Quan, Ioannis Antonoglou, and David Silver.
+\newblock Prioritized experience replay.
+\newblock {\em arXiv preprint arXiv:1511.05952}, 2015.
+
+\bibitem{scott2015multivariate}
+David~W Scott.
+\newblock {\em Multivariate density estimation: theory, practice, and
+  visualization}.
+\newblock John Wiley \& Sons, 2015.
+
 \bibitem{silver2016mastering}
 David Silver, Aja Huang, Chris~J Maddison, Arthur Guez, Laurent Sifre, George
   Van Den~Driessche, Julian Schrittwieser, Ioannis Antonoglou, Veda
@@ -114,6 +185,11 @@ Matthew~E Taylor, Nicholas~K Jong, and Peter Stone.
 Matthew~E Taylor and Peter Stone.
 \newblock Transfer learning for reinforcement learning domains: A survey.
 \newblock {\em Journal of Machine Learning Research}, 10(Jul):1633--1685, 2009.
+
+\bibitem{van2016deep}
+Hado Van~Hasselt, Arthur Guez, and David Silver.
+\newblock Deep reinforcement learning with double q-learning.
+\newblock 2016.
 
 \bibitem{wilson2007multi}
 Aaron Wilson, Alan Fern, Soumya Ray, and Prasad Tadepalli.
