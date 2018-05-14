@@ -49,7 +49,7 @@
 \newcommand{\wh}[1]{\widehat{#1}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
-\title{What the hell is the title of this paper?}
+\title{Variational Approximations for Transfer in Reinforcement Learning}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -440,7 +440,7 @@ where the second inequality holds since the right-hand side of \eqref{eq:hoeff} 
 from which the lemma follows straightforwardly.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{lemma:general-bound}
 Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
@@ -456,6 +456,64 @@ where the second inequality holds since $v(\bm{w}) > 0$, while the equality hold
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
 \end{align*}
 This concludes the proof.
+\end{proof}
+
+\begin{theorem}\label{th:main-gaussian}
+aaa
+\end{theorem}
+\begin{proof}
+Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+where the second inequality is due to the fact, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
+
+\paragraph*{Bounding the expected TD error}
+
+We have:
+\begin{align}\label{eq:thg-3}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]
+\end{align}
+Let us bound these two terms point-wisely for each $s,a$. For the first expectation, we have:
+\begin{align}\label{eq:thg-1}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\notag\\ =\ & R(s,a) + \gamma\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] - \bm{w}^{*T}\bm{\phi}(s,a)
+\end{align}
+To bound the second term, we adopt Jensen's inequality:
+\begin{align}\label{eq:thg-2}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^T\bm{\phi}(s',a') }\right]\notag\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right]
+\end{align}
+Now, since we know that $\bm{w}^T\bm{\phi}(s',a') \sim \mathcal{N}(\bm{w}^{*T}\bm{\phi}(s',a'),c\ \bm{\phi}(s',a')^T\bm{\phi}(s',a'))$, $e^{\kappa\bm{w}^T\bm{\phi}(s',a')}$ follows a log-normal distribution with mean $e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}$. Thus:
+\begin{align*}
+\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right] =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}}\\ =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')} + \frac{1}{2}\kappa c\bm{\phi}_{max}\\ =\ & \mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa c\bm{\phi}_{max}
+\end{align*}
+Plugging this into \ref{eq:thg-2} and then into \ref{eq:thg-1}, we obtain:
+\begin{align*}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max} - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}(\bm{w}^{*}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}
+\end{align*}
+This implies:
+\begin{align*}
+\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\end{align*}
+where the second inequality follows from Cauchy-Schwarz inequality. Going back to \ref{eq:thg-3}, the first term can now be upper bounded by:
+\begin{align*}
+\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\end{align*}
+Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
+\begin{align*}
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}c\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
+\end{align*}
+From Cauchy-Schwarz inequality:
+\begin{align*}
+c\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & c\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
+\end{align*}
+Then, the random variable over which the variance is computed is limited in $[-c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
+\begin{align*}
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\end{align*}
+We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
+\begin{align*}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\end{align*}
 \end{proof}
 
 \section{Additional Details on the Algorithms}
@@ -480,6 +538,10 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 \begin{equation}
 \nabla_{\bm{L}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \cdot \bm{v}^T \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
+
+\paragraph*{Bounding the KL divergence}
+
+We have:
 
 \subsection{Mixture of Gaussian Variational Transfer}
 
