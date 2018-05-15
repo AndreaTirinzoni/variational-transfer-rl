@@ -231,9 +231,7 @@ where $b_i(\bm{w}) = r_i + \gamma\mm_{a'}Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_
 
 \section{Theoretical Analysis}\label{sec:theory}
 
-In this section, we theoretically analyze our variational transfer algorithm...
-
-A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{} \todo{Cite MM} that the mellow Bellman operator is a contraction under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the corresponding operator also monotonically converged to the optimal one. We confirm that this property actually holds in the following theorem.
+A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{asadi2017alternative} that the mellow Bellman operator is a non-expansion under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the corresponding operator also monotonically converged to the optimal one. We confirm that this property actually holds in the following theorem.
 
 \begin{restatable}{theorem}{thmm} \label{th:mm}
 Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{Q}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta_{\kappa} > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). Let $\nu$ be a probability measure over the state-action space. Then, for any $p \geq 1$:\todo{Correct measure on the rhs}
@@ -241,6 +239,19 @@ Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the act
 \norm{Q^*-\wt{Q}}_{\nu,p}^p \leq\ \frac{2\gamma R_{max}}{(1-\gamma)^2}\norm{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g}}}_{\nu,p}^p
 \end{equation}
 \end{restatable}
+
+The proof is provided in App. \ref{}. As expected, $\wt{Q}$ converges to $Q^*$ exponentially fast when either $\kappa$ (equivalently, $\beta_{\kappa}$) increases, or the action gaps are enlarged. Notice that this result is of interest even outside our specific settings.
+
+The second question that we need to answer is whether we can provide any guarantee on our algorithm's performance when given limited data. To address this point, we restrict to the case of linear approximators with Gaussian prior and posterior. We assume Alg. \ref{alg:transfer} is used with a finite dataset and provide a finite-sample analysis bounding the distance between the fixed-point of the mellow Bellman operator and $Q$-functions sampled from the variational distribution minimizing the objective \eqref{eq:elbo}. Our main results is given in the following theorem.
+
+\begin{restatable}{theorem}{thg} \label{th:main-gaussian}
+Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\bm{w}\leq w_{max}$ and uniformly bounded features $\bm{\phi}(s,a)\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ samples. Let $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$ and $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$. Define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$, with $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
+\begin{equation}
+\resizebox{0.93\textwidth}{!}{$
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_1}{N^2}\right)$}
+\end{equation}
+\end{restatable}
+We refer the reader to App. \ref{} for the proof and a specific definition of the three constants. Four main terms constitute our bound: the approximation error due to the limited hypothesis space (first term), the variance (second term), the distance to the prior (third term), and a constant term decaying very fast (as $\mathcal{O}(\frac{1}{N^2})$). Intuitively, our bound demonstrates that, if one starts very close the prior, the only error incurred, besides the irreducible approximation error, is due to the variance of the estimates, and, thus, the algorithm is expected to achieve good performance rather quickly. Furthermore, as $N\rightarrow\infty$ the only error term remaining is the irreducible approximation error. Notice that the variance term $\upsilon(\bm{w}^*)$ is due to the fact that we minimize a biased estimator of the Bellman error. As mentioned in the preliminaries, if double sampling of the next state is possible (e.g., in simulation), such term would disappear. Finally, we want to point out that the proof of this theorem relies on a very general result (Lemma \ref{lemma:general-bound} in App. \ref{}) that does not require any specific choice of distribution of approximator. Leveraging on such results, it is straightforward to provide a finite-sample analysis of the mixture version of our algorithm. For the sake of completeness, we report the derivation in App. \ref{}.
 
 \section{Experiments}
 
@@ -460,13 +471,7 @@ where the second inequality holds since $v(\bm{w}) > 0$, while the equality hold
 This concludes the proof.
 \end{proof}
 
-\begin{theorem}\label{th:main-gaussian}
-Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\bm{w}\leq w_{max}$ and uniformly bounded features $\bm{\phi}(s,a)\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ samples. Let $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$ and $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$. Define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$, with $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
-\begin{equation}
-\resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)$}
-\end{equation}
-\end{theorem}
+\thg*
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
 \begin{align}\label{eq:thg-4}
