@@ -1,0 +1,4 @@
+python3 run_mgvt_gw_torch.py --env two-room-gw --n_source 10 --post_components 5 --max_iter_ukl 200 --n_runs 20 --n_jobs 5 --source_file source_tasks/gw10x10_torch --file_name mgvt_gw10x10_ns10_tc0_c5
+python3 run_mgvt_gw_torch.py --env three-room-gw --door 5.0 --n_source 10 --post_components 5 --max_iter_ukl 200 --n_runs 20 --n_jobs 5 --source_file source_tasks/mgw10x10_fixed_torch --file_name mgvt_mgw10x10_fixed_ns10_tc0_c5
+python3 run_mgvt_gw_torch.py --env three-room-gw --n_source 10 --post_components 5 --max_iter_ukl 200 --n_runs 20 --n_jobs 5 --source_file source_tasks/mgw10x10_torch --file_name mgvt_mgw10x10_ns10_tc0_c5
+python3 run_mgvt_gw_torch.py --env three-room-gw --n_source 10 --post_components 5 --max_iter_ukl 200 --n_runs 20 --n_jobs 5 --source_file source_tasks/mgw10x10_fixed_torch --file_name mgvt_mgw10x10_gen_ns10_tc0_c5

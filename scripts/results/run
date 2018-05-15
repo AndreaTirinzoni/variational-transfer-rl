@@ -1,0 +1,14 @@
+python3 run_nt_gw_torch.py --env two-room-gw --exploration_fraction 0.5  --n_runs 20 --n_jobs 2 --file_name nt_gw10x10
+python3 run_gvt_gw_torch.py --env two-room-gw --n_source 10 --n_runs 20 --n_jobs 2 --source_file source_tasks/gw10x10_torch --file_name gvt_gw10x10_ns10_tc0
+python3 run_gvt_gw_torch.py --env two-room-gw --n_source 10 --time_coherent 1 --n_runs 20 --n_jobs 2 --source_file source_tasks/gw10x10_torch --file_name gvt_gw10x10_ns10_tc1
+
+python3 run_nt_gw_torch.py --env three-room-gw --door 5.0 --exploration_fraction 0.5 --n_runs 20 --n_jobs 2 --file_name nt_mgw10x10_fixed
+python3 run_gvt_gw_torch.py --env three-room-gw --door 5.0 --n_source 10 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_fixed_torch --file_name gvt_mgw10x10_fixed_ns10_tc0
+python3 run_gvt_gw_torch.py --env three-room-gw --door 5.0 --n_source 10 --time_coherent 1 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_fixed_torch --file_name gvt_mgw10x10_fixed_ns10_tc1
+
+python3 run_nt_gw_torch.py --env three-room-gw --exploration_fraction 0.5 --n_runs 20 --n_jobs 2 --file_name nt_mgw10x10
+python3 run_gvt_gw_torch.py --env three-room-gw --n_source 10 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_torch --file_name gvt_mgw10x10_ns10_tc0
+python3 run_gvt_gw_torch.py --env three-room-gw --n_source 10 --time_coherent 1 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_torch --file_name gvt_mgw10x10_ns10_tc1
+
+python3 run_gvt_gw_torch.py --env three-room-gw --n_source 10 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_fixed_torch --file_name gvt_mgw10x10_gen_ns10_tc0
+python3 run_gvt_gw_torch.py --env three-room-gw --n_source 10 --time_coherent 1 --n_runs 20 --n_jobs 2 --source_file source_tasks/mgw10x10_fixed_torch --file_name gvt_mgw10x10_gen_ns10_tc1
