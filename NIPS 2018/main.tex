@@ -44,6 +44,8 @@
 
 \newcommand{\argmin}{\operatornamewithlimits{argmin}}
 \newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\arginf}{\operatornamewithlimits{arginf}}
+\newcommand{\argsup}{\operatornamewithlimits{argsup}}
 \newcommand{\mm}{\operatornamewithlimits{mm}}
 \newcommand{\wt}[1]{\widetilde{#1}}
 \newcommand{\wh}[1]{\widehat{#1}}
@@ -392,7 +394,7 @@ P\left( \norm{Q - Q^*} > \epsilon \right) \leq P\left(\norm{B(Q)} > \epsilon (1-
 Settings the right-hand side equal to $\delta$ and solving for $\epsilon$ concludes the proof.
 \end{proof}
 
-\begin{corollary}
+\begin{corollary}\label{cor:diff-q}
 Let $p$ and $\nu$ denote probability measures over $Q$-functions and state-action pairs, respectively. Assume $\wt{Q}$ is the unique fixed-point of the mellow Bellman operator $\wt{T}$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of a $Q$-function $Q$, the following holds:
 \begin{equation}
 \norm{Q - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}(Q)}_{\nu}^2 \right]}{(1-\gamma)\delta}
@@ -459,7 +461,11 @@ This concludes the proof.
 \end{proof}
 
 \begin{theorem}\label{th:main-gaussian}
-aaa
+Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\bm{w}\leq w_{max}$ and uniformly bounded features $\bm{\phi}(s,a)\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ samples. Let $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$ and $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$. Define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$, with $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
+\begin{equation}
+\resizebox{0.93\textwidth}{!}{$
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)$}
+\end{equation}
 \end{theorem}
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
@@ -532,6 +538,14 @@ where $\upsilon(\bm{w}^*) = \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\b
 Finally, defining the constants $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, and $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, we obtain:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}
+\end{align*}
+Let us now apply Corollary \ref{cor:diff-q}. We have that, with probability at least $1-\delta$:
+\begin{align*}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ]}{(1-\gamma)\delta}
+\end{align*}
+Thus, we probability at least $1-2\delta$:
+\begin{align*}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)
 \end{align*}
 \end{proof}
 
