@@ -34,6 +34,7 @@
 \usepackage{algorithmic}
 \usepackage{thmtools, thm-restate}
 \usepackage{subcaption}
+\usepackage{tikz}
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
@@ -250,7 +251,27 @@ We consider an agent navigating in the rooms environment depicted in Fig. \ref{}
 
 \begin{figure*}[t] 
   \begin{subfigure}[b]{0.15\textwidth}
-    \includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
+  
+\begin{tikzpicture}[scale=0.4]
+\draw [help lines] (0,0) grid (7,7);
+\begin{scope}[shift={(0,1.5)}]
+\draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
+\path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
+\draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
+\path [fill=gray!10, very thin] (0,1) arc [radius=1, start angle=90, end angle=0] -- (1,0) --(0,0)--(0,1);
+
+\node at (1.5,-0.5) {start};
+\node at (3.5,5.5) {goal};
+
+\draw [thick] (0,0) rectangle (5,5);
+\draw [line width=0.5mm] (1.5,5/3) -- (5,5/3);
+\draw [line width=0.5mm] (0,5/3) -- (0.5,5/3);
+\draw [line width=0.5mm] (0,10/3) -- (3,10/3);
+\draw [line width=0.5mm] (4,10/3) -- (5,10/3);
+\end{scope}
+\end{tikzpicture}  
+  
+    %\includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
     \caption{}
   \end{subfigure}
   \begin{subfigure}[b]{0.27\textwidth}
@@ -463,10 +484,10 @@ aaa
 \end{theorem}
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
-\begin{align}\label{eq:thg-4}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
-\end{align}
-where the second inequality is due to the fact that, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
+\begin{align*}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\end{align*}
+where the second inequality is due to the fact, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
 
 \paragraph*{Bounding the expected TD error}
 
@@ -500,38 +521,19 @@ where the second inequality follows from Cauchy-Schwarz inequality. Going back t
 \end{align*}
 Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\sqrt{c}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}c\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
 \end{align*}
 From Cauchy-Schwarz inequality:
 \begin{align*}
-\sqrt{c}\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & \sqrt{c}\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & \sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
+c\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & c\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
 \end{align*}
-Then, the random variable over which the variance is computed is limited in $[-\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
+Then, the random variable over which the variance is computed is limited in $[-c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2c\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
 \end{align*}
 We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
 \begin{align*}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
-\end{align*}
-
-\paragraph*{Bounding the KL divergence}
-
-We have:
-\begin{align*}
-KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^K} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -K \right)\\ \leq\ & \frac{1}{2}K\log\frac{\sigma_{max}}{c} + \frac{1}{2}K\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}
-\end{align*}
-Now, putting all together into \ref{eq:thg-4}:
-\begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \upsilon(\bm{w}^*)\sqrt{c}\\ &\ + \frac{\lambda}{N}K\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}K\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
-\end{align*}
-where $\upsilon(\bm{w}^*) = \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$. Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
-\begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + \frac{1}{\sqrt{N}}\left(\upsilon(\bm{w}^*) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\log\frac{2}{\delta}}\right)
-\end{align*}
-Finally, defining the constants $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, and $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, we obtain:
-\begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + \left(c\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
 \end{align*}
 \end{proof}
 
@@ -557,6 +559,10 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 \begin{equation}\label{eq:tdgradL}
 \nabla_{\bm{L}} \mathbb{E}_{\bm{w} \sim \mathcal{N}(\bm{\mu},\bm{LL}^T)}\left[ ||B(\bm{w})||_{D}^2 \right] = \mathbb{E}_{\bm{v} \sim \mathcal{N}(\bm{0},\bm{I})}\left[ \nabla_{\bm{w}} ||B(\bm{w})||_{D}^2 \cdot \bm{v}^T \right]\ \ \text{for}\ \ \bm{w} = \bm{Lv} + \bm{\mu}
 \end{equation}
+
+\paragraph*{Bounding the KL divergence}
+
+We have:
 
 \subsection{Mixture of Gaussian Variational Transfer}
 
@@ -590,9 +596,9 @@ In the case of no-transfer-based algorithms we used a linearly scheduled $\epsil
 
 As presented in Sec. \ref{sec:td}, for the minimization procedure of the TD error based on \emph{mellow-max} we also have to set $\kappa$ to control the approximation to the maximum operator and $\psi \in \left[0,1\right]$ to control the proportion between the full residual gradient and the semi-gradient approach used. 
 
-For the transfer algorithms proposed here, namely, GVT and MGVT we have the following parameters. As presented in Sec. \ref{sec:alg}, we have $\lambda \geq 0$ to control the trade-off between the prior knowledge and the loss measure---i.e. the TD error---in the target task. Moreover, we allow to control the learning rates differently for the gradients related to the means and covariance matrices, the Cholesky factor L to be precise: $\alpha_{\mu}$ and $\alpha_L$. In order to approximate the expectation of the TD error, we used a fixed number of $weights$ sampled from the posterior distribution. Specifically, for MGVT it is necessary to specify the value of the variance $\sigma_p^2$ for the prior model and the number of components $C$ for the posterior family to be used. Furthermore, as explained in Sec. \ref{sec:mgvt}, to perform the initialization of the posterior by minimizing the KL divergence we set the a maximum number of iterations (\emph{UKL max iterations}) and the precision to reach during this optimization $\varepsilon$ and its learning rate $\eta$. Finally, to avoid problems with the positive-definiteness of the covariances being learned, we specify a hyper-parameter $\sigma_{min}$ as the minimum value the diagonal elements of the Cholesky factor can reach.
+For the transfer algorithms proposed here, namely, GVT and MGVT we have the following parameters. As presented in Sec. \ref{sec:alg}, we have $\lambda \geq 0$ to control the trade-off between the prior knowledge and the loss measure---i.e. the TD error---in the target task. Moreover, we allow to control the learning rates differently for the gradients related to the means and covariance matrices, the Cholesky factor L to be precise: $\alpha_{\mu}$ and $\alpha_L$. In order to approximate the expectation of the TD error, we used a fixed number of $weights$ sampled from the posterior distribution. Specifically, for MGVT it is necessary to specify the value of the variance $\sigma_p^2$ for the prior model and the number of components $C$ for the posterior family to be used. Furthermore, as explained in Sec. \ref{sec:mgvt}, to perform the initialization of the posterior by minimizing the KL divergence we set a maximum number of iterations (\emph{UKL max iterations}) and the precision to reach during this optimization $\varepsilon$ and its learning rate $\eta$. Finally, to avoid problems with the positive-definiteness of the covariances being learned, we specify a hyper-parameter $\sigma_{min}$ as the minimum value the diagonal elements of the Cholesky factor can reach.
 
-In the following sections we present the configurations used for the experiments presented in this paper. For all our experiments we set $\psi=0.5$, $UKL\_max\_iterations=600$, $\eta=10^{-6}$, $\varepsilon=0.001$, $\sigma_{min}=0.0001$. Also, we used ADAM optimizer---with parameters $\beta_1=0.9$, $\beta_2=0.999$---for the gradients steps related to the means and simple SGD for gradients steps of the Cholesky factors L in GVT and MGVT. For the non-transfer algorithms only ADAM was used with the same mentioned parameters.
+In the following sections we present the configurations used for the experiments presented in this paper. For all our experiments we set $\psi=0.5$, $UKL\_max\_iterations=600$, $\eta=10^{-6}$, $\varepsilon=0.001$, $\sigma_{min}=0.0001$. Also, we used ADAM optimizer---with parameters $\beta_1=0.9$ for the decay of the first order momentum and $\beta_2=0.999$ for the second order momentum---for the gradients steps related to the means and simple SGD for gradients steps of the Cholesky factors L in GVT and MGVT. For the non-transfer algorithms only ADAM was used with the same mentioned parameters.
 
 \subsection{The Rooms Problem}
 
@@ -602,11 +608,16 @@ For the Cartpole environment, we generated tasks by uniformly sampling the cart 
 
 During the training of the source tasks, we used a $Batch\_size = 32$, $Buffer\_size = 50000$. For DDQN with a $Target\_Update\_Frequency = 500$ and $Exploration\_fraction = 0.35$ with $\epsilon_s=1$ and $\epsilon_f=0.1$. The function approximator was a Multilayer Perceptron (MLP) with ReLU as activation function and a hidden layer of $32$ neurons. For the transfer experiments we set $Batch\_size=500$ and $weights=5$, $\lambda=0.001$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. In the case of MGVT we set $\sigma_p^2=10^{-5}$.
 
-In the case of Mountain Car, to generate tasks we sampled uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. We trained DDQN with $Target\_Update\_Frequency = 500$ and $Exploration\_fraction = 0.15$ with $\epsilon_s=1$ and $\epsilon_f=0.1$ and used  an MLP with single hidden layer of $64$ neurons with ReLU activation. For the transfer experiments we set the $Batch\_size=50$, $weights=10$, $\lambda=10^{-5}$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. For MGVT we set $\sigma_p^2=10^{-5}$.
+In the case of Mountain Car, to generate tasks we sampled uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. We trained DDQN with $Target\_Update\_Frequency = 500$ and a $Batch\_size = 32$, $Buffer\_size = 50000$. For the $Exploration\_fraction = 0.15$ with $\epsilon_s=1$ and $\epsilon_f=0.1$. We used an MLP with single hidden layer of $64$ neurons with ReLU activation. For the transfer experiments we set the $Batch\_size=50$, $weights=10$, $\lambda=10^{-5}$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. For MGVT we set $\sigma_p^2=10^{-5}$.
 
+% add figures of convergent DDQN. Comparison for various exploration fractions. 
 
 \subsection{Maze Navigation}
 
+%enumerate mazes. training parameters dqn. approximator. mgvt and gvt paramters
 
+For the maze navigation task presented in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{}, there $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+
+For the experiments we used as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions, an input layer receiving the state of the MDP and an output layer that outputs the value of each action. For training the sources we, again, used DDQN with $Batch\_size = 70$, $Buffer\_size = 10000$ and $Target\_Update\_Frequency = 100$, setting the $Exploration\_fraction = 0.1$ with $\epsilon_s=1$ and $\epsilon_f=0.01$ and ran it for $200k$ to ensure convergence.
 
 \end{document}
