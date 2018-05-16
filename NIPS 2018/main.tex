@@ -267,7 +267,28 @@ Since the agent does not know where the doors are located in advance and receive
 
 \begin{figure*}[t] 
   \begin{subfigure}[b]{0.15\textwidth}
-    \includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
+    %\includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
+    \begin{tikzpicture}[scale=0.4]
+\draw [white] (0,0) grid (7,7);
+\begin{scope}[shift={(0,1.5)}]
+\draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
+\path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
+\draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
+\path [fill=lightgray!10, very thin] (0,1) arc [radius=1, start angle=90, end angle=0] -- (1,0) --(0,0)--(0,1);
+
+%\draw [fill=black!50] (1,1) circle [radius=0.1cm];
+%\node at (1,1) [ right] {$A$};
+
+\node at (1.7,-0.5)[left] {start};
+\node at (3.3,5.5) [right]{goal};
+
+\draw [thick] (0,0) rectangle (5,5);
+\draw [line width=0.5mm] (1.25,5/3) -- (5,5/3);
+\draw [line width=0.5mm] (0,5/3) -- (0.75,5/3);
+\draw [line width=0.5mm] (0,10/3) -- (3.25,10/3);
+\draw [line width=0.5mm] (3.75,10/3) -- (5,10/3);
+\end{scope}
+\end{tikzpicture} 
     \caption{}
   \end{subfigure}
   \begin{subfigure}[b]{0.27\textwidth}
@@ -607,60 +628,192 @@ that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\
 
 \section{Additional Details on the Experiments}
 
-In the present section we present the hyper-parameters and corresponding values that were used for the experiments presented in this paper. 
+In the present section we present the values of the hyper-parameters that we use for the experiments presented in this paper. 
 
-For all the algorithms implemented for the empirical evaluation, we used a Replay Buffer ($Buffer\_size$) with a fixed size and batches of a given size ($Batch\_size$) sampled randomly from it to perform the gradient steps. 
-
-In the case of no-transfer-based algorithms we used a linearly scheduled $\epsilon$-greedy exploration for which we could specify the starting and final values of $\epsilon$, $\epsilon_s$ and $\epsilon_f$ respectively, and the \emph{Exploration Fraction} of the maximum number of iterations for which the linear schedule would be used. As the learning procedure is done by gradient descent, we also have $\alpha$ as the learning rate. Additionally, in the case of the DDQNs we have the \emph{Target Update Frequency} that specifies the number of iterations before setting the target neural network to the current parameters of the online network. 
-
-As presented in Sec. \ref{sec:td}, for the minimization procedure of the TD error based on \emph{mellow-max} we also have to set $\kappa$ to control the approximation to the maximum operator and $\psi \in \left[0,1\right]$ to control the proportion between the full residual gradient and the semi-gradient approach used. 
-
-For the transfer algorithms proposed here, namely, GVT and MGVT we have the following parameters. As presented in Sec. \ref{sec:alg}, we have $\lambda \geq 0$ to control the trade-off between the prior knowledge and the loss measure---i.e. the TD error---in the target task. Moreover, we allow to control the learning rates differently for the gradients related to the means and covariance matrices, the Cholesky factor L to be precise: $\alpha_{\mu}$ and $\alpha_L$. In order to approximate the expectation of the TD error, we used a fixed number of $weights$ sampled from the posterior distribution. Specifically, for MGVT it is necessary to specify the value of the variance $\sigma_p^2$ for the prior model and the number of components $C$ for the posterior family to be used. Furthermore, as explained in Sec. \ref{sec:mgvt}, to perform the initialization of the posterior by minimizing the KL divergence we set a maximum number of iterations (\emph{UKL max iterations}) and the precision to reach during this optimization $\varepsilon$ and its learning rate $\eta$. Finally, to avoid problems with the positive-definiteness of the covariances being learned, we specify a hyper-parameter $\sigma_{min}$ as the minimum value the diagonal elements of the Cholesky factor can reach.
-
-In the following sections we present the configurations used for the experiments presented in this paper. For all our experiments we set $\kappa=100$, $\psi=0.5$, $UKL\_max\_iterations=600$, $\eta=10^{-6}$, $\varepsilon=0.001$, $\sigma_{min}=0.0001$. Also, we used ADAM optimizer---with parameters $\beta_1=0.9$ for the decay of the first order momentum and $\beta_2=0.999$ for the second order momentum---for the gradients steps related to the means and simple SGD for gradients steps of the Cholesky factors L in GVT and MGVT. For the non-transfer algorithms only ADAM was used with the same mentioned parameters.
+It is important to notice that for the implementation of the algorithms we used a Replay Buffer with a fixed size and batches of a given size sampled randomly from it to perform the gradient steps and used ADAM as optimizer with the default parameters.
 
 \subsection{The Rooms Problem}
 
+For these experiments, in order to train the source tasks for the Rooms Problem, we directly minimize the expected TD error based on the \textit{mellow} Bellman operator by stochastic gradient descent. . We set to use a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$, $\psi=0.5$ and a learning rate $\alpha=0.001$. Additionally, for exploration we use an \textit{Exploration Fraction} of $0.7$.
+
+For the transfer algorithm GVT, we set a \textit{Batch Size} of 50 and a \textit{Buffer Size} of 10000. We use $\psi=0.5$, $\lambda=10^{-4}$ and 10 \textit{weights} for approximating the expected TD error. For the learning rates we use $\alpha_{\mu}=0.001$ for the mean and $\alpha_{L}=0.0001$ to learn the Cholesky factor L. Furthermore, we restrict the minimum value reachable for the eigenvalues of these factors to be $\sigma_{min}^2=0.0001$. In the case of MGVT we use, instead, $\lambda=10^{-6}$, $\alpha_{\mu}=0.001$ and $\alpha_{L}=0.1$. Finally, for the prior's covariances we set $\sigma_p^2=10^{-5}$.
+
+Besides the results that we show in Sec. \ref{sec:gw}, we present in this section further empirical evaluation.
+
+Firstly, we show the results of the evaluation performance. We compute this as the average reward gotten when the agent acts using the greedy policy using the parameters at the moment of evaluation. In the case of GVT, we take the mean of the posterior Gaussian and, in MGVT, we compute the mean of the posterior by averaging the means of its components and use it for evaluation. 
+
+In Fig. \ref{fig:3r-rew} we show the results when evaluating for the Rooms Problem when the sources used to transfer have sample tasks resulting of both doors being sampled uniformly. It is easily noticeable that both GVT and MGVT perform much better in comparison with the no transfer algorithm and shows that the mean behavior of our posterior distribution, indeed, converges to the actual optimal solution. 
+
+In Fig.\ref{fig:3rg-erew} we show the evaluation for the generalization experiment when the sampled sources have a door fixed and the target task is generated by sampling both doors' positions. From this we can clearly appreciate that MGVT is able to quickly converge to the optimal solution is this more complicated setting, whereas GVT fails to adapt as MGVT. In this scenario, using a Gaussian to model the prior over-constrains the algorithm to stay close to part of the function space that cannot solve optimally the target tasks sampled from the modified distribution.
+
+\begin{figure*}[t]
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room/erew.pdf}
+    \caption{}
+    \label{fig:3r-erew}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-gen/erew.pdf}
+    \caption{}
+    \label{fig:3rg-erew}
+  \end{subfigure}
+  \caption{(a) Rooms Problem: Evaluation Reward, (b) Rooms Problem: Evaluation Reward in the generalization experiment}
+  \label{fig:rooms-erew}
+\end{figure*}
+
+
+Furthermore, we investigate how is the exploratory behavior of our transfer algorithms  and how they differ. In Fig. \ref{fig:rooms-expl}, we show the results of running the no transfer (NT) algorithm, GVT and 1-MGVT for $2k$ iterations and we represent in the plot the positions visited by the agent.
+
+Observing Fig. \ref{fig:nt-vs-gvt}, it is possible to understand the difference between the $\epsilon$-greedy exploration and the resulting behavior from GVT. It is noticeable that NT is not capable to lead the agent to the goal within the given iterations as most of the states visited are sparse within the first room, whereas GVT is able to concentrate more of its effort in looking for the door around the middle of the wall. After finding it, in the second room, the positions concentrate in the path leading to the goal given that the need for the exploration is less. This is not surprising as the value function should be equal for all tasks after crossing the door. 
+
+In the other case, we have Fig. \ref{fig:nt-vs-mgvt} that shows the same situation as with GVT, but it is quite interesting to notice how sparser the exploration of MGVT is with respect to GVT. MGVT is able to actually explore the right part of the first room within these iterations, which might be seen as the result of the prior model being able to capture more information that the Gaussian, hence the higher speed-up in convergence and robustness to changes in the distribution from which target tasks are drawn. Indeed, as MGVT is able to allow for more flexible exploration, it is capable to discover how to best solve the task much faster than GVT.
+
+\begin{figure*}[t]
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_gvt.pdf}
+    \caption{}
+    \label{fig:nt-vs-gvt}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_mgvt.pdf}
+    \caption{}
+    \label{fig:nt-vs-mgvt}
+  \end{subfigure}
+  \caption{(a) Rooms Problem: Evaluation Reward, (b) Rooms Problem: Evaluation Reward in the generalization experiment}
+  \label{fig:rooms-expl}
+\end{figure*}
+
 \subsection{Classic Control}
 
-For the Cartpole environment, we generated tasks by uniformly sampling the cart mass in the range $\left[0.5,1.5\right]$, the pole mass in $\left[0.1,0.3\right]$ and the pole length in $\left[0.2,1.0\right]$. 
+\subsubsection{Cartpole}
 
-During the training of the source tasks, we used a $Batch\_size = 32$, $Buffer\_size = 50000$. For DDQN with a $Target\_Update\_Frequency = 500$ and $Exploration\_fraction = 0.35$ with $\epsilon_s=1$ and $\epsilon_f=0.1$. The function approximator was a Multilayer Perceptron (MLP) with ReLU as activation function and a hidden layer of $32$ neurons. For the transfer experiments we set $Batch\_size=500$ and $weights=5$, $\lambda=0.001$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. In the case of MGVT we set $\sigma_p^2=10^{-5}$.
+For this environment we generate tasks by uniformly sampling the cart mass in the range $\left[0.5,1.5\right]$, the pole mass in $\left[0.1,0.3\right]$ and the pole length in $\left[0.2,1.0\right]$. 
 
-In the case of Mountain Car, to generate tasks we sampled uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. We trained DDQN with $Target\_Update\_Frequency = 500$ and a $Batch\_size = 32$, $Buffer\_size = 50000$. For the $Exploration\_fraction = 0.15$ with $\epsilon_s=1$ and $\epsilon_f=0.1$. We used an MLP with single hidden layer of $64$ neurons with ReLU activation. For the transfer experiments we set the $Batch\_size=50$, $weights=10$, $\lambda=10^{-5}$, $\alpha_{\mu}=0.001$ and $\alpha_L=0.0001$. For MGVT we set $\sigma_p^2=10^{-5}$.
+During the training of the source tasks, we use a \textit{Batch Size} of $150$ and \textit{Buffer Size} of $50000$. Specifically, for DDQN we use a \textit{Target Update Frequency} of $500$ and and \textit{Exploration Fraction} of $0.35$. We use a Multilayer Perceptron (MLP) with ReLU as activation function and a hidden layer of $32$ neurons, an input layer of $4$ and the value of the $2$ actions as the output layer. 
 
-% add figures of convergent DDQN. Comparison for various exploration fractions. 
+For the transfer experiments, we set the \textit{Batch Size} to $500$, the number of \textit{weights} sampled to approximate the expected gradient of the TD error to $5$, $\lambda=0.001$ and $\psi=0.5\ $. We use $\alpha_{\mu}=0.001$ as the learning rate for the means. For the Cholesky factor L we use $\alpha_L=0.0001$ and set the a limit that the minimum eigenvalue may reach $\sigma_{min}^2=0.0001\ $. Additionally, for MGVT we set the variance of the prior components $\sigma_p^2=10^{-5}$.
+
+In Fig. \ref{fig:cp-erew}, we show the evaluation reward for DDQN, GVT, 1-MGVT and 3-MGVT, which consist of the average performance of the greedy policy using the parameters of the Q function. In the case of GVT, we use the mean of the Gaussian posterior for the greedy policy and for MGVT corresponds to the mean of the Mixture of Gaussians for the posterior, that reduces to the average of the components' means. 
+
+\begin{figure*}[t]
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/cartpole/erew.pdf}
+    \caption{}
+    \label{fig:cp-erew}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/mountaincar/erew.pdf}
+    \caption{}
+    \label{fig:mc-erew}
+  \end{subfigure}
+  \caption{(a) Cartpole: Evaluation Reward, (b) Mountain Car: Evaluation Reward}
+  \label{fig:ccerew}
+\end{figure*}
+
+\subsubsection{Mountain Car}
+
+We generate tasks sampling uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. 
+
+For the sources, we train the tasks using DDQN with a \textit{Target Update Frequency} of $500$, a \textit{Batch Size} of $32$, a  \textit{Buffer Size} of $50000$. Moreover, we set the \textit{Exploration Fraction} to $0.15$. We use an MLP with single hidden layer of $64$ neurons with ReLU activation function, an input layer of $4$ neurons and as output the value of each of the $2$ actions. 
+
+For the transfer experiments, we set the \textit{Batch Size} to $500$, and use $10$ \textit{weights} to approximate the expected TD error, $\lambda=10^{-5}$ and $\psi=0.5$. For the learning rates, we use $\alpha_{\mu}=0.001$ for learning the means of the Gaussians. In the case of the Cholesky factors L, we use $\alpha_L=0.0001$ and allow the eigenvalues to reach a minimum value of $\sigma_{min}^2=0.0001$. In the case of MGVT, additionally, we set $\sigma_p^2=10^{-5}$.
+
+In Fig. \ref{fig:mc-erew}, we show the evaluation reward obtained during the executions, which, as before, corresponds to the average reward gotten acting with a greedy policy with the current parameters of the network in the case of DDQN and the mean value of the posterior in the cases of GVT and MGVT. 
 
 \subsection{Maze Navigation}
 
-%enumerate mazes. training parameters dqn. approximator. mgvt and gvt paramters
+For the maze navigation task presented in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
 
-For the maze navigation task presented in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+For the experiments we used as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions, an input layer receiving the state of the MDP and an output layer that outputs the value of each action. For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$.
 
-For the experiments we used as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions, an input layer receiving the state of the MDP and an output layer that outputs the value of each action. For training the sources we, again, used DDQN with $Batch\_size = 70$, $Buffer\_size = 10000$ and $Target\_Update\_Frequency = 100$, setting the $Exploration\_fraction = 0.1$ with $\epsilon_s=1$ and $\epsilon_f=0.01$ and ran it for $200k$ to ensure convergence.
-
-
-\begin{tikzpicture}[scale=0.4]
-\draw [line width=0cm, white] (0,0) grid (7,7);
-\begin{scope}[shift={(0,1.5)}]
-\draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
-\path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
-\draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
-\path [fill=lightgray!10, very thin] (0,1) arc [radius=1, start angle=90, end angle=0] -- (1,0) --(0,0)--(0,1);
-
-\draw [fill=black!50] (1,1) circle [radius=0.1cm];
-
-\node at (1.7,-0.5)[left] {start};
-\node at (3.3,5.5) [right]{goal};
-%\node at (1,1) [ right] {$A$};
-
-\draw [thick] (0,0) rectangle (5,5);
-\draw [line width=0.5mm] (1.5,5/3) -- (5,5/3);
-\draw [line width=0.5mm] (0,5/3) -- (0.5,5/3);
-\draw [line width=0.5mm] (0,10/3) -- (3,10/3);
-\draw [line width=0.5mm] (4,10/3) -- (5,10/3);
-\end{scope}
-\end{tikzpicture} 
+\begin{figure*}[t]
+\centering
+\begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze0.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze1.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze2.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze3.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze4.pdf}
+    \caption{}
+  \end{subfigure}
+  
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze5.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze6.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze7.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze8.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze9.pdf}
+    \caption{}
+  \end{subfigure}
+  
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze10.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze11.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze12.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze13.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze14.pdf}
+    \caption{}
+  \end{subfigure}
+  
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze15.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze16.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze17.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze18.pdf}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{images/maze/maze19.pdf}
+    \caption{}
+  \end{subfigure}
+  \caption{Set of mazes for the Maze Navigation task}
+  \label{fig:mazes}
+\end{figure*}
 
 
 \end{document}
