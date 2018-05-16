@@ -19,4 +19,6 @@
 \BOOKMARK [1][-]{appendix.C}{Additional Details on the Experiments}{}% 19
 \BOOKMARK [2][-]{subsection.C.1}{The Rooms Problem}{appendix.C}% 20
 \BOOKMARK [2][-]{subsection.C.2}{Classic Control}{appendix.C}% 21
-\BOOKMARK [2][-]{subsection.C.3}{Maze Navigation}{appendix.C}% 22
+\BOOKMARK [3][-]{subsubsection.C.2.1}{Cartpole}{subsection.C.2}% 22
+\BOOKMARK [3][-]{subsubsection.C.2.2}{Mountain Car}{subsection.C.2}% 23
+\BOOKMARK [2][-]{subsection.C.3}{Maze Navigation}{appendix.C}% 24
