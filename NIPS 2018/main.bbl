@@ -74,6 +74,13 @@ Matthew~D Hoffman, David~M Blei, Chong Wang, and John Paisley.
 \newblock {\em The Journal of Machine Learning Research}, 14(1):1303--1347,
   2013.
 
+\bibitem{houthooft2016vime}
+Rein Houthooft, Xi~Chen, Yan Duan, John Schulman, Filip De~Turck, and Pieter
+  Abbeel.
+\newblock Vime: Variational information maximizing exploration.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  1109--1117, 2016.
+
 \bibitem{killian2017robust}
 Taylor~W Killian, Samuel Daulton, George Konidaris, and Finale Doshi-Velez.
 \newblock Robust and efficient transfer learning with hidden parameter markov
@@ -120,6 +127,11 @@ Timothy~P Lillicrap, Jonathan~J Hunt, Alexander Pritzel, Nicolas Heess, Tom
   Erez, Yuval Tassa, David Silver, and Daan Wierstra.
 \newblock Continuous control with deep reinforcement learning.
 \newblock {\em arXiv preprint arXiv:1509.02971}, 2015.
+
+\bibitem{liu2017stein}
+Yang Liu, Prajit Ramachandran, Qiang Liu, and Jian Peng.
+\newblock Stein variational policy gradient.
+\newblock {\em arXiv preprint arXiv:1704.02399}, 2017.
 
 \bibitem{maillard2010finite}
 Odalric-Ambrym Maillard, R{\'e}mi Munos, Alessandro Lazaric, and Mohammad

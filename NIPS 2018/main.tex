@@ -53,7 +53,7 @@
 \newcommand{\wh}[1]{\widehat{#1}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
-\title{Variational Approximations for Transfer in Reinforcement Learning}
+\title{Transferring Value Functions by Variational Methods}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -102,12 +102,7 @@
 \maketitle
 
 \begin{abstract}
-  The abstract paragraph should be indented \nicefrac{1}{2}~inch
-  (3~picas) on both the left- and right-hand margins. Use 10~point
-  type, with a vertical spacing (leading) of 11~points.  The word
-  \textbf{Abstract} must be centered, bold, and in point size 12. Two
-  line spaces precede the abstract. The abstract must be limited to
-  one paragraph.
+We consider the problem of transferring of value functions in reinforcement learning. We propose an approach that uses the given source tasks to learn a prior distribution over optimal value functions and provide an efficient variational approximation of the corresponding posterior in a new target task. We show our approach to be general, in the sense that it can be combined with complex parametric function approximators and distribution models, while providing two practical algorithms based on Gaussians and Gaussian mixtures. We theoretically analyze both by providing a finite-sample analysis and evaluate them empirically in four different domains.\todo{Say something more about the advantages of our method}
 \end{abstract}
 
 \section{Introduction}
@@ -355,6 +350,10 @@ Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both a
 In the RL community, our approach is related to value function randomization\cite{osband2014generalization}, which extends the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
 
 \section{Conclusion}
+
+In this work, we presented a variational method for transferring value functions in RL. We showed our approach to be general, in the sense that it can be combined with several distributions and function approximators, and we provided two practical algorithms based on Gaussians and mixtures of Gaussians, respectively. We analyzed both from a theoretical and empirical perspective, proving that the Gaussian one has severe limitations, while the mixture version is much more suitable for our transfer settings.
+
+Since our algorithm effectively models the uncertainty over tasks, a relevant future work is to design an algorithm that explicitly explores the target task to reduce such uncertainty (e.g., \cite{houthooft2016vime}). Furthermore, our variation approach could be extended to model a distribution over optimal policies instead of value functions (e.g., \cite{liu2017stein}), which might allow better transferred behavior.
 
 {\small 
 \bibliography{biblio.bib}
