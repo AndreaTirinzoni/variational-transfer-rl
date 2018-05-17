@@ -126,7 +126,7 @@ We consider a parametric family of $Q$-functions, $\mathcal{Q} = \left\{ Q_{\bm{
 
 %\subsection{Variational Inference}
 %
-%When working with Bayesian approaches, the posterior distribution of hidden variables $\bm{w} \in \mathbb{R}^K$ given data $D$,
+%When working with Bayesian approaches, the posterior distribution of hidden variables $\bm{w} \in \mathbb{R}^d$ given data $D$,
 %\begin{equation}\label{eq:bayes}
 %p(\bm{w} | D) = \frac{p(D | \bm{w})p(\bm{w})}{p(D)} = \frac{p(D | \bm{w})p(\bm{w})}{\int_{\bm{w}} p(D | \bm{w})p(\bm{w})},
 %\end{equation}
@@ -195,7 +195,7 @@ Finally, notice the generality of the proposed approach: as far as the objective
 
 \subsection{Gaussian Variational Transfer}\label{sec:gvt}
 
-We now restrict to a specific choice of the prior and posterior families that makes our algorithm very efficient and easy to implement. We assume that optimal $Q$-functions (or better, their weights) follow a multivariate Gaussian distribution. That is, we model the prior as $p(\bm{w}) = \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and we learn its parameters from the set of source weights using maximum likelihood estimation (with small regularization to make sure the covariance is positive definite). Then, our variational family is the set of all well-defined Gaussian distributions, i.e., the variational parameters are $\Xi = \left\{ (\bm{\mu},\bm{\Sigma}) \mid \bm{\mu}\in\mathbb{R}^K, \bm{\Sigma}\in\mathbb{R}^{K\times K}, \bm{\Sigma}\succ 0 \right\}$. To prevent the covariance from becoming not positive definite, we consider its Cholesky decomposition $\bm{\Sigma} = \bm{LL}^T$ and learn the lower-triangular Cholesky factor $\bm{L}$ instead. In this case, deriving the gradient of the objective is very simple. Both the KL between two multivariate Gaussians and its gradients have a simple closed-form expression. The expected log-likelihood, on the other hand, can be easily differentiated by adopting the reparameterization trick (e.g., \cite{hoffman2013stochastic,rezende2014stochastic}). Although these results are well-known in the literature, we report them in App. \ref{} to have a more self-contained description.
+We now restrict to a specific choice of the prior and posterior families that makes our algorithm very efficient and easy to implement. We assume that optimal $Q$-functions (or better, their weights) follow a multivariate Gaussian distribution. That is, we model the prior as $p(\bm{w}) = \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and we learn its parameters from the set of source weights using maximum likelihood estimation (with small regularization to make sure the covariance is positive definite). Then, our variational family is the set of all well-defined Gaussian distributions, i.e., the variational parameters are $\Xi = \left\{ (\bm{\mu},\bm{\Sigma}) \mid \bm{\mu}\in\mathbb{R}^d, \bm{\Sigma}\in\mathbb{R}^{d\times d}, \bm{\Sigma}\succ 0 \right\}$. To prevent the covariance from becoming not positive definite, we consider its Cholesky decomposition $\bm{\Sigma} = \bm{LL}^T$ and learn the lower-triangular Cholesky factor $\bm{L}$ instead. In this case, deriving the gradient of the objective is very simple. Both the KL between two multivariate Gaussians and its gradients have a simple closed-form expression. The expected log-likelihood, on the other hand, can be easily differentiated by adopting the reparameterization trick (e.g., \cite{hoffman2013stochastic,rezende2014stochastic}). Although these results are well-known in the literature, we report them in App. \ref{} to have a more self-contained description.
 
 \subsection{Mixture of Gaussian Variational Transfer}\label{sec:mgvt}
 
@@ -578,17 +578,17 @@ We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
 
 We have:
 \begin{align*}
-KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^K} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -K \right)\\ \leq\ & \frac{1}{2}K\log\frac{\sigma_{max}}{c} + \frac{1}{2}K\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}
+KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^d} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -d \right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma_{max}}{c} + \frac{1}{2}d\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}
 \end{align*}
 Now, putting all together into \ref{eq:thg-4}:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right]\\ &\ + \frac{\lambda}{N}K\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}K\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right]\\ &\ + \frac{\lambda}{N}d\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}d\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
 Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda K}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K (\log\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
-Finally, defining the constants $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K (\log\sigma_{max} + \log N)$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda K}{\sigma_{min}}$, we obtain:
+Finally, defining the constants $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma_{max} + \log N)$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma_{min}}$, we obtain:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}
 \end{align*}
@@ -702,7 +702,7 @@ Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-ga
 
 Under Gaussian distributions, all quantities of interest for using Alg. \ref{alg:transfer} can be computed very easily. The KL divergence between the prior and approximate posterior can be computed in closed-form as:
 \begin{equation}
-KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bm{\Sigma}_p \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bm{\Sigma}_p^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bm{\mu}_p)^T \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p) -K \right)
+KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bm{\Sigma}_p \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bm{\Sigma}_p^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bm{\mu}_p)^T \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p) -d \right)
 \end{equation}
 for $\bm{\xi} = (\bm{\mu},\bm{L})$ and $\bm{\Sigma} = \bm{LL}^T$. Its gradients with respect to the variational parameters are:
 \begin{equation}\label{eq:klgradmu}
