@@ -1,5 +1,10 @@
 \begin{thebibliography}{10}
 
+\bibitem{alquier2016properties}
+Pierre Alquier, James Ridgway, and Nicolas Chopin.
+\newblock On the properties of variational approximations of gibbs posteriors.
+\newblock {\em Journal of Machine Learning Research}, 17(239):1--41, 2016.
+
 \bibitem{asadi2017alternative}
 Kavosh Asadi and Michael~L Littman.
 \newblock An alternative softmax operator for reinforcement learning.
@@ -47,6 +52,12 @@ Olivier Catoni.
 \newblock Pac-bayesian supervised classification: the thermodynamics of
   statistical learning.
 \newblock {\em arXiv preprint arXiv:0712.0248}, 2007.
+
+\bibitem{cottet20181}
+Vincent Cottet and Pierre Alquier.
+\newblock 1-bit matrix completion: Pac-bayesian analysis of a variational
+  approximation.
+\newblock {\em Machine Learning}, 107(3):579--603, 2018.
 
 \bibitem{doshi2016hidden}
 Finale Doshi-Velez and George Konidaris.
@@ -174,6 +185,13 @@ David~W Scott.
 \newblock {\em Multivariate density estimation: theory, practice, and
   visualization}.
 \newblock John Wiley \& Sons, 2015.
+
+\bibitem{seldin2012pac}
+Yevgeny Seldin, Fran{\c{c}}ois Laviolette, Nicolo Cesa-Bianchi, John
+  Shawe-Taylor, and Peter Auer.
+\newblock Pac-bayesian inequalities for martingales.
+\newblock {\em IEEE Transactions on Information Theory}, 58(12):7086--7093,
+  2012.
 
 \bibitem{silver2016mastering}
 David Silver, Aja Huang, Chris~J Maddison, Arthur Guez, Laurent Sifre, George

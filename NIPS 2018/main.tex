@@ -365,6 +365,8 @@ Since our algorithm effectively models the uncertainty over tasks, a relevant fu
 
 \section{Proofs}
 
+\subsection{Proof of Theorem 2}
+
 \thmm*
 \begin{proof}
 We begin by noticing that:
@@ -382,13 +384,13 @@ Let us bound the norm on the right-hand side separately. In order to do that, we
 \begin{align} \label{eq:mm5}
 \abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} =\ & \abs{R(s,a) + \gamma\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - R(s,a) - \gamma\mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ =\ & \gamma\abs{\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - \mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ \leq\ & \gamma\mathbb{E}\left[\abs{\max_{a'}Q^*(s',a') - \mm_{a'}Q^*(s',a')}\right]
 \end{align}
-Thus, bounding this quantity reduces to bounding $\abs{\max_{a}Q^*(s,a) - \mm_{a}Q^*(s,a)}$ point-wisely for any $s$. Recall that applying the mellow-max is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta_{\kappa}$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
+Thus, bounding this quantity reduces to bounding $\abs{\max_{a}Q^*(s,a) - \mm_{a}Q^*(s,a)}$ point-wisely for any $s$. Recall that applying the mellow Bellman operator is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta_{\kappa}$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
 \begin{align} \label{eq:mm2}
 \abs{\max_a Q^*(s,a) - \mm_a Q^*(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q^*(s,a) - \sum_a \pi_{\beta_{\kappa}}(a|s)Q^*(s,a)}\notag\\ =\ & \abs{\sum_a Q^*(s,a) \left( \pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q^*(s,a)} \abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}
 \end{align}
 where $\pi^*$ is the optimal (deterministic) policy w.r.t. $Q^*$ and $\pi_{\beta_{\kappa}}$ is the Boltzmann distribution induced by $Q^*$ with inverse temperature $\beta_{\kappa}$:
 \begin{align*}
-\pi_{\beta}(a|s) = \frac{e^{\beta_{\kappa} Q^*(s,a)}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}
+\pi_{\beta_{\kappa}}(a|s) = \frac{e^{\beta_{\kappa} Q^*(s,a)}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}
 \end{align*}
 Denote by $a_1(s)$ the optimal action for state $s$ under $Q^*$. We can then write:
 \begin{align} \label{eq:mm3}
@@ -409,42 +411,50 @@ Finally, using Eq. \eqref{eq:mm5} we get:
 Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
 \end{proof}
 
-\begin{lemma}
-Let $p$ and $\nu$ denote probability measures over $Q$-functions and state-action pairs, respectively. Assume $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of a $Q$-function $Q$, the following holds:
+\subsection{Proof of Theorem 3}
+
+We begin by proving some important lemmas. Then, we use them to derive a finite-sample analysis of Alg. \ref{alg:transfer} with linearly parameterized value functions for both Gaussian distributions (Thm. \ref{th:main-gaussian}) and Gaussian mixture models (Thm. \ref{th:main-mixture}).
+
+\begin{lemma}\label{lemma:l1}
+Let $p$ and $\nu$ denote probability measures over weights and state-action pairs, respectively. Assume $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of weights $\bm{w} \sim p$, the following holds:
 \begin{equation}
-\norm{Q - Q^*}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{B(Q)}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}
 \end{equation}
 \end{lemma}
 \begin{proof}
 First notice that:
 \begin{align*}
-\norm{Q - Q^*} =\ & \norm{Q + TQ - TQ - TQ^*}\\ \leq\ & \norm{Q - TQ} + \norm{TQ - TQ^*}\\ \leq\ & \norm{Q - TQ} + \gamma\norm{Q - Q^*}\\ =\ & \norm{B(Q)} + \gamma\norm{Q - Q^*}
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 =\ & \norm{Q_{\bm{w}} + TQ_{\bm{w}} - TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \norm{TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2\\ =\ & \norm{B_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2
 \end{align*}
 which implies that:
 \begin{align*}
-\norm{Q - Q^*} \leq\ \frac{1}{1-\gamma}\norm{B(Q)}
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq\ \frac{1}{1-\gamma}\norm{B_{\bm{w}}}_{\nu}^2
 \end{align*}
 Then we can write:
 \begin{align*}
-P\left( \norm{Q - Q^*} > \epsilon \right) \leq P\left(\norm{B(Q)} > \epsilon (1-\gamma)\right) \leq \frac{\mathbb{E}_p\left[ \norm{B(Q)}_{\nu}^2 \right]}{(1-\gamma)\epsilon}
+P\left( \norm{Q_{\bm{w}} - Q^*}_{\nu}^2 > \epsilon \right) \leq P\left(\norm{B_{\bm{w}}}_{\nu}^2 > \epsilon (1-\gamma)\right) \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\epsilon}
 \end{align*}
 Settings the right-hand side equal to $\delta$ and solving for $\epsilon$ concludes the proof.
 \end{proof}
 
+Lemma \ref{lemma:l1} can be straightforwardly extended to the case where the mellow Bellman operator is used instead of the optimal one. This is given in the following corollary.
+
 \begin{corollary}\label{cor:diff-q}
-Let $p$ and $\nu$ denote probability measures over $Q$-functions and state-action pairs, respectively. Assume $\wt{Q}$ is the unique fixed-point of the mellow Bellman operator $\wt{T}$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of a $Q$-function $Q$, the following holds:
+Let $p$ and $\nu$ denote probability measures over weights and state-action pairs, respectively. Assume $\wt{Q}$ is the unique fixed-point of the mellow Bellman operator $\wt{T}$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of weights $\bm{w} \sim p$, the following holds:
 \begin{equation}
-\norm{Q - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}(Q)}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}
 \end{equation}
 \end{corollary}
 
+We now prove some important properties of the variational approximation introduced in Sec. \ref{sec:alg}. Our results generalize those of existing works that consider variational approximations of intractable Gibbs posteriors \cite{alquier2016properties,cottet20181}. From now on, we consider only $Q$-functions parameterized by weights $\bm{w}$ and assume them to be uniformly bounded by $\frac{R_{max}}{1-\gamma}$. 
+
 \begin{lemma}\label{lemma:l2}
-Assume $Q$-functions belong to a parametric space of functions bounded by $\frac{R_{max}}{1-\gamma}$. Let $p$ and $q$ be arbitrary distributions over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ samples and define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
+Let $p$ and $q$ be arbitrary distributions over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$ and define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
 \begin{equation}\label{eq:lemma2-1}
-\mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] - \mathbb{E}_q\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] - \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{equation}
 \begin{equation}\label{eq:lemma2-2}
-\mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_q\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ \norm{B(\bm{w})}_D^2 \right] \leq \mathbb{E}_q\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{equation}
 \end{lemma}
 \begin{proof}
@@ -464,7 +474,7 @@ where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w
 \begin{align}\label{eq:hoeff}
 \abs{\norm{B(\bm{w})}_{\nu}^2 + v(\bm{w}) - \norm{B(\bm{w})}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align}
-From the change of measure inequality \cite{}\todo{Find a reference for this}, we have that, for any measurable function $f(\bm{w})$ and any two probability measures $p$ and $q$:
+From the change of measure inequality \cite{seldin2012pac}, we have that, for any measurable function $f(\bm{w})$ and any two probability measures $p$ and $q$:
 \begin{align*}
 \log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \geq \mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p)
 \end{align*}
@@ -479,10 +489,12 @@ where the second inequality holds since the right-hand side of \eqref{eq:hoeff} 
 from which the lemma follows straightforwardly.
 \end{proof}
 
+From Lemma \ref{lemma:l2} we can straightforwardly prove the following result which will be of fundamental importance in the remaining.
+
 \begin{lemma}\label{lemma:general-bound}
-Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
+Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:\todo{Make sure that the constants multiplying sqrt are correct now}
 \begin{align*}
-\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
 \end{lemma}
 \begin{proof}
@@ -492,22 +504,26 @@ Let us use Lemma \ref{lemma:l2} for the specific choice $q=q_{\wh{\xi}}$. From E
 \end{align*}
 where the second inequality holds since $v(\bm{w}) > 0$, while the equality holds from the definition of $\wh{\xi}$. We can now use Eq. \eqref{eq:lemma2-2} to bound $\mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_D^2 \right]$, thus obtaining:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
 This concludes the proof.
 \end{proof}
 
+It is worth noting the generality of Lemma \ref{lemma:general-bound}: in bounding the expected Bellman error we did not need to assume any particular distribution, nor did we have to assume any particular function approximator.
+
+We are now ready to state our main result. We start from the Gaussian case and then straightforwardly extend the proof to the mixture one.
+
 \begin{restatable}{theorem}{thg} \label{th:main-gaussian}
-Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\bm{w}\leq w_{max}$ and uniformly bounded features $\bm{\phi}(s,a)\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ samples. Let $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$ and $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$. Define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$, with $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
+Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
 \begin{equation}
 \resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_1}{N^2}\right)$}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right)$}
 \end{equation}
 \end{restatable}
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
 \begin{align}\label{eq:thg-4}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align}
 where the second inequality is due to the fact that, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
 
@@ -515,7 +531,7 @@ where the second inequality is due to the fact that, since Lemma \ref{lemma:gene
 
 We have:
 \begin{align}\label{eq:thg-3}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w}^*)}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}(\bm{w})}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]
 \end{align}
 Let us bound these two terms point-wisely for each $s,a$. For the first expectation, we have:
 \begin{align}\label{eq:thg-1}
@@ -527,19 +543,19 @@ To bound the second term, we adopt Jensen's inequality:
 \end{align}
 Now, since we know that $\bm{w}^T\bm{\phi}(s',a') \sim \mathcal{N}(\bm{w}^{*T}\bm{\phi}(s',a'),c\ \bm{\phi}(s',a')^T\bm{\phi}(s',a'))$, $e^{\kappa\bm{w}^T\bm{\phi}(s',a')}$ follows a log-normal distribution with mean $e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}$. Thus:
 \begin{align*}
-\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right] =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}}\\ =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')} + \frac{1}{2}\kappa c\bm{\phi}_{max}\\ =\ & \mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa c\bm{\phi}_{max}
+\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right] =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}^2}\\ =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')} + \frac{1}{2}\kappa c\bm{\phi}_{max}^2\\ =\ & \mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa c\bm{\phi}_{max}^2
 \end{align*}
 Plugging this into \ref{eq:thg-2} and then into \ref{eq:thg-1}, we obtain:
 \begin{align*}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max} - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}(\bm{w}^{*}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2 - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}(\bm{w}^{*}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2
 \end{align*}
 This implies:
 \begin{align*}
-\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4
 \end{align*}
 where the second inequality follows from Cauchy-Schwarz inequality. Going back to \ref{eq:thg-3}, the first term can now be upper bounded by:
 \begin{align*}
-\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2
+\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4
 \end{align*}
 Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
 \begin{align*}
@@ -566,15 +582,15 @@ KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm
 \end{align*}
 Now, putting all together into \ref{eq:thg-4}:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \upsilon(\bm{w}^*)\sqrt{c}\\ &\ + \frac{\lambda}{N}K\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}K\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right]\\ &\ + \frac{\lambda}{N}K\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}K\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
-where $\upsilon(\bm{w}^*) = \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$. Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
+Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + \frac{1}{\sqrt{N}}\left(\upsilon(\bm{w}^*) + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\log\frac{2}{\delta}}\right)
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda K}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K (\log\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
-Finally, defining the constants $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda K}{\sigma_{min}}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K \log(\sigma_{max} + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, and $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, we obtain:
+Finally, defining the constants $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda K (\log\sigma_{max} + \log N)$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda K}{\sigma_{min}}$, we obtain:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}
 \end{align*}
 Let us now apply Corollary \ref{cor:diff-q}. We have that, with probability at least $1-\delta$:
 \begin{align*}
@@ -582,65 +598,65 @@ Let us now apply Corollary \ref{cor:diff-q}. We have that, with probability at l
 \end{align*}
 Thus, we probability at least $1-2\delta$:
 \begin{align*}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right)
 \end{align*}
 \end{proof}
 
-\thmg*
-\begin{proof}
-Similarly to the previous proof, we can apply Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$, while choosing the same specific parameters for the right-hand side: $\bm{\mu}_i = \bm{w}^*$ and $\bm{\Sigma}_i = c\bm{I}$ for all $i=1,\dots,C$. Then, we obtain:
-\begin{align}\label{eq:thmg-1}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
-\end{align}
-The only difference w.r.t. Eq. \eqref{eq:thg-4} of Thm. \ref{th:main-gaussian} is the KL divergence term, which now contains a mixture distribution. From Thm. \ref{th:ukl} we have:
-\begin{align}\label{eq:thmg-2}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))
-\end{align}
-where the vectors $\chi^{(1)}$ and $\chi^{(2)}$ are the ones defined in Thm. \ref{th:ukl}. Notice that, since we reduced the posterior to one component, the can get rid of the index $i$. Using the definitions of these two vectors from Sec. 8 of \cite{hershey2007approximating}, we have:
-\begin{align*}
-\chi^{(1)}_j = \frac{1}{\abs{\mathcal{W}_s}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
-\end{align*}
-\begin{align}\label{eq:chi2}
-\chi^{(2)}_j = \frac{e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))}}{\sum_{j'}e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_{j'}, \sigma_p^2\bm{I}))}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
-\end{align}
-Since the KL divergence is:
-\begin{align*}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) = \frac{1}{2}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)
-\end{align*}
-Eq. \ref{eq:chi2} can be rewritten as:
-\begin{align*}
-\chi^{(2)}_j = \frac{e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
-\end{align*}
-Let us bound the two terms of \eqref{eq:thmg-2} separately. For the first one, we have:
-\begin{align*}
-KL(\chi^{(2)}||\chi^{(1)}) =\ & \sum_j \chi^{(2)}_j \log\frac{\chi^{(2)}_j}{\chi^{(1)}_j}\\ =\ & \sum_j \chi^{(2)}_j \log\chi^{(2)}_j - \sum_j \chi^{(2)}_j \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & \sum_j \chi^{(2)}_j \log\frac{e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}} - \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - \sum_j \chi^{(2)}_j \log\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}} - \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - \log\frac{1}{\abs{\mathcal{W}_s}}\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}\\ \leq\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} + \frac{1}{\abs{\mathcal{W}_s}}\sum_{j'}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}
-\end{align*}
-where we applied Jensen's inequality in the last step ($-\log$ is a convex function). The second term of \eqref{eq:thmg-2} is:
-\begin{align*}
-\sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) =\ & \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}
-\end{align*}
-Putting it all together:
-\begin{align*}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq\ & \frac{1}{\abs{\mathcal{W}_s}}\sum_{j}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j}} -\frac{1}{2}\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} + \frac{1}{2}d\log\frac{\sigma^2_p}{c}  + \frac{1}{2}d\frac{c}{\sigma^2_p}\\ \leq\ & \frac{1}{\sigma^2_p\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}} + \frac{1}{2}d\log\frac{\sigma^2_p}{c}  + \frac{1}{2}d\frac{c}{\sigma^2_p}
-\end{align*}
-Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-gaussian} with $\sigma_{max}=\sigma_{min}=\sigma^2_p$ and $\frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} = \frac{1}{\sigma^2_p\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}}$. Thus, by changing the three constants to $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda d}{\sigma^2_p}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d \log(\sigma^2_p + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, and setting $c_4 = \frac{2\lambda}{\sigma^2_p}$, we can write that, with probability at least $1-2\delta$:
-\begin{align*}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \frac{c_4}{\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)
-\end{align*}
-\end{proof}
+%\thmg*
+%\begin{proof}
+%Similarly to the previous proof, we can apply Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$, while choosing the same specific parameters for the right-hand side: $\bm{\mu}_i = \bm{w}^*$ and $\bm{\Sigma}_i = c\bm{I}$ for all $i=1,\dots,C$. Then, we obtain:
+%\begin{align}\label{eq:thmg-1}
+%\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+%\end{align}
+%The only difference w.r.t. Eq. \eqref{eq:thg-4} of Thm. \ref{th:main-gaussian} is the KL divergence term, which now contains a mixture distribution. From Thm. \ref{th:ukl} we have:
+%\begin{align}\label{eq:thmg-2}
+%KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))
+%\end{align}
+%where the vectors $\chi^{(1)}$ and $\chi^{(2)}$ are the ones defined in Thm. \ref{th:ukl}. Notice that, since we reduced the posterior to one component, the can get rid of the index $i$. Using the definitions of these two vectors from Sec. 8 of \cite{hershey2007approximating}, we have:
+%\begin{align*}
+%\chi^{(1)}_j = \frac{1}{\abs{\mathcal{W}_s}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
+%\end{align*}
+%\begin{align}\label{eq:chi2}
+%\chi^{(2)}_j = \frac{e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))}}{\sum_{j'}e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_{j'}, \sigma_p^2\bm{I}))}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
+%\end{align}
+%Since the KL divergence is:
+%\begin{align*}
+%KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) = \frac{1}{2}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)
+%\end{align*}
+%Eq. \ref{eq:chi2} can be rewritten as:
+%\begin{align*}
+%\chi^{(2)}_j = \frac{e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
+%\end{align*}
+%Let us bound the two terms of \eqref{eq:thmg-2} separately. For the first one, we have:
+%\begin{align*}
+%KL(\chi^{(2)}||\chi^{(1)}) =\ & \sum_j \chi^{(2)}_j \log\frac{\chi^{(2)}_j}{\chi^{(1)}_j}\\ =\ & \sum_j \chi^{(2)}_j \log\chi^{(2)}_j - \sum_j \chi^{(2)}_j \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & \sum_j \chi^{(2)}_j \log\frac{e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}} - \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - \sum_j \chi^{(2)}_j \log\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}} - \log\frac{1}{\abs{\mathcal{W}_s}}\\ =\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - \log\frac{1}{\abs{\mathcal{W}_s}}\sum_{j'}e^{-\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}\\ \leq\ & -\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} + \frac{1}{\abs{\mathcal{W}_s}}\sum_{j'}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}
+%\end{align*}
+%where we applied Jensen's inequality in the last step ($-\log$ is a convex function). The second term of \eqref{eq:thmg-2} is:
+%\begin{align*}
+%\sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) =\ & \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}
+%\end{align*}
+%Putting it all together:
+%\begin{align*}
+%KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq\ & \frac{1}{\abs{\mathcal{W}_s}}\sum_{j}\frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j}} -\frac{1}{2}\sum_j \chi^{(2)}_j \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} + \frac{1}{2}d\log\frac{\sigma^2_p}{c}  + \frac{1}{2}d\frac{c}{\sigma^2_p}\\ \leq\ & \frac{1}{\sigma^2_p\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}} + \frac{1}{2}d\log\frac{\sigma^2_p}{c}  + \frac{1}{2}d\frac{c}{\sigma^2_p}
+%\end{align*}
+%Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-gaussian} with $\sigma_{max}=\sigma_{min}=\sigma^2_p$ and $\frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} = \frac{1}{\sigma^2_p\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}}$. Thus, by changing the three constants to $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda d}{\sigma^2_p}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d \log(\sigma^2_p + \log N)$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, and setting $c_4 = \frac{2\lambda}{\sigma^2_p}$, we can write that, with probability at least $1-2\delta$:
+%\begin{align*}
+%\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 + \frac{c_4}{\abs{\mathcal{W}_s}}\sum_{j}\norm{\bm{w}^* - \bm{w}_{j}}}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)
+%\end{align*}
+%\end{proof}
 
 \begin{restatable}{theorem}{thmgsoft} \label{th:main-mixture-soft}
-Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\bm{w}\leq w_{max}$ and uniformly bounded features $\bm{\phi}(s,a)\leq \phi_{\max}$. Consider the mixture version of Alg. \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ samples. Let $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$ and $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$. Define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[ v(\bm{w}) \right]$, with $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
+Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the mixture version of Alg. \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}(\bm{w})}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
 \begin{equation}
 \resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)$}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$}
 \end{equation}
 where $\softmin_i x \triangleq \sum_i \frac{e^{-x_i}}{\sum_j e^{-x_j}}x_i$.
 \end{restatable}
 \begin{proof}
 Similarly to the previous proof, we can apply Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$, while choosing the same specific parameters for the right-hand side: $\bm{\mu}_i = \bm{w}^*$ and $\bm{\Sigma}_i = c\bm{I}$ for all $i=1,\dots,C$. Then, we obtain:
 \begin{align}\label{eq:thmg-1}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 2\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B(\bm{w})}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align}
 The only difference w.r.t. Eq. \eqref{eq:thg-4} of Thm. \ref{th:main-gaussian} is the KL divergence term, which now contains a mixture distribution. From Thm. \ref{th:ukl} we have:
 \begin{align}\label{eq:thmg-2}
@@ -673,9 +689,10 @@ Putting the two terms together:
 \begin{align*}
 KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq \log\abs{\mathcal{W}_s} + \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace
 \end{align*}
-Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-gaussian} with $\sigma_{max}=\sigma_{min}=\sigma^2_p$ and $\frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}$ replaced by $\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace$. Thus, by redefining the three constants to $c_1 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^2 + \frac{\lambda d}{\sigma^2_p}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma^2_p + \log N) + 2\lambda\log\abs{\mathcal{W}_s}$\todo{$c_2$ actually contains $N$. Should we make this more explicit?}, and $c_3 = 2\frac{R_{max}^2}{(1-\gamma)^2}$, we can write that, with probability at least $1-2\delta$:
+Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-gaussian} with $\sigma_{max}=\sigma_{min}=\sigma^2_p$ and $\frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}$ replaced by $\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace$. Thus, by redefining the three constants to $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma^2_p + \log N) + 2\lambda\log\abs{\mathcal{W}_s}$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma^2_p}$, we can write that, with probability at least $1-2\delta$:
 \begin{align*}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \frac{c_1}{N^2} + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{\upsilon(\bm{w}^*) + c_3\sqrt{\log\frac{2}{\delta}}}{\sqrt{N}}\right)
+\resizebox{0.93\textwidth}{!}{$
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}(\bm{w}^{*})}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$}
 \end{align*}
 \end{proof}
 
