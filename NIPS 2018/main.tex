@@ -155,7 +155,7 @@ q(\bm{w}) = \frac{e^{-\Lambda\norm{B_{\bm{w}}}_D^2}p(\bm{w})}{\int e^{-\Lambda\n
 \end{equation}
 for some parameter $\Lambda > 0$. \todo{Maybe say how this is obtained} Since $\Lambda$ is typically chosen to increase with the number of samples $N$, in the remaining, we set it to $\lambda^{-1}N$, for some constant $\lambda > 0$. Notice that, whenever the term $e^{-\Lambda\norm{B_{\bm{w}}}_D^2}$ can be interpreted as the actual likelihood of $D$, $q$ becomes a classic Bayesian posterior. Although we now have an appealing distribution, the integral at the denominator of \eqref{eq:gibbs} is intractable to compute even for simple $Q$-function models. Thus, we propose a variational approximation $q_{\bm{\xi}}$ by considering a simpler family of distributions parameterized by $\bm{\xi} \in \Xi$. Then, our problem reduces to finding the variational parameters $\bm{\xi}$ such that $q_{\bm{\xi}}$ minimizes the Kullback-Leibler (KL) divergence w.r.t. the Gibbs posterior $q$. From the theory of variational inference (e.g., \cite{blei2017variational}), this can be shown to be equivalent to minimizing the well-known (negative) \textit{evidence lower bound} (ELBO):
 \begin{align} \label{eq:elbo}
-\min_{\bm{\xi}\in\Xi} \mathcal{L}(\bm{\xi}) = \mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B_{\bm{w}}}_D^2\right] - \frac{\lambda}{N}KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right).
+\min_{\bm{\xi}\in\Xi} \mathcal{L}(\bm{\xi}) = \mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B_{\bm{w}}}_D^2\right] + \frac{\lambda}{N}KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right).
 \end{align}
 The approximate posterior trades-off between placing probability mass over those weights $\bm{w}$ that have low expected TD error (first term), and staying close to the prior distribution (second term). Assuming that we can compute the gradients of \eqref{eq:elbo} w.r.t. the variational parameters $\bm{\xi}$, our objective can be optimized using any stochastic optimization algorithm, as shown in the next subsections.
 
@@ -265,9 +265,9 @@ Since the agent does not know the locations of the doors in advance and receives
 \begin{figure*}[t] 
   \begin{subfigure}[b]{0.15\textwidth}
     %\includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
-    \begin{tikzpicture}[scale=0.4]
+    \begin{tikzpicture}[scale=0.37]
 \draw [white] (0,0) grid (7,7);
-\begin{scope}[shift={(0,1.5)}]
+\begin{scope}[shift={(0,2)}]
 \draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
 \path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
 \draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
@@ -276,28 +276,28 @@ Since the agent does not know the locations of the doors in advance and receives
 %\draw [fill=black!50] (1,1) circle [radius=0.1cm];
 %\node at (1,1) [ right] {$A$};
 
-\node at (1.7,-0.5)[left] {start};
-\node at (3.3,5.5) [right]{goal};
+\node at (1.8,-0.5)[left] {\color{darkgray}\small Start};
+\node at (3.1,5.5) [right]{\color{darkgray}\small Goal};
 
-\draw [thick] (0,0) rectangle (5,5);
-\draw [line width=0.5mm] (1.25,5/3) -- (5,5/3);
-\draw [line width=0.5mm] (0,5/3) -- (0.75,5/3);
-\draw [line width=0.5mm] (0,10/3) -- (3.25,10/3);
-\draw [line width=0.5mm] (3.75,10/3) -- (5,10/3);
+\draw [thick, gray] (0,0) rectangle (5,5);
+\draw [line width=0.5mm, gray] (1.25,5/3) -- (5,5/3);
+\draw [line width=0.5mm, gray] (0,5/3) -- (0.75,5/3);
+\draw [line width=0.5mm, gray] (0,10/3) -- (3.25,10/3);
+\draw [line width=0.5mm, gray] (3.75,10/3) -- (5,10/3);
 \end{scope}
 \end{tikzpicture} 
     \caption{}\label{f:rooms}
   \end{subfigure}
   \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
+    \includegraphics[trim=0cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
     \caption{}\label{f:two_doors}
   \end{subfigure}
     \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/three-room-gen/lrev.pdf}
+    \includegraphics[trim=0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/three-room-gen/lrev.pdf}
     \caption{}\label{f:one_door}
   \end{subfigure}
     \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/likelihood/lrew.pdf}
+    \includegraphics[trim=0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/likelihood/lrew.pdf}
     \caption{}\label{f:likelihood}
   \end{subfigure}
   \caption{(a) the rooms environment, (b) transfer from $10$ source tasks with both doors moving, (c) transfer from $10$ source tasks with only one door moving, and (d) transfer performance as a function of how likely the target task is according to the prior.}
@@ -317,23 +317,19 @@ We now consider two well-known classic control environments: Cartpole and Mounta
 \subsection{Maze Navigation} \label{sec:mn}
 
 \begin{figure*}[t]
-  \begin{subfigure}[b]{0.15\textwidth}
-    \includegraphics[trim=0.0cm 0.0cm 0.0cm 0.0cm,clip=true,height=2.6cm, width=2.0cm]{images/maze/maze6.png}
-    \caption{}\label{f:maze}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/cartpole/lrev.pdf}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/cartpole/lrev.pdf}
     \caption{}\label{f:cartpole}
   \end{subfigure}
-    \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/mountaincar/lrev.pdf}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/mountaincar/lrev.pdf}
     \caption{}\label{f:mountaincar}
   \end{subfigure}
-    \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/maze/lrev.pdf}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/maze/lrev_main.pdf}
     \caption{}\label{f:maze_results}
   \end{subfigure}
-  \caption{(a) Sample Maze (Maze 6), (b) transfer from $10$ sources in Cartpole, (c) transfer from $10$ source tasks in Mountain Car, and (d) transfer from $10$ sources in Mazes 6 and 13---see App. \ref{}.}
+  \caption{(a) transfer from $10$ sources in Cartpole, (b) transfer from $10$ source tasks in Mountain Car, and (c) transfer from $10$ sources in Maze \ref{fig:maze6}---see App. \ref{}.}
   \label{fig:ccmazeplots}
 \end{figure*}
 
@@ -747,52 +743,51 @@ that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\
 
 In the present section we present the values of the hyper-parameters that we use for the experiments in this paper. 
 
-It is important to notice that for the implementation of the algorithms we use a Replay Buffer with a fixed size and batches of a given size sampled randomly from it to perform the gradient steps and use ADAM as the optimizer with the default parameters.
+It is worth noting that for the implementation of the algorithms we use a Replay Buffer with a fixed size and batches sampled randomly from it to perform the gradient steps using ADAM, with the default parameters, as the optimizer.
 
 \subsection{The Rooms Problem}
 
-For these experiments, in order to train the source tasks for the Rooms Problem, we directly minimize the expected TD error based on the \textit{mellow} Bellman operator by stochastic gradient descent. We set to use a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$, $\psi=0.5$ and a learning rate $\alpha=0.001$. Additionally, for exploration we use an \textit{Exploration Fraction} of $0.7$.
+For these experiments, in order to train the source tasks for the Rooms Problem, we directly minimize the expected TD error based on the \textit{mellow} Bellman operator by stochastic gradient descent. We use a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$, $\psi=0.5$ and a learning rate $\alpha=0.001$. Additionally, for exploration we use an \textit{Exploration Fraction} of $0.7$.
 
-For the transfer algorithm GVT, we set a \textit{Batch Size} of $50$ and a \textit{Buffer Size} of $10000$. We use $\psi=0.5$, $\lambda=10^{-4}$ and $10$ \textit{weights} to estimate the expected TD error. For the learning rates we use $\alpha_{\mu}=0.001$ for the mean of the posterior Gaussian and $\alpha_{L}=0.0001$ to learn its Cholesky factor L. Furthermore, we restrict the minimum value reachable for the eigenvalues of these factor to be $\sigma_{min}^2=0.0001$. In the case of MGVT we use, instead, $\lambda=10^{-6}$, $\alpha_{\mu}=0.001$ and $\alpha_{L}=0.1$. Finally, for the prior's covariances we set $\sigma_p^2=10^{-5}$.
+For the transfer algorithm GVT, we set a \textit{Batch Size} of $50$ and a \textit{Buffer Size} of $10000$. We use $\psi=0.5$, $\lambda=10^{-4}$ and $10$ \textit{weights} to estimate the expected TD error. For the learning rates, $\alpha_{\mu}=0.001$ for the mean of the posterior Gaussian and $\alpha_{L}=0.0001$ to learn its Cholesky factor L. Furthermore, we restrict the minimum value reachable by the eigenvalues of these factors to be $\sigma_{min}^2=0.0001$. In the case of MGVT we use, instead, $\lambda=10^{-6}$, $\alpha_{\mu}=0.001$ and $\alpha_{L}=0.1$. Finally, for the prior's covariances we set it to $\sigma_p^2=10^{-5}$.
 
 Besides the results that we show in Sec. \ref{sec:gw}, we present in this section further empirical evaluation.
 
-Firstly, we show the results of the evaluation performance. We compute this as the average reward gotten when the agent acts using the greedy policy using the parameters at the iteration of evaluation. In the case of GVT, we take the mean of the posterior Gaussian and, in MGVT, we compute the mean of the posterior by averaging the means of its components and use it for evaluation. 
+Firstly, we show the results of the evaluation of the greedy performance. We compute this as the average reward gotten when the agent acts using the greedy policy using the parameters at the iteration of evaluation. In the case of GVT, we take the mean of the posterior Gaussian and, in MGVT, we compute the mean of the posterior by averaging the means of its components and use it for evaluation. 
 
-In Fig. \ref{fig:3r-rew} we show the results when evaluating the Rooms Problem performance when the sources used to transfer have sample tasks resulting of both doors being sampled uniformly. It is easily noticeable that both GVT and MGVT perform much better in comparison with the no transfer performance and shows that the mean behavior of our posterior distribution, indeed, converges to the actual optimal solution.
+In Fig. \ref{fig:3r-rew} we show the results when evaluating the Rooms Problem performance when the sources used to transfer have sample tasks resulting when both doors are sampled uniformly. It is easily noticeable that both GVT and MGVT perform much better in comparison with the no transfer performance and shows that the mean behavior of our posterior distribution, indeed, converges to the actual optimal solution.
 
-In Fig.\ref{fig:3rg-erew} we show the evaluation for the generalization experiment when the sampled source tasks have a door fixed and the target task is generated by sampling both doors' positions. From this we can clearly appreciate that MGVT is able to quickly converge to the optimal solution in this more complicated setting, whereas GVT fails to adapt as consistently as MGVT, thus the higher variance and distance to the optimal value. In this scenario, using a Gaussian to model the prior over-constrains the algorithm to stay close to part of the function space that cannot solve optimally the target tasks sampled from the modified distribution.
+In Fig.\ref{fig:3rg-erew} we show the evaluation for the generalization experiment when the sampled source tasks have a door fixed and the target task is generated by sampling both doors' positions. From this we can clearly appreciate that MGVT is able to quickly converge to the optimal solution in this more complicated setting, whereas GVT fails to adapt as consistently as MGVT; thus the higher variance and distance to the optimal value. In this scenario, using a Gaussian to model the prior over-constrains the algorithm to stay close to part of the function space that cannot solve optimally the target tasks sampled from the modified distribution.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room/erew.pdf}
+    \includegraphics[trim=0.3cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room/erew.pdf}
     \caption{}
     \label{fig:3r-erew}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-gen/erew.pdf}
+    \includegraphics[trim=0.3cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-gen/erew.pdf}
     \caption{}
     \label{fig:3rg-erew}
   \end{subfigure}
-  \caption{(a) Rooms Problem: Evaluation Reward, (b) Rooms Problem: Evaluation Reward in the generalization experiment}
+  \caption{(a) Rooms Problem: Expected Return w.r.t. Greedy Policy, (b) Rooms Problem: Expected Return w.r.t. Greedy Policy in the generalization experiment}
   \label{fig:rooms-erew}
 \end{figure*}
 
+Furthermore, we investigate the exploratory behavior induced by our transfer algorithms and how they differ between each other and in comparison with $\epsilon$-greedy exploration. In Fig. \ref{fig:rooms-expl}, we show the results of running the no transfer (NT) algorithm, GVT and 1-MGVT for $2000$ iterations and we represent as a scatter plot the positions visited by the agent.
 
-Furthermore, we investigate the exploratory behavior induced by our transfer algorithms and how they differ between each other and in comparison with $\epsilon$-greedy exploration. In Fig. \ref{fig:rooms-expl}, we show the results of running the no transfer (NT) algorithm, GVT and 1-MGVT for $2k$ iterations and we represent in the plot the positions visited by the agent.
+Observing Fig. \ref{fig:nt-vs-gvt}, it is possible to understand the difference between the $\epsilon$-greedy exploration and the resulting behavior from GVT. It is noticeable that NT is not capable to lead the agent to the goal within the given iterations as most of the states visited are sparse within the first room, whereas GVT is able to concentrate more of its effort in looking for the door around the middle of the wall. After finding it, within the second room, the positions concentrate in the path leading to the goal given that the need for the exploration is less. This is not surprising as the value function should be equal for all tasks after crossing the door. 
 
-Observing Fig. \ref{fig:nt-vs-gvt}, it is possible to understand the difference between the $\epsilon$-greedy exploration and the resulting behavior from GVT. It is noticeable that NT is not capable to lead the agent to the goal within the given iterations as most of the states visited are sparse within the first room, whereas GVT is able to concentrate more of its effort in looking for the door around the middle of the wall. After finding it, already in the second room, the positions concentrate in the path leading to the goal given that the need for the exploration is less. This is not surprising as the value function should be equal for all tasks after crossing the door. 
-
-In the other case, we have Fig. \ref{fig:nt-vs-mgvt} that shows the same situation as with GVT, but it is quite interesting to notice how sparser the exploration of 1-MGVT is with respect to GVT. Indeed, 1-MGVT is able to actually explore the right part of the first room within these iterations, which might be seen as the result of the prior model being able to capture more information than the Gaussian; hence, the higher speed-up in convergence and robustness to changes in the distribution from which target tasks are drawn. Indeed, as 1-MGVT is able to allow for more flexible exploration, it is capable to discover how to best solve the task much faster than GVT.
+In the other case, we have Fig. \ref{fig:nt-vs-mgvt} that shows a similar situation to that of GVT, but it is quite interesting to notice how sparser the exploration of 1-MGVT is with respect to GVT. Indeed, 1-MGVT is able to actually explore the right part of the first room within these iterations, which might be seen as the result of the prior model being able to capture more information than the Gaussian; hence, the higher speed-up in convergence and robustness to changes in the distribution from which target tasks are drawn. Indeed, as 1-MGVT is able to allow for more flexible exploration, it is capable to discover how to best solve the task much faster than GVT.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_gvt.pdf}
+    \includegraphics[trim=0.5cm 0.5cm 1.5cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_gvt.png}
     \caption{}
     \label{fig:nt-vs-gvt}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_mgvt.pdf}
+    \includegraphics[trim=0.5cm 0.5cm 1.5cm 1.3cm,clip=true,height=4.5cm]{images/three-room-app/nt_vs_mgvt.png}
     \caption{}
     \label{fig:nt-vs-mgvt}
   \end{subfigure}
@@ -800,18 +795,18 @@ In the other case, we have Fig. \ref{fig:nt-vs-mgvt} that shows the same situati
   \label{fig:rooms-expl}
 \end{figure*}
 
-Finally, in Fig. \ref{fig:sequential} we present the expected return as a function of the number of source tasks used for GVT and MGVT. In particular, we show the resulting curves after $1000$ iterations in Fig. \ref{fig:seq-1000} and after $1950$ iterations in Fig. \ref{fig:seq-1950}. It is interesting to notice the difference on performance between MGVT and GVT whenever there is a small number of source tasks. MGVT clearly provides faster adaptation in the presence of low prior knowledge as it can be discern from the gap seen in nearly a $1000$ iterations between the plots. It is as expected because approximating the prior Gaussian distribution using maximum likelihood estimations with a low number of samples does not provide enough precision. As the number of source tasks increases, as seen more clearly from Fig. \ref{fig:seq-1950}, the performances become closer for this environment. 
+Finally, in Fig. \ref{fig:sequential} we present the expected return as a function of the number of source tasks used for GVT and MGVT. In particular, we show the resulting curves after $1000$ iterations in Fig. \ref{fig:seq-1000} and after $1950$ iterations in Fig. \ref{fig:seq-1950}. It is interesting to notice the difference on performance between MGVT and GVT whenever there is a small number of source tasks. MGVT clearly provides faster adaptation in the presence of low prior knowledge as it can be discerned from the gap created after nearly a $1000$ iterations between the plots. This, however, is as expected because approximating the prior Gaussian distribution using maximum likelihood estimations with a low number of samples does not provide enough precision. As the number of source tasks increases, as seen more clearly from Fig. \ref{fig:seq-1950}, the performances between the algorithms become closer for this environment. 
 
-Finally, among the MGVT curves in Fig. \ref{fig:sequential}, we see that, even if more components lead to slightly better performances, the advantage is not quite significant in this environment. As seen before, the actual performances will converge to optimality in all the MGVT cases. Clearly, as we expect all components to converge to the optimal parameters, the initial performance difference will, indeed, reduce fast.
+Finally, among the MGVT curves in Fig. \ref{fig:sequential}, we see that, even if more components lead to slightly better performances, the advantage is not quite significant in this environment. As seen above, the actual performances will converge to optimality in all the MGVT cases. Clearly, as we expect all components to converge to the optimal parameters, the initial performance difference will, indeed, reduce fast.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/sequential/lrew_1000.pdf}
+    \includegraphics[trim=0.0cm 0cm 1.2cm 1.3cm,clip=true,height=4.5cm]{images/sequential/lrew_1000.pdf}
     \caption{}
     \label{fig:seq-1000}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/sequential/lrew_1950.pdf}
+    \includegraphics[trim=0.0cm 0cm 1.2cm 1.3cm,clip=true,height=4.5cm]{images/sequential/lrew_1950.pdf}
     \caption{}
     \label{fig:seq-1950}
   \end{subfigure}
@@ -826,24 +821,24 @@ Finally, among the MGVT curves in Fig. \ref{fig:sequential}, we see that, even i
 
 For this environment we generate tasks by uniformly sampling the cart mass in the range $\left[0.5,1.5\right]$, the pole mass in $\left[0.1,0.3\right]$ and the pole length in $\left[0.2,1.0\right]$. 
 
-During the training of the source tasks, we use a \textit{Batch Size} of $150$ and \textit{Buffer Size} of $50000$. Specifically, for DDQN we use a \textit{Target Update Frequency} of $500$ and and \textit{Exploration Fraction} of $0.35$ and a learning rate $\alpha=0.001$. We use a Multilayer Perceptron (MLP) with ReLU as activation function and a hidden layer of $32$ neurons, an input layer of $4$ and the value of the $2$ actions as the output layer. 
+During the training of the source tasks, we use a \textit{Batch Size} of $150$ and a \textit{Buffer Size} of $50000$. Specifically, for DDQN we use a \textit{Target Update Frequency} of $500$,\textit{Exploration Fraction} of $0.35$ and a learning rate $\alpha=0.001$. We use a Multilayer Perceptron (MLP) with ReLU as activation function and a single hidden layer of $32$ neurons.
 
-For the transfer experiments, we set the \textit{Batch Size} to $500$, the number of \textit{weights} sampled to approximate the expected TD error to $5$, $\lambda=0.001$ and $\psi=0.5\ $. We use $\alpha_{\mu}=0.001$ as the learning rate for the mean of the Gaussian posterior. For its the Cholesky factor L we use $\alpha_L=0.0001$ and set the limit that the minimum eigenvalue may reach to $\sigma_{min}^2=0.0001\ $. Additionally, for MGVT we set the variance of the prior components $\sigma_p^2=10^{-5}$and leave the learning rates of the posterior components' means and Cholesky factor the same as GVT.
+For the transfer experiments, we set the \textit{Batch Size} to $500$, the number of \textit{weights} sampled to approximate the expected TD error to $5$, $\lambda=0.001$ and $\psi=0.5\ $. We use $\alpha_{\mu}=0.001$ as the learning rate for the mean of the Gaussian posterior. For its the Cholesky factor L we use $\alpha_L=0.0001$ and set the limit that the minimum eigenvalue may reach to $\sigma_{min}^2=0.0001\ $. Additionally, for MGVT we set the variance of the prior components $\sigma_p^2=10^{-5}$ and leave the learning rates of the posterior components' means and Cholesky factor the same as GVT.
 
-In Fig. \ref{fig:cp-erew}, we show the evaluation reward for DDQN, GVT, 1-MGVT and 3-MGVT, which consist of the average performance of the greedy policy using the parameters in the iteration of evaluation. In the case of GVT, we use the mean of the Gaussian posterior for the greedy policy and for MGVT corresponds to the mean of the Mixture of Gaussians for the posterior, that reduces to the average of the components' means. From the figure we can see how the transfer methods provide a significant jump-start w.r.t. the DDQN evaluation. Although, a slight performance drop is seen as the algorithm adapts to the optimal Q-function, the algorithm quickly reaches optimality and converges to the actual optimal performance while DDQN, within these iterations, remains on average slightly suboptimal. \todo{improve this}
+In Fig. \ref{fig:cp-erew}, we show the evaluation performance for DDQN, GVT, 1-MGVT and 3-MGVT, which consists of the average performance of the greedy policy using the parameters in the iteration of evaluation. In the case of GVT, we use the mean of the Gaussian posterior for the greedy policy and for MGVT corresponds to the mean of the Mixture of Gaussians for the posterior, that reduces to the average of the components' means. From the figure we can see how the transfer methods provide a significant jump-start w.r.t. the DDQN evaluation. Also, in this tasks is possible to still observe an improved performance from using MGVT as within fewer iterations, the mean parameters converges to the optimal $Q$-function.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/cartpole/erew.pdf}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/cartpole/erew.pdf}
     \caption{}
     \label{fig:cp-erew}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/mountaincar/erew.pdf}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/mountaincar/erew.pdf}
     \caption{}
     \label{fig:mc-erew}
   \end{subfigure}
-  \caption{(a) Cartpole: Evaluation Reward, (b) Mountain Car: Evaluation Reward}
+  \caption{(a) Cartpole: Expected Return w.r.t. Greedy Policy, (b) Mountain Car: Expected Return w.r.t. Greedy Policy}
   \label{fig:ccerew}
 \end{figure*}
 
@@ -851,19 +846,19 @@ In Fig. \ref{fig:cp-erew}, we show the evaluation reward for DDQN, GVT, 1-MGVT a
 
 We generate tasks sampling uniformly the base speed of the actions in the range $\left[0.001, 0.0015\right]$. 
 
-For the sources, we train the tasks using DDQN with a \textit{Target Update Frequency} of $500$, a \textit{Batch Size} of $32$, a  \textit{Buffer Size} of $50000$ and learning rate $\alpha=0.001$. Moreover, we set the \textit{Exploration Fraction} to $0.15$. We use an MLP with single hidden layer of $64$ neurons with ReLU activation function, an input layer of $4$ neurons and as output the value of each of the $3$ actions. 
+For the sources, we train the tasks using DDQN with a \textit{Target Update Frequency} of $500$, a \textit{Batch Size} of $32$, a  \textit{Buffer Size} of $50000$ and learning rate $\alpha=0.001$. Moreover, we set the \textit{Exploration Fraction} to $0.15$. We use an MLP with single hidden layer of $64$ neurons with ReLU activation function. 
 
-For the transfer experiments, we set the \textit{Batch Size} to $500$, and use $10$ \textit{weights} to approximate the expected TD error, $\lambda=10^{-5}$ and $\psi=0.5$. For the learning rates, we use $\alpha_{\mu}=0.001$ for learning the means of the Gaussians. In the case of the Cholesky factors L, we use $\alpha_L=0.0001$ and allow the eigenvalues to reach a minimum value of $\sigma_{min}^2=0.0001$. In the case of MGVT, additionally, we set the prior covariance to be $\sigma_p^2=10^{-5}$.
+For the transfer experiments, we set the \textit{Batch Size} to $500$, and use $10$ \textit{weights} to approximate the expected TD error, $\lambda=10^{-5}$ and $\psi=0.5$. For the learning rates, we use $\alpha_{\mu}=0.001$ for the means of the Gaussians. In the case of the Cholesky factors L, we use $\alpha_L=0.0001$ and allow the eigenvalues to reach a minimum value of $\sigma_{min}^2=0.0001$. In the case of MGVT, additionally, we set the prior covariance to be $\sigma_p^2=10^{-5}$.
 
-Finally, in Fig. \ref{fig:mc-erew}, we show the evaluation reward obtained during the executions, which, as before, corresponds to the average reward gotten acting with a greedy policy with the parameters of the network in the case of DDQN and the mean value of the posterior in the cases of GVT and MGVT in the iteration of evaluation.  In this plot, we can observe directly how fast is MGVT able to converge its mean to the actual optimal performance and that even if GVT struggles to find learn in comparison with MGVT, still provides a clear advantage w.r.t. DDQN. Also, it is worth noting that the variances seen are result that different speeds of the car result in different time to reach the goal and, thus, different optimal performances.
+Finally, in Fig. \ref{fig:mc-erew}, we show the evaluation performance obtained during the executions, which, as before, corresponds to the average reward gotten acting with a greedy policy with the parameters of the network in the case of DDQN and the mean value of the posterior in the cases of GVT and MGVT in the iteration of evaluation. In this plot, we can observe directly how fast is MGVT able to make its mean converge to the actual optimal performance. Also, even though GVT struggles to learn in comparison with MGVT, still provides a clear advantage w.r.t. DDQN. It is worth noting that the variances seen are caused by different speeds of the car resulting in different time to reach the goal and, thus, different optimal return.
 
-Clearly, this variation in the values among tasks allows MGVT to excel w.r.t. to the other methods. The richer prior of MGVT allows to exploit efficiently the previous knowledge on the possible values attainable from the tasks and, therefore, quickly resolve how to best optimize for the target. This fact is a clear contrast with GVT as the search is  more likely constrained to the mean values and moving away from that is, in fact, slower.
+Clearly, this variation in the values among tasks allows MGVT to excel w.r.t. to the other methods. The richer prior of MGVT allows to exploit efficiently the previous knowledge on the possible values attainable from the tasks and, therefore, quickly resolve how to best optimize for the target. This fact is a clear contrast with GVT as the search is more likely constrained to the mean values and moving away from that is, in fact, slower.
 
 \subsection{Maze Navigation}
 
-For the maze navigation task in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+For the maze navigation task presented in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
 
-For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions, an input layer receiving the $22$-dimensional state of the MDP and an output layer that produces the value of each of the $3$ action. For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$ and learning rate $\alpha=0.001$ .
+For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions..For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$ and learning rate to $\alpha=0.001$ .
 
 In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$ and use $10$ sampled \textit{weights} from the posterior to approximate the TD error. Moreover, we use $\lambda=10^{-6}$. For GVT, in particular, we use $\alpha_{\mu}=0.001$ as the rate to learn the mean parameters of our Gaussian posterior. For the Cholesky factor L, instead, we use $\alpha_{L}=10^{-7}$ and set the minimum value reachable by its eigenvalues to be $\sigma_{min}=0.0001$. In the case of MGVT experiments we set $\alpha_{\mu}=0.001$ to learn the mean of the different Gaussian components of our posterior and set $\alpha_{L}=10^{-6}$ for the Cholesky factors of its covariances. Finally, we use $\sigma_p^2=10^{-5}$ as the prior variance.
 
@@ -957,44 +952,45 @@ In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \tex
   \label{fig:mazes}
 \end{figure*}
 
-In Fig. \ref{}, we present the results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6}, Fig. \ref{fig:maze8} and Fig. \ref{fig:maze13} using \todo{also GVT?} GVT and MGVT. We show both the evaluation reward, i.e. the average performance obtained evaluating the mean parameters of the posterior in a given iteration of the algorithm by following a greedy policy w.r.t. those parameters, and the expected return. All the curves result from averaging $20$ independent runs and randomly sampled sources.
-
-% Placer-holder to actual plots. Add analyses
-\begin{figure*}[t]
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev.pdf}
-    \caption{}
+\begin{figure*}[h]
+	\begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev_maze0.pdf}
+    \caption{Expected Return during learning}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew.pdf}
-    \caption{}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew_maze0.pdf}
+    \caption{Expected Return w.r.t. greedy policy}
   \end{subfigure}
-  \caption{Maze \ref{fig:maze0} (a) Expected Return (b) Evaluation Reward}
+  \caption{Performance in Maze \ref{fig:maze0}}
+  \label{fig:rew-maze0}
+  
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev_maze6.pdf}
+    \caption{Expected Return during learning}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew_maze6.pdf}
+    \caption{Expected Return w.r.t. greedy policy}
+  \end{subfigure}
+  \caption{Performance in Maze \ref{fig:maze6}}
+  \label{fig:rew-maze6}
+  
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev_maze13.pdf}
+    \caption{Expected Return during learning}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew_maze13.pdf}
+    \caption{Expected Return w.r.t. greedy policy}
+  \end{subfigure}
+  \caption{Performance in Maze \ref{fig:maze13} }
+  \label{fig:rew-maze13}
 \end{figure*}
 
-\begin{figure*}[t]
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev.pdf}
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew.pdf}
-    \caption{}
-  \end{subfigure}
-  \caption{Maze \ref{fig:maze6} (a) Expected Return (b) Evaluation Reward}
-\end{figure*}
+Hereafter, we present additional results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6} and Fig. \ref{fig:maze13} using both GVT and MGVT. We show both the evaluation performance, i.e. the average performance obtained evaluating the mean parameters of the posterior in a given iteration of the algorithm by following a greedy policy w.r.t. those parameters, and the expected return during the learning process. All the curves result from averaging $20$ independent runs and randomly sampled sources.
 
-\begin{figure*}[t]
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev.pdf}
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[trim=0.5cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew.pdf}
-    \caption{}
-  \end{subfigure}
-  \caption{Maze \ref{fig:maze13} (a) Expected Return (b) Evaluation Reward}
-  \label{fig:mazes-plots}
-\end{figure*}
+In Fig. \ref{fig:maze0}, \ref{fig:maze6}, \ref{fig:maze13}, we can appreciate that in this more complex transfer setting, MGVT is able to provide significant speed-up in a consistent manner in this subset of mazes. It is also noticeable the bad performance obtained with GVT in all cases. The Gaussian prior model clearly fails to capture enough information to transfer in this setting that result in a negative transfer effect.
+
+
 
 \end{document}
