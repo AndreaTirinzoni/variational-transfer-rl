@@ -115,6 +115,11 @@ George Konidaris and Andrew Barto.
 George Konidaris and Andrew~G Barto.
 \newblock Building portable options: Skill transfer in reinforcement learning.
 
+\bibitem{lazaric2012transfer}
+Alessandro Lazaric.
+\newblock Transfer in reinforcement learning: a framework and a survey.
+\newblock In {\em Reinforcement Learning}, pages 143--173. Springer, 2012.
+
 \bibitem{lazaric2010bayesian}
 Alessandro Lazaric and Mohammad Ghavamzadeh.
 \newblock Bayesian multi-task reinforcement learning.

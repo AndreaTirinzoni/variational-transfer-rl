@@ -3,7 +3,6 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: main.aux
 The style file: plain.bst
 Database file #1: biblio.bib.bib
-Warning--I didn't find a database entry for "lazaric2012transfer"
 Warning--I didn't find a database entry for ""
 Warning--empty booktitle in boyan1999least
 Warning--empty year in boyan1999least
@@ -11,45 +10,45 @@ Warning--empty booktitle in konidaris2007building
 Warning--empty year in konidaris2007building
 Warning--can't use both volume and number fields in sutton1998reinforcement
 Warning--empty booktitle in van2016deep
-You've used 38 entries,
+You've used 39 entries,
             2118 wiz_defined-function locations,
-            708 strings with 11179 characters,
-and the built_in function-call counts, 15129 in all, are:
-= -- 1491
-> -- 759
-< -- 18
-+ -- 299
-- -- 260
-* -- 1036
-:= -- 2403
-add.period$ -- 121
-call.type$ -- 38
-change.case$ -- 238
+            712 strings with 11288 characters,
+and the built_in function-call counts, 15559 in all, are:
+= -- 1540
+> -- 766
+< -- 19
++ -- 302
+- -- 262
+* -- 1057
+:= -- 2462
+add.period$ -- 125
+call.type$ -- 39
+change.case$ -- 242
 chr.to.int$ -- 0
-cite$ -- 44
-duplicate$ -- 605
-empty$ -- 1147
-format.name$ -- 260
-if$ -- 3243
+cite$ -- 45
+duplicate$ -- 629
+empty$ -- 1188
+format.name$ -- 262
+if$ -- 3347
 int.to.chr$ -- 0
-int.to.str$ -- 38
-missing$ -- 41
-newline$ -- 191
-num.names$ -- 76
-pop$ -- 293
+int.to.str$ -- 39
+missing$ -- 42
+newline$ -- 196
+num.names$ -- 78
+pop$ -- 300
 preamble$ -- 1
-purify$ -- 203
+purify$ -- 206
 quote$ -- 0
-skip$ -- 459
+skip$ -- 477
 stack$ -- 0
-substring$ -- 909
-swap$ -- 195
-text.length$ -- 18
+substring$ -- 946
+swap$ -- 205
+text.length$ -- 19
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 146
+type$ -- 150
 warning$ -- 6
-while$ -- 138
-width$ -- 40
-write$ -- 413
-(There were 8 warnings)
+while$ -- 143
+width$ -- 41
+write$ -- 425
+(There were 7 warnings)
