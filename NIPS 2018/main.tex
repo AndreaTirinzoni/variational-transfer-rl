@@ -343,7 +343,7 @@ In our last experiment, we consider a robotic agent navigating mazes. At the beg
 
 \section{Related Works}
 
-Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves again the importance of capturing more complicated task distributions. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over tasks. Differently from our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. Recently, \cite{killian2017robust} extended this approach by replacing GPs with Bayesian neural networks, so as to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
+Our approach is mostly related to \cite{lazaric2010bayesian}. Although we both assume the tasks to share similarities in their value functions, \cite{lazaric2010bayesian} consider only linear approximators and adopt a hierarchical Bayesian model of the corresponding weights' distribution, which is assumed Gaussian. On the other hand, our variational approximation allows for more general distribution families and can be combined with non-linear approximators. Furthermore, \cite{lazaric2010bayesian} propose a Dirichlet process model for the case where weights cluster into different classes, which relates to our mixture formulation and proves the importance of capturing more complicated task distributions again. In \cite{wilson2007multi}, the authors propose a hierarchical Bayesian model for the distribution over MDPs. unlike our approach and \cite{lazaric2010bayesian}, they consider a distribution over transition probabilities and rewards, rather than value functions. In the same spirit of our method, they consider a Thompson sampling-based procedure which, at each iteration, samples a new task from the posterior and solves it. However, \cite{wilson2007multi} consider only finite MDPs, which poses a severe limitation on the algorithm's applicability. On the contrary, our approach can handle high-dimensional tasks. In \cite{doshi2016hidden}, the authors consider a family of tasks whose dynamics are governed by some hidden parameters and use Gaussian processes (GPs) to model such dynamics across tasks. Recently, \cite{killian2017robust} extended this approach by replacing GPs with Bayesian neural networks, to obtain a more scalable approach.\todo{More comments about HiP-MDPs? Should we discuss more related works?}
 
 In the RL community, our approach is related to value function randomization\cite{osband2014generalization}, which extends the well-known LSTD \cite{boyan1999least} by adopting Bayesian linear regression to model the uncertainty over the predicted value function weights, and use that to perform a form of Thompson sampling. Such approach was recently extended by \cite{azizzadenesheli2018efficient}, where the approximator is replaced by a Bayesian neural network, leading to an algorithm capable of solving much more complicated problems. Both these algorithms rely on the Gaussian assumption and, since they work in plain RL settings, have no informative prior available. On the other hand, our variational approximation allows more complex distributions (e.g., mixtures) to be adopted, while knowledge from the source tasks allows us to learn very informative priors.
 
@@ -372,67 +372,67 @@ We begin by noticing that:
 \norm{Q^*-\wt{Q}}_{\nu,p}^p =\ & \norm{TQ^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ =\ &
 \norm{TQ^* - \wt{T}Q^* + \wt{T}Q^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ \leq\ &
 \norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p + \norm{\wt{T}Q^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ \leq\ &
-\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p + \gamma\norm{Q^* - \wt{Q}}_{\nu,p}^p
+\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p + \gamma\norm{Q^* - \wt{Q}}_{\nu,p}^p,
 \end{align*}
 where the first inequality follows from Minkowsky's inequality and the second one from the contraction property of the mellow Bellman operator. This implies that:
 \begin{align} \label{eq:mm1}
-\norm{Q^*-\wt{Q}}_{\nu,p}^p \leq \frac{1}{1-\gamma}\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p
+\norm{Q^*-\wt{Q}}_{\nu,p}^p \leq \frac{1}{1-\gamma}\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p.
 \end{align}
-Let us bound the norm on the right-hand side separately. In order to do that, we will bound the function $\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)}$ point-wisely for any state $s,a$. By applying the definition of the optimal and mellow Bellman operators, we obtain:
+Let us bound the norm on the right-hand side separately. In order to do that, we will bound the function $\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)}$ point-wisely for any pair $\langle s,a\rangle$. By applying the definition of the optimal and mellow Bellman operators, we obtain:
 \begin{align} \label{eq:mm5}
-\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} =\ & \abs{R(s,a) + \gamma\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - R(s,a) - \gamma\mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ =\ & \gamma\abs{\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - \mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ \leq\ & \gamma\mathbb{E}\left[\abs{\max_{a'}Q^*(s',a') - \mm_{a'}Q^*(s',a')}\right]
+\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} =\ & \abs{R(s,a) + \gamma\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - R(s,a) - \gamma\mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ =\ & \gamma\abs{\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - \mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ \leq\ & \gamma\mathbb{E}\left[\abs{\max_{a'}Q^*(s',a') - \mm_{a'}Q^*(s',a')}\right].
 \end{align}
 Thus, bounding this quantity reduces to bounding $\abs{\max_{a}Q^*(s,a) - \mm_{a}Q^*(s,a)}$ point-wisely for any $s$. Recall that applying the mellow Bellman operator is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta_{\kappa}$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
 \begin{align} \label{eq:mm2}
-\abs{\max_a Q^*(s,a) - \mm_a Q^*(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q^*(s,a) - \sum_a \pi_{\beta_{\kappa}}(a|s)Q^*(s,a)}\notag\\ =\ & \abs{\sum_a Q^*(s,a) \left( \pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q^*(s,a)} \abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}
+\abs{\max_a Q^*(s,a) - \mm_a Q^*(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q^*(s,a) - \sum_a \pi_{\beta_{\kappa}}(a|s)Q^*(s,a)}\notag\\ =\ & \abs{\sum_a Q^*(s,a) \left( \pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q^*(s,a)} \abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)},
 \end{align}
 where $\pi^*$ is the optimal (deterministic) policy w.r.t. $Q^*$ and $\pi_{\beta_{\kappa}}$ is the Boltzmann distribution induced by $Q^*$ with inverse temperature $\beta_{\kappa}$:
 \begin{align*}
-\pi_{\beta_{\kappa}}(a|s) = \frac{e^{\beta_{\kappa} Q^*(s,a)}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}
+\pi_{\beta_{\kappa}}(a|s) = \frac{e^{\beta_{\kappa} Q^*(s,a)}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}.
 \end{align*}
 Denote by $a_1(s)$ the optimal action for state $s$ under $Q^*$. We can then write:
 \begin{align} \label{eq:mm3}
-\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)} =\ & \abs{\pi^*(a_1(s)|s) - \pi_{\beta_{\kappa}}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ =\ & \abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi_{\beta_{\kappa}}(a|s)}\notag\\ =\ & 2\abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)}
+\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)} =\ & \abs{\pi^*(a_1(s)|s) - \pi_{\beta_{\kappa}}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ =\ & \abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)} + \sum_{a \neq a_1(s)}\abs{\pi_{\beta_{\kappa}}(a|s)}\notag\\ =\ & 2\abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)}.
 \end{align}
-Finally, let us bound this last term:
+Finally, denoting with $a_2(s)$ the second-best action in state $s$, let us bound this last term:
 \begin{align} \label{eq:mm4}
-\abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)} =\ & \abs{1 - \frac{e^{\beta_{\kappa} Q^*(s,a_1(s))}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} \left( Q^*(s,a_1(s)) - Q^*(s,a_2(s)) \right)}}{\sum_{a'}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{\sum_{a'}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{e^{\beta_{\kappa} g(s)} + \sum_{a' \neq a_1(s)}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ \leq & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{e^{\beta_{\kappa} g(s)} + \abs{\mathcal{A}}}}\notag\\ = & \abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}
+\abs{1 - \pi_{\beta_{\kappa}}(a_1(s)|s)} =\ & \abs{1 - \frac{e^{\beta_{\kappa} Q^*(s,a_1(s))}}{\sum_{a'}e^{\beta_{\kappa} Q^*(s,a')}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} \left( Q^*(s,a_1(s)) - Q^*(s,a_2(s)) \right)}}{\sum_{a'}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{\sum_{a'}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ =\ & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{e^{\beta_{\kappa} g(s)} + \sum_{a' \neq a_1(s)}e^{\beta_{\kappa} \left( Q^*(s,a') - Q^*(s,a_2(s))\right)}}}\notag\\ \leq & \abs{1 - \frac{e^{\beta_{\kappa} g(s)}}{e^{\beta_{\kappa} g(s)} + \abs{\mathcal{A}}}}\notag\\ = & \abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}.
 \end{align}
 Combining Eq. \eqref{eq:mm2}, \eqref{eq:mm3}, and \eqref{eq:mm4}, we obtain:
 \begin{align*}
-\abs{\max_a Q(s,a) - \mm_a Q(s,a)} \leq\ \frac{2 R_{max}}{1-\gamma}\abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}
+\abs{\max_a Q(s,a) - \mm_a Q(s,a)} \leq\ \frac{2 R_{max}}{1-\gamma}\abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}.
 \end{align*}
 Finally, using Eq. \eqref{eq:mm5} we get:
 \begin{align*}
-\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} \leq \frac{2\gamma R_{max}}{1-\gamma}\abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}
+\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} \leq \frac{2\gamma R_{max}}{1-\gamma}\abs{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g(s)}}}.
 \end{align*}
 Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
 \end{proof}
 
 \subsection{Proof of Theorem 3}
 
-We begin by proving some important lemmas. Then, we use them to derive a finite-sample analysis of Alg. \ref{alg:transfer} with linearly parameterized value functions for both Gaussian distributions (Thm. \ref{th:main-gaussian}) and Gaussian mixture models (Thm. \ref{th:main-mixture}).
+We begin by proving some important lemmas. Then, we use them to derive a finite-sample analysis of Algorithm~\ref{alg:transfer} with linearly parameterized value functions for both Gaussian distributions (Thm. \ref{th:main-gaussian}) and Gaussian mixture models (Thm. \ref{th:main-mixture}).
 
 \begin{lemma}\label{lemma:l1}
 Let $p$ and $\nu$ denote probability measures over weights and state-action pairs, respectively. Assume $Q^*$ is the unique fixed-point of the optimal Bellman operator $T$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of weights $\bm{w} \sim p$, the following holds:
 \begin{equation}
-\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}.
 \end{equation}
 \end{lemma}
 \begin{proof}
 First notice that:
 \begin{align*}
-\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 =\ & \norm{Q_{\bm{w}} + TQ_{\bm{w}} - TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \norm{TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2\\ =\ & \norm{B_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 =\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}} + TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \norm{TQ_{\bm{w}} - TQ^*}_{\nu}^2\\ \leq\ & \norm{Q_{\bm{w}} - TQ_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2\\ =\ & \norm{B_{\bm{w}}}_{\nu}^2 + \gamma\norm{Q_{\bm{w}} - Q^*}_{\nu}^2
 \end{align*}
 which implies that:
 \begin{align*}
-\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq\ \frac{1}{1-\gamma}\norm{B_{\bm{w}}}_{\nu}^2
+\norm{Q_{\bm{w}} - Q^*}_{\nu}^2 \leq\ \frac{1}{1-\gamma}\norm{B_{\bm{w}}}_{\nu}^2.
 \end{align*}
-Then we can write:
+Then, using Markov inequality, we can write:
 \begin{align*}
-P\left( \norm{Q_{\bm{w}} - Q^*}_{\nu}^2 > \epsilon \right) \leq P\left(\norm{B_{\bm{w}}}_{\nu}^2 > \epsilon (1-\gamma)\right) \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\epsilon}
+P\left( \norm{Q_{\bm{w}} - Q^*}_{\nu}^2 > \epsilon \right) \leq P\left(\norm{B_{\bm{w}}}_{\nu}^2 > \epsilon (1-\gamma)\right) \leq \frac{\mathbb{E}_p\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\epsilon}.
 \end{align*}
-Settings the right-hand side equal to $\delta$ and solving for $\epsilon$ concludes the proof.
+By setting the right-hand side equal to $\delta$ and solving for $\epsilon$ concludes the proof.
 \end{proof}
 
 Lemma \ref{lemma:l1} can be straightforwardly extended to the case where the mellow Bellman operator is used instead of the optimal one. This is given in the following corollary.
@@ -440,49 +440,49 @@ Lemma \ref{lemma:l1} can be straightforwardly extended to the case where the mel
 \begin{corollary}\label{cor:diff-q}
 Let $p$ and $\nu$ denote probability measures over weights and state-action pairs, respectively. Assume $\wt{Q}$ is the unique fixed-point of the mellow Bellman operator $\wt{T}$. Then, for any $\delta > 0$, with probability at least $1 - \delta$ over the choice of weights $\bm{w} \sim p$, the following holds:
 \begin{equation}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_p\left[ \norm{\wt{B}_{\bm{w}}}_{\nu}^2 \right]}{(1-\gamma)\delta}.
 \end{equation}
 \end{corollary}
 
-We now prove some important properties of the variational approximation introduced in Sec. \ref{sec:alg}. Our results generalize those of existing works that consider variational approximations of intractable Gibbs posteriors \cite{alquier2016properties,cottet20181}. From now on, we consider only $Q$-functions parameterized by weights $\bm{w}$ and assume them to be uniformly bounded by $\frac{R_{max}}{1-\gamma}$. 
+We now prove some important properties of the variational approximation introduced in Section~\ref{sec:alg}. Our results generalize those of existing works that consider variational approximations of intractable Gibbs posteriors \cite{alquier2016properties,cottet20181}. From now on, we consider only $Q$-functions parameterized by weights $\bm{w}$ and assume them to be uniformly bounded by $\frac{R_{max}}{1-\gamma}$. 
 
 \begin{lemma}\label{lemma:l2}
-Let $p$ and $q$ be arbitrary distributions over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$ and define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
+Let $p$ and $q$ be arbitrary distributions over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$ and define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
 \begin{equation}\label{eq:lemma2-1}
-\mathbb{E}_q\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{B_{\bm{w}}}_D^2 \right] - \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] - \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{equation}
 \begin{equation}\label{eq:lemma2-2}
-\mathbb{E}_q\left[ \norm{B_{\bm{w}}}_D^2 \right] \leq \mathbb{E}_q\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] \leq \mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{equation}
 \end{lemma}
 \begin{proof}
 From Hoeffding's inequality we have:
 \begin{align*}
-P\left( \abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B_{\bm{w}}}_D^2\right] - \norm{B_{\bm{w}}}_D^2} > \epsilon \right) \leq 2exp\left( -\frac{2N\epsilon^2}{\left(2\frac{R_{max}}{1-\gamma}\right)^4} \right)
+P\left( \abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{\wt B_{\bm{w}}}_D^2\right] - \norm{\wt B_{\bm{w}}}_D^2} > \epsilon \right) \leq 2\exp\left( -\frac{2N\epsilon^2}{\left(2\frac{R_{max}}{1-\gamma}\right)^4} \right)
 \end{align*}
 which implies that, for any $\delta>0$, with probability at least $1-\delta$:
 \begin{align*}
-\abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B_{\bm{w}}}_D^2\right] - \norm{B_{\bm{w}}}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\abs{\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{\wt B_{\bm{w}}}_D^2\right] - \norm{\wt B_{\bm{w}}}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
 Under independence assumptions, the expected TD error can be re-written as:
 \begin{align*}
-\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{B_{\bm{w}}}_D^2\right] =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[\frac{1}{N}\sum_{i=1}^N (r_i + \gamma \mm_{a'} Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i))^2\right]\\ =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[(R(s,a) + \gamma \mm_{a'} Q_{\bm{w}}(s',a') - Q_{\bm{w}}(s,a))^2\right]\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{P}}\left[B_{\bm{w}}^2\right]\right]\\ =\ & \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right] + \mathbb{E}_{\mathcal{P}}\left[B_{\bm{w}}\right]^2\right]\\ =\ & v(\bm{w}) + \norm{B_{\bm{w}}}_{\nu}^2
+\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{\wt B_{\bm{w}}}_D^2\right] =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[\frac{1}{N}\sum_{i=1}^N (r_i + \gamma \mm_{a'} Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i))^2\right]\\ =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[(R(s,a) + \gamma \mm_{a'} Q_{\bm{w}}(s',a') - Q_{\bm{w}}(s,a))^2\right]\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{P}}\left[\wt B_{\bm{w}}^2\right]\right]\\ =\ & \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right] + \mathbb{E}_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]^2\right]\\ =\ & v(\bm{w}) + \norm{\wt B_{\bm{w}}}_{\nu}^2,
 \end{align*}
-where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right]\right]$. Thus:
+where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]\right]$. Thus:
 \begin{align}\label{eq:hoeff}
-\abs{\norm{B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{B_{\bm{w}}}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\abs{\norm{\wt B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{\wt B_{\bm{w}}}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align}
 From the change of measure inequality \cite{seldin2012pac}, we have that, for any measurable function $f(\bm{w})$ and any two probability measures $p$ and $q$:
 \begin{align*}
-\log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \geq \mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p)
+\log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \geq \mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p).
 \end{align*}
-Thus, multiplying both sides of \eqref{eq:hoeff} by $\lambda^{-1}N$ and applying the change of measure inequality with $f(\bm{w}) = \lambda^{-1}N\abs{\norm{B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{B_{\bm{w}}}_D^2}$, we obtain:
+Thus, multiplying both sides of \eqref{eq:hoeff} by $\lambda^{-1}N$ and applying the change of measure inequality with $f(\bm{w}) = \lambda^{-1}N\abs{\norm{\wt B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{\wt B_{\bm{w}}}_D^2}$, we obtain:
 \begin{align*}
-\mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p) \leq \log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \leq 4\frac{R_{max}^2 \lambda^{-1}N}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ f(\bm{w}) \right] - KL(q||p) \leq \log\mathbb{E}_p\left[e^{f(\bm{w})}\right] \leq 4\frac{R_{max}^2 \lambda^{-1}N}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}},
 \end{align*}
 where the second inequality holds since the right-hand side of \eqref{eq:hoeff} does not depend on $\bm{w}$. Finally, we can explicitly write:
 \begin{align*}
-\mathbb{E}_q\left[ \abs{\norm{B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{B_{\bm{w}}}_D^2} \right] \leq \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_q\left[ \abs{\norm{\wt B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{\wt B_{\bm{w}}}_D^2} \right] \leq \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
 from which the lemma follows straightforwardly.
 \end{proof}
@@ -490,38 +490,38 @@ from which the lemma follows straightforwardly.
 From Lemma \ref{lemma:l2} we can straightforwardly prove the following result which will be of fundamental importance in the remaining.
 
 \begin{lemma}\label{lemma:general-bound}
-Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:\todo{Make sure that the constants multiplying sqrt are correct now}
+Let $p$ be a prior distribution over the parameter space $\mathcal{W}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of $ELBO(\xi) = \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p)$ for a dataset $D$ of $N$ samples. Define $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:\todo{Make sure that the constants multiplying sqrt are correct now}
 \begin{align*}
-\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
 \end{lemma}
 \begin{proof}
 Let us use Lemma \ref{lemma:l2} for the specific choice $q=q_{\wh{\xi}}$. From Eq. \eqref{eq:lemma2-1}, we have:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B_{\bm{w}}}_D^2 \right] - \mathbb{E}_{q_{\wh{\xi}}}\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ =\ & \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] - \mathbb{E}_{q_{\wh{\xi}}}\left[ v(\bm{w}) \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ \leq\ & \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\wh{\xi}}}||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\\ =\ & \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] + \frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}},
 \end{align*}
-where the second inequality holds since $v(\bm{w}) > 0$, while the equality holds from the definition of $\wh{\xi}$. We can now use Eq. \eqref{eq:lemma2-2} to bound $\mathbb{E}_{q_{\xi}}\left[ \norm{B_{\bm{w}}}_D^2 \right]$, thus obtaining:
+where the second inequality holds since $v(\bm{w}) > 0$, while the equality holds from the definition of $\wh{\xi}$. We can now use Eq. \eqref{eq:lemma2-2} to bound $\mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_D^2 \right]$, thus obtaining:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
 This concludes the proof.
 \end{proof}
 
-It is worth noting the generality of Lemma \ref{lemma:general-bound}: in bounding the expected Bellman error we did not need to assume any particular distribution, nor did we have to assume any particular function approximator.
+It is worth noting the generality of Lemma \ref{lemma:general-bound}: in bounding the expected Bellman error we do not need to assume any particular distribution, nor we have to assume any particular function approximator.
 
 We are now ready to state our main result. We start from the Gaussian case and then straightforwardly extend the proof to the mixture one.
 
 \begin{restatable}{theorem}{thg} \label{th:main-gaussian}
-Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the Gaussian version of Alg. \ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
+Fix a target task $\tau$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the Gaussian version of Algorithm~\ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq.~\eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
 \begin{equation}
 \resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right)$}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right)$}.
 \end{equation}
 \end{restatable}
 \begin{proof}
 Using Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}},\wh{\bm{\Sigma}})$, we have:
 \begin{align}\label{eq:thg-4}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}},
 \end{align}
 where the second inequality is due to the fact that, since Lemma \ref{lemma:general-bound} contains an infimum over the variational parameters, we can upper bound its right-hand side by choosing any specific $\bm{\xi}$ from $\Xi$. Here, we choose $\bm{\mu} = \bm{w}^*$ and $\bm{\Sigma} = c\bm{I}$, for some positive constant $c>0$. Let us now bound these terms separately.
 
@@ -529,74 +529,76 @@ where the second inequality is due to the fact that, since Lemma \ref{lemma:gene
 
 We have:
 \begin{align}\label{eq:thg-3}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}_{\bm{w}}}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}_{\bm{w}}}_{\nu}^2\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{\nu}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[(\wt{T}Q_{\bm{w}}-Q_{\bm{w}})^2\right]\right]\notag\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right]+ \mathbb{E}_{\nu}\left[Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right].
 \end{align}
-Let us bound these two terms point-wisely for each $s,a$. For the first expectation, we have:
+Let us bound these two terms point-wisely for each pair $\langle s,a\rangle$. For the first expectation, we have:
 \begin{align}\label{eq:thg-1}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\notag\\ =\ & R(s,a) + \gamma\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] - \bm{w}^{*T}\bm{\phi}(s,a)
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] - \bm{w}^T\bm{\phi}(s,a)\right]\notag\\ =\ & R(s,a) + \gamma\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right]\right] - \bm{w}^{*T}\bm{\phi}(s,a).
 \end{align}
 To bound the second term, we adopt Jensen's inequality:
 \begin{align}\label{eq:thg-2}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^T\bm{\phi}(s',a') }\right]\notag\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right]
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right]\right] =\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^T\bm{\phi}(s',a') }\right]\right]\notag\\ \leq\ & \mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right]\right].
 \end{align}
 Now, since we know that $\bm{w}^T\bm{\phi}(s',a') \sim \mathcal{N}(\bm{w}^{*T}\bm{\phi}(s',a'),c\ \bm{\phi}(s',a')^T\bm{\phi}(s',a'))$, $e^{\kappa\bm{w}^T\bm{\phi}(s',a')}$ follows a log-normal distribution with mean $e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}$. Thus:
+\begin{small}
 \begin{align*}
-\mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right] =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\\ \leq\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}^2}\\ =\ & \mathbb{E}_{s'}\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')} + \frac{1}{2}\kappa c\bm{\phi}_{max}^2\\ =\ & \mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa c\bm{\phi}_{max}^2
+\mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[e^{\kappa\bm{w}^T\bm{\phi}(s',a')}\right]\right] =\ & \mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\kappa^2c\bm{\phi}(s',a')^T\bm{\phi}(s',a')}\right]\\ \leq\ & \mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}e^{\frac{1}{2}\kappa^2c\bm{\phi}_{max}^2}\right]\\ =\ & \mathbb{E}_{s'}\left[\frac{1}{\kappa} \log \frac{1}{|\mathcal{A}|}\sum_{a'} e^{\kappa\bm{w}^{*T}\bm{\phi}(s',a')}\right] + \frac{1}{2}\kappa c\bm{\phi}_{max}^2\\ =\ & \mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a')\right] + \frac{1}{2}\kappa c\bm{\phi}_{max}^2.
 \end{align*}
-Plugging this into \ref{eq:thg-2} and then into \ref{eq:thg-1}, we obtain:
+\end{small}
+Plugging this into \eqref{eq:thg-2} and then into \eqref{eq:thg-1}, we obtain:
 \begin{align*}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a') + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2 - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}_{\bm{w}^{*}} + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & R(s,a) + \gamma\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^{*T}\bm{\phi}(s',a')\right] + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2 - \bm{w}^{*T}\bm{\phi}(s,a)\\ =\ & \wt{B}_{\bm{w}^{*}} + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2.
 \end{align*}
 This implies:
 \begin{align*}
-\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4
+\mathbb{E}^2_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq\ & \left(\wt{B}(\bm{w}^{*T}) + \frac{1}{2}\gamma\kappa c\bm{\phi}_{max}^2\right)^2\\ \leq\ & 2\wt{B}^2(\bm{w}^{*}) + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4,
 \end{align*}
-where the second inequality follows from Cauchy-Schwarz inequality. Going back to \ref{eq:thg-3}, the first term can now be upper bounded by:
+where the second inequality follows from Cauchy-Schwarz inequality. Going back to \eqref{eq:thg-3}, the first term can now be upper bounded by:
 \begin{align*}
-\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4
+\mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}^2\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right]\right] \leq 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4.
 \end{align*}
-Let us now consider the variance term of \ref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
+Let us now consider the variance term of \eqref{eq:thg-3} and derive a bound that holds point-wisely for any $s,a$. We have:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\mm_{a'}\sqrt{c}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[R(s,a) + \gamma\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\bm{\phi}(s',a')\right] - \bm{w}^T\bm{\phi}(s,a)\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\bm{\phi}(s',a') - \bm{w}^T\bm{\phi}(s,a)\right]\right]\\ =\ & Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\gamma\mathbb{E}_{s'}\left[\mm_{a'}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\right]\\ =\ & \gamma^2 Var_{\mathcal{N}(\bm{w}^*,\bm{I})}\left[\mathbb{E}_{s'}\left[\mm_{a'}\sqrt{c}\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)\right]\right].
 \end{align*}
 From Cauchy-Schwarz inequality:
 \begin{align*}
-\sqrt{c}\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & \sqrt{c}\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & \sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}
+\sqrt{c}\abs{\bm{w}^T\left(\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)\right)} \leq\ & \sqrt{c}\norm{\bm{w}}\norm{\bm{\phi}(s',a')-\frac{1}{\gamma}\bm{\phi}(s,a)}\\ \leq\ & \sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}.
 \end{align*}
 Then, the random variable over which the variance is computed is limited in $[-\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma},\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}]$ and the variance can be straightforwardly bounded using Popoviciu's inequality:
 \begin{align*}
-Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+Var_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\wt{T}Q_{\bm{w}}-Q_{\bm{w}}\right] \leq \gamma^2 \frac{1}{4}\left(2\sqrt{c}\bm{w}_{max}\bm{\phi}_{max}\frac{1 + \gamma}{\gamma}\right)^2 = c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2.
 \end{align*}
-We can finally plug everything into \ref{eq:thg-3}, thus obtaining:
+We can finally plug everything into \eqref{eq:thg-3}, thus obtaining:
 \begin{align*}
-\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2\right] \leq 2\norm{\wt{B}_{\bm{w}^*}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2
+\mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2\right] \leq 2\norm{\wt{B}_{\bm{w}^*}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^2 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2.
 \end{align*}
 
 \paragraph*{Bounding the KL divergence}
 
 We have:
 \begin{align*}
-KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^d} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -d \right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma_{max}}{c} + \frac{1}{2}d\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}
+KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right) =\ & KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)\right)\\ =\ & \frac{1}{2}\left( \log\frac{\abs{\bm{\Sigma}_p}}{c^d} + c\text{Tr}\left( \bm{\Sigma}_p^{-1}\right) + \norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} -d \right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma_{max}}{c} + \frac{1}{2}d\frac{c}{\sigma_{min}} + \frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}.
 \end{align*}
-Now, putting all together into \ref{eq:thg-4}:
+Now, putting all together into \eqref{eq:thg-4}:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right]\\ &\ + \frac{\lambda}{N}d\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}d\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \frac{1}{2}\gamma^2\kappa^2 c^2\bm{\phi}_{max}^4 + c\left(\bm{w}_{max}\bm{\phi}_{max}(1 + \gamma)\right)^2 + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right]\\ &\ + \frac{\lambda}{N}d\log\frac{\sigma_{max}}{c} + \frac{\lambda}{N}d\frac{c}{\sigma_{min}} + \frac{\lambda}{N}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
 Since the bound holds for any $c>0$, we can set it to $1/N$, thus obtaining:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + \frac{1}{N^2}\left(\frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma_{min}}\right)\\ &\ + \frac{1}{N}\left(\bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma_{max} + \log N) + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}} \right)\\ &\ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{align*}
 Finally, defining the constants $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma_{max} + \log N)$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma_{min}}$, we obtain:
 \begin{align*}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & 2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}.
 \end{align*}
 Let us now apply Corollary \ref{cor:diff-q}. We have that, with probability at least $1-\delta$:
 \begin{align*}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ]}{(1-\gamma)\delta}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ]}{(1-\gamma)\delta}.
 \end{align*}
 Thus, we probability at least $1-2\delta$:
 \begin{align*}
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right)
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}\right).
 \end{align*}
 \end{proof}
 
@@ -644,53 +646,53 @@ Thus, we probability at least $1-2\delta$:
 %\end{proof}
 
 \begin{restatable}{theorem}{thmgsoft} \label{th:main-mixture-soft}
-Fix a target task $\tau$ a let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the mixture version of Alg. \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \ref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[B_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
+Fix a target task $\tau$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\abs{\bm{w}}\leq w_{max}$ and uniformly bounded features $\abs{\bm{\phi}(s,a)}\leq \phi_{\max}$. Consider the mixture version of Algorithm~ \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-2\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
 \begin{equation}
 \resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$},
 \end{equation}
 where $\softmin_i x \triangleq \sum_i \frac{e^{-x_i}}{\sum_j e^{-x_j}}x_i$.
 \end{restatable}
 \begin{proof}
 Similarly to the previous proof, we can apply Lemma \ref{lemma:general-bound} with variational parameters $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$, while choosing the same specific parameters for the right-hand side: $\bm{\mu}_i = \bm{w}^*$ and $\bm{\Sigma}_i = c\bm{I}$ for all $i=1,\dots,C$. Then, we obtain:
 \begin{align}\label{eq:thmg-1}
-\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
+\mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\ & \inf_{\bm{\xi} \in \Xi}\left\{ \mathbb{E}_{q_{\bm{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\bm{\xi}}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\bm{\xi}}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}\notag\\ \leq\ & \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{\mathcal{N}(\bm{w}^*,c\bm{I})}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL\left(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p\right)\notag\\ &\ \ + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align}
 The only difference w.r.t. Eq. \eqref{eq:thg-4} of Thm. \ref{th:main-gaussian} is the KL divergence term, which now contains a mixture distribution. From Thm. \ref{th:ukl} we have:
 \begin{align}\label{eq:thmg-2}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))
+KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})),
 \end{align}
 where the vectors $\chi^{(1)}$ and $\chi^{(2)}$ are the ones defined in Thm. \ref{th:ukl}. Notice that, since we reduced the posterior to one component, we can get rid of the index $i$. Using the definitions of these two vectors from Sec. 8 of \cite{hershey2007approximating}, we have:
 \begin{align*}
 \chi^{(1)}_j = \frac{1}{\abs{\mathcal{W}_s}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
 \end{align*}
 \begin{align}\label{eq:chi2}
-\chi^{(2)}_j = \frac{e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))}}{\sum_{j'}e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_{j'}, \sigma_p^2\bm{I}))}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
+\chi^{(2)}_j = \frac{e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I}))}}{\sum_{j'}e^{-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_{j'}, \sigma_p^2\bm{I}))}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}.
 \end{align}
 Since the KL divergence is:
 \begin{align*}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) = \frac{1}{2}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)
+KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) = \frac{1}{2}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right),
 \end{align*}
-Eq. \ref{eq:chi2} can be rewritten as:
+Eq. \eqref{eq:chi2} can be rewritten as:
 \begin{align*}
-\chi^{(2)}_j = \frac{e^{-\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}
+\chi^{(2)}_j = \frac{e^{-\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}}}{\sum_{j'}e^{-\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_{j'}}}}\ \forall j = 1,\dots,\abs{\mathcal{W}_s}.
 \end{align*}
 Let us bound the two terms of \eqref{eq:thmg-2} separately. For the first one, we have:
 \begin{align*}
-KL(\chi^{(2)}||\chi^{(1)}) =\ & \sum_j \chi^{(2)}_j \log\frac{\chi^{(2)}_j}{\chi^{(1)}_j}\\ =\ & \sum_j \chi^{(2)}_j \log\chi^{(2)}_j - \sum_j \chi^{(2)}_j \log\frac{1}{\abs{\mathcal{W}_s}}\\ \leq\ & \log\abs{\mathcal{W}_s}
+KL(\chi^{(2)}||\chi^{(1)}) =\ & \sum_j \chi^{(2)}_j \log\frac{\chi^{(2)}_j}{\chi^{(1)}_j}\\ =\ & \sum_j \chi^{(2)}_j \log\chi^{(2)}_j - \sum_j \chi^{(2)}_j \log\frac{1}{\abs{\mathcal{W}_s}}\\ \leq\ & \log\abs{\mathcal{W}_s},
 \end{align*}
 where the inequality holds since the first term is negative. For the second one:
 \begin{align*}
-\sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) =\ & \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \sum_{j} \chi^{(2)}_{j}\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\\ =\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace
+\sum_{j} \chi^{(2)}_{j}KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ \mathcal{N}(\bm{w}_j, \sigma_p^2\bm{I})) =\ & \frac{1}{2}\sum_{j} \chi^{(2)}_{j}\left( d\log\frac{\sigma^2_p}{c} + d\frac{c}{\sigma^2_p} + \frac{1}{\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j} - d\right)\\ \leq\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \sum_{j} \chi^{(2)}_{j}\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\\ =\ & \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace.
 \end{align*}
 Putting the two terms together:
 \begin{align*}
-KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq \log\abs{\mathcal{W}_s} + \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace
+KL(\mathcal{N}(\bm{w}^*,c\bm{I})\ ||\ p) \leq \log\abs{\mathcal{W}_s} + \frac{1}{2}d\log\frac{\sigma^2_p}{c} + \frac{1}{2}d\frac{c}{\sigma^2_p} + \softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace.
 \end{align*}
 Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-gaussian} with $\sigma_{max}=\sigma_{min}=\sigma^2_p$ and $\frac{1}{2}\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}$ replaced by $\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace$. Thus, by redefining the three constants to $c_1 = \frac{8R_{max}^2}{\sqrt{2}(1-\gamma)^2}$, $c_2 = \bm{w}_{max}^2\bm{\phi}_{max}^2(1 + \gamma)^2 + \lambda d (\log\sigma^2_p + \log N) + 2\lambda\log\abs{\mathcal{W}_s}$, and $c_3 = \frac{1}{2}\gamma^2\kappa^2\bm{\phi}_{max}^4 + \frac{\lambda d}{\sigma^2_p}$, we can write that, with probability at least $1-2\delta$:
 \begin{align*}
 \resizebox{0.93\textwidth}{!}{$
-\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$}
+\norm{Q_{\bm{w}} - \wt{Q}}_{\nu}^2 \leq \frac{1}{(1-\gamma)\delta}\left(2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}}  + \frac{c_2 +  2\lambda\softmin_j\left\lbrace\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right\rbrace}{N} + \frac{c_3}{N^2}\right)$}.
 \end{align*}
 \end{proof}
 
@@ -698,7 +700,7 @@ Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-ga
 
 \subsection{Gaussian Variational Transfer}
 
-Under Gaussian distributions, all quantities of interest for using Alg. \ref{alg:transfer} can be computed very easily. The KL divergence between the prior and approximate posterior can be computed in closed-form as:
+Under Gaussian distributions, all quantities of interest for using Algorithm \ref{alg:transfer} can be computed very easily. The KL divergence between the prior and approximate posterior can be computed in closed-form as:
 \begin{equation}
 KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) = \frac{1}{2}\left( \log\frac{\left\lvert \bm{\Sigma}_p \right\rvert}{\left\lvert \bm{\Sigma} \right\rvert} + \text{Tr}\left( \bm{\Sigma}_p^{-1}\bm{\Sigma} \right) + (\bm{\mu} - \bm{\mu}_p)^T \bm{\Sigma}_p^{-1} (\bm{\mu} - \bm{\mu}_p) -d \right)
 \end{equation}
@@ -719,13 +721,13 @@ Finally, the gradients w.r.t. the expected likelihood term of the variational ob
 
 \subsection{Mixture of Gaussian Variational Transfer}
 
-For the implementation of the Mixture of Gaussian Variational Transfer, we use the upper bound on the KL divergence between two Mixtures of Gaussians, as in Theorem\ref{th:ukl}, to obtain an upper bound on the negative ELBO in Equation\ref{eq:elbo}. Consider we have $C$ components for the posterior family $q_{\bm{\xi}}(\bm{w}) = \frac{1}{C}\sum_{i=1}^C\mathcal{N}(\bm{w}|\bm{\mu}_i,\bm{\Sigma}_i)$ and a prior distribution, constructed from the set of weights $\mathcal{W}_s = \left\lbrace \bm{w}_1,..., \bm{w}_{|\mathcal{W}_s|} \right\rbrace$ of the sources' optimal $Q$-functions, $p(\bm{w}) = \frac{1}{\abs{\mathcal{W}_s}}\sum_{j=1}^{|\mathcal{W}_s|}\mathcal{N}(\bm{w}|\bm{w}_j,\sigma_p^2\bm{I})$.
+For the implementation of the Mixture of Gaussian Variational Transfer, we use the upper bound on the KL divergence between two Mixtures of Gaussians, as in Theorem~\ref{th:ukl}, to obtain an upper bound on the negative ELBO in Equation~\eqref{eq:elbo}. Consider we have $C$ components for the posterior family $q_{\bm{\xi}}(\bm{w}) = \frac{1}{C}\sum_{i=1}^C\mathcal{N}(\bm{w}|\bm{\mu}_i,\bm{\Sigma}_i)$ and a prior distribution, constructed from the set of weights $\mathcal{W}_s = \left\lbrace \bm{w}_1,..., \bm{w}_{|\mathcal{W}_s|} \right\rbrace$ of the sources' optimal $Q$-functions, $p(\bm{w}) = \frac{1}{\abs{\mathcal{W}_s}}\sum_{j=1}^{|\mathcal{W}_s|}\mathcal{N}(\bm{w}|\bm{w}_j,\sigma_p^2\bm{I})$.
 
 \begin{equation}\label{eq:ukl}
 KL\left(q_{\bm{\xi}}(\bm{w})\ ||\ p(\bm{w})\right) \leq KL(\chi^{(2)}||\chi^{(1)}) + \sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)}KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
 \end{equation}
 
-And substituting (\ref{eq:ukl}) in the negative ELBO in \ref{eq:elbo} we get the following upper bound.
+And substituting \eqref{eq:ukl} in the negative ELBO in \eqref{eq:elbo} we get the following upper bound.
 
 \begin{align}
 \mathcal{L}(\bm{\xi}) \leq  \widetilde{\mathcal{L}}(\bm{\xi}) &= \mathbb{E}_{\bm{w} \sim q_{\bm{\xi}}}\left[\norm{B_{\bm{w}}}_D^2\right] \nonumber \\&+ \frac{\lambda}{N} KL(\chi^{(2)}||\chi^{(1)}) +\  \frac{\lambda}{N}\sum_{i=1}^C\sum_{j=1}^{|\mathcal{W}_s|} \chi_{j,i}^{(2)}KL(\mathcal{N}(\bm{w}|\bm{\mu}_i, \bm{\Sigma}_i)\ ||\ \mathcal{N}(\bm{w}|\bm{w}_j, \sigma_p^2\bm{I}))
@@ -739,7 +741,7 @@ Finally, using this upper bound as objective of our optimization problem, we can
 \end{align}
 
 
-that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\mu}_C, \bm{\Sigma}_1,..., \bm{\Sigma}_C)$ using the Eq. \ref{eq:klgradmu}, \ref{eq:klgradL}, \ref{eq:tdgradmu}, \ref{eq:tdgradL} derived for the Gaussian case.
+that is easily differentiable with respect to $\bm{\xi} = (\bm{\mu}_1,..., \bm{\mu}_C, \bm{\Sigma}_1,..., \bm{\Sigma}_C)$ using the Equations~\eqref{eq:klgradmu}, \eqref{eq:klgradL}, \eqref{eq:tdgradmu}, \eqref{eq:tdgradL} derived for the Gaussian case.
 
 \section{Additional Details on the Experiments}
 
@@ -753,13 +755,13 @@ For these experiments, in order to train the source tasks for the Rooms Problem,
 
 For the transfer algorithm GVT, we set a \textit{Batch Size} of $50$ and a \textit{Buffer Size} of $10000$. We use $\psi=0.5$, $\lambda=10^{-4}$ and $10$ \textit{weights} to estimate the expected TD error. For the learning rates, $\alpha_{\mu}=0.001$ for the mean of the posterior Gaussian and $\alpha_{L}=0.0001$ to learn its Cholesky factor L. Furthermore, we restrict the minimum value reachable by the eigenvalues of these factors to be $\sigma_{min}^2=0.0001$. In the case of MGVT we use, instead, $\lambda=10^{-6}$, $\alpha_{\mu}=0.001$ and $\alpha_{L}=0.1$. Finally, for the prior's covariances we set it to $\sigma_p^2=10^{-5}$.
 
-Besides the results that we show in Sec. \ref{sec:gw}, we present in this section further empirical evaluation.
+Besides the results that we show in Section~\ref{sec:gw}, we present in this section further empirical evaluation.
 
 Firstly, we show the results of the evaluation of the greedy performance. We compute this as the average reward gotten when the agent acts using the greedy policy using the parameters at the iteration of evaluation. In the case of GVT, we take the mean of the posterior Gaussian and, in MGVT, we compute the mean of the posterior by averaging the means of its components and use it for evaluation. 
 
-In Fig. \ref{fig:3r-rew} we show the results when evaluating the Rooms Problem performance when the sources used to transfer have sample tasks resulting when both doors are sampled uniformly. It is easily noticeable that both GVT and MGVT perform much better in comparison with the no transfer performance and shows that the mean behavior of our posterior distribution, indeed, converges to the actual optimal solution.
+In Figure~\ref{fig:3r-rew} we show the results when evaluating the Rooms Problem performance when the sources used to transfer have sample tasks resulting of both doors being sampled uniformly. It is easily noticeable that both GVT and MGVT perform much better in comparison with the no transfer performance and shows that the mean behavior of our posterior distribution, indeed, converges to the actual optimal solution.
 
-In Fig.\ref{fig:3rg-erew} we show the evaluation for the generalization experiment when the sampled source tasks have a door fixed and the target task is generated by sampling both doors' positions. From this we can clearly appreciate that MGVT is able to quickly converge to the optimal solution in this more complicated setting, whereas GVT fails to adapt as consistently as MGVT; thus the higher variance and distance to the optimal value. In this scenario, using a Gaussian to model the prior over-constrains the algorithm to stay close to part of the function space that cannot solve optimally the target tasks sampled from the modified distribution.
+In Figure~\ref{fig:3rg-erew} we show the evaluation for the generalization experiment when the sampled source tasks have a door fixed and the target task is generated by sampling both doors' positions. From this we can clearly appreciate that MGVT is able to quickly converge to the optimal solution in this more complicated setting, whereas GVT fails to adapt as consistently as MGVT, thus the higher variance and distance to the optimal value. In this scenario, using a Gaussian to model the prior over-constrains the algorithm to stay close to part of the function space that cannot solve optimally the target tasks sampled from the modified distribution.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
@@ -797,9 +799,9 @@ In the other case, we have Fig. \ref{fig:nt-vs-mgvt} that shows a similar situat
   \label{fig:rooms-expl}
 \end{figure*}
 
-Finally, in Fig. \ref{fig:sequential} we present the expected return as a function of the number of source tasks used for GVT and MGVT. In particular, we show the resulting curves after $1000$ iterations in Fig. \ref{fig:seq-1000} and after $1950$ iterations in Fig. \ref{fig:seq-1950}. It is interesting to notice the difference on performance between MGVT and GVT whenever there is a small number of source tasks. MGVT clearly provides faster adaptation in the presence of low prior knowledge as it can be discerned from the gap created after nearly a $1000$ iterations between the plots. This, however, is as expected because approximating the prior Gaussian distribution using maximum likelihood estimations with a low number of samples does not provide enough precision. As the number of source tasks increases, as seen more clearly from Fig. \ref{fig:seq-1950}, the performances between the algorithms become closer for this environment. 
+Finally, in Figure~\ref{fig:sequential} we present the expected return as a function of the number of source tasks used for GVT and MGVT. In particular, we show the resulting curves after $1000$ iterations in Figure~\ref{fig:seq-1000} and after $1950$ iterations in Figure~\ref{fig:seq-1950}. It is interesting to notice the difference on performance between MGVT and GVT whenever there is a small number of source tasks. MGVT clearly provides faster adaptation in the presence of low prior knowledge as it can be discern from the gap seen in nearly a $1000$ iterations between the plots. It is as expected because approximating the prior Gaussian distribution using maximum likelihood estimations with a low number of samples does not provide enough precision. As the number of source tasks increases, as seen more clearly from Figure~\ref{fig:seq-1950}, the performances become closer for this environment. 
 
-Finally, among the MGVT curves in Fig. \ref{fig:sequential}, we see that, even if more components lead to slightly better performances, the advantage is not quite significant in this environment. As seen above, the actual performances will converge to optimality in all the MGVT cases. Clearly, as we expect all components to converge to the optimal parameters, the initial performance difference will, indeed, reduce fast.
+Finally, among the MGVT curves in Figure~\ref{fig:sequential}, we see that, even if more components lead to slightly better performances, the advantage is not quite significant in this environment. As seen before, the actual performances will converge to optimality in all the MGVT cases. Clearly, as we expect all components to converge to the optimal parameters, the initial performance difference will, indeed, reduce fast.
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
@@ -827,7 +829,7 @@ During the training of the source tasks, we use a \textit{Batch Size} of $150$ a
 
 For the transfer experiments, we set the \textit{Batch Size} to $500$, the number of \textit{weights} sampled to approximate the expected TD error to $5$, $\lambda=0.001$ and $\psi=0.5\ $. We use $\alpha_{\mu}=0.001$ as the learning rate for the mean of the Gaussian posterior. For its the Cholesky factor L we use $\alpha_L=0.0001$ and set the limit that the minimum eigenvalue may reach to $\sigma_{min}^2=0.0001\ $. Additionally, for MGVT we set the variance of the prior components $\sigma_p^2=10^{-5}$ and leave the learning rates of the posterior components' means and Cholesky factor the same as GVT.
 
-In Fig. \ref{fig:cp-erew}, we show the evaluation performance for DDQN, GVT, 1-MGVT and 3-MGVT, which consists of the average performance of the greedy policy using the parameters in the iteration of evaluation. In the case of GVT, we use the mean of the Gaussian posterior for the greedy policy and for MGVT corresponds to the mean of the Mixture of Gaussians for the posterior, that reduces to the average of the components' means. From the figure we can see how the transfer methods provide a significant jump-start w.r.t. the DDQN evaluation. Also, in this tasks is possible to still observe an improved performance from using MGVT as within fewer iterations, the mean parameters converges to the optimal $Q$-function.
+In Figure~\ref{fig:cp-erew}, we show the evaluation reward for DDQN, GVT, 1-MGVT and 3-MGVT, which consist of the average performance of the greedy policy using the parameters in the iteration of evaluation. In the case of GVT, we use the mean of the Gaussian posterior for the greedy policy and for MGVT corresponds to the mean of the Mixture of Gaussians for the posterior, that reduces to the average of the components' means. From the figure we can see how the transfer methods provide a significant jump-start w.r.t. the DDQN evaluation. Although, a slight performance drop is seen as the algorithm adapts to the optimal Q-function, the algorithm quickly reaches optimality and converges to the actual optimal performance while DDQN, within these iterations, remains on average slightly suboptimal. \todo{improve this}
 
 \begin{figure*}[t]
   \begin{subfigure}[b]{0.45\textwidth}
@@ -852,15 +854,15 @@ For the sources, we train the tasks using DDQN with a \textit{Target Update Freq
 
 For the transfer experiments, we set the \textit{Batch Size} to $500$, and use $10$ \textit{weights} to approximate the expected TD error, $\lambda=10^{-5}$ and $\psi=0.5$. For the learning rates, we use $\alpha_{\mu}=0.001$ for the means of the Gaussians. In the case of the Cholesky factors L, we use $\alpha_L=0.0001$ and allow the eigenvalues to reach a minimum value of $\sigma_{min}^2=0.0001$. In the case of MGVT, additionally, we set the prior covariance to be $\sigma_p^2=10^{-5}$.
 
-Finally, in Fig. \ref{fig:mc-erew}, we show the evaluation performance obtained during the executions, which, as before, corresponds to the average reward gotten acting with a greedy policy with the parameters of the network in the case of DDQN and the mean value of the posterior in the cases of GVT and MGVT in the iteration of evaluation. In this plot, we can observe directly how fast is MGVT able to make its mean converge to the actual optimal performance. Also, even though GVT struggles to learn in comparison with MGVT, still provides a clear advantage w.r.t. DDQN. It is worth noting that the variances seen are caused by different speeds of the car resulting in different time to reach the goal and, thus, different optimal return.
+Finally, in Figure~\ref{fig:mc-erew}, we show the evaluation reward obtained during the executions, which, as before, corresponds to the average reward gotten acting with a greedy policy with the parameters of the network in the case of DDQN and the mean value of the posterior in the cases of GVT and MGVT in the iteration of evaluation.  In this plot, we can observe directly how fast is MGVT able to converge its mean to the actual optimal performance and that even if GVT struggles to find learn in comparison with MGVT, still provides a clear advantage w.r.t. DDQN. Also, it is worth noting that the variances seen are result that different speeds of the car result in different time to reach the goal and, thus, different optimal performances.
 
 Clearly, this variation in the values among tasks allows MGVT to excel w.r.t. to the other methods. The richer prior of MGVT allows to exploit efficiently the previous knowledge on the possible values attainable from the tasks and, therefore, quickly resolve how to best optimize for the target. This fact is a clear contrast with GVT as the search is more likely constrained to the mean values and moving away from that is, in fact, slower.
 
 \subsection{Maze Navigation}
 
-For the maze navigation task presented in Sec. \ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Fig. \ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+For the maze navigation task in Section~\ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Figure~\ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
 
-For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions..For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$ and learning rate to $\alpha=0.001$ .
+For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions..For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$ and learning rate to $\alpha=0.001$.
 
 In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$ and use $10$ sampled \textit{weights} from the posterior to approximate the TD error. Moreover, we use $\lambda=10^{-6}$. For GVT, in particular, we use $\alpha_{\mu}=0.001$ as the rate to learn the mean parameters of our Gaussian posterior. For the Cholesky factor L, instead, we use $\alpha_{L}=10^{-7}$ and set the minimum value reachable by its eigenvalues to be $\sigma_{min}=0.0001$. In the case of MGVT experiments we set $\alpha_{\mu}=0.001$ to learn the mean of the different Gaussian components of our posterior and set $\alpha_{L}=10^{-6}$ for the Cholesky factors of its covariances. Finally, we use $\sigma_p^2=10^{-5}$ as the prior variance.
 
@@ -954,6 +956,9 @@ In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \tex
   \label{fig:mazes}
 \end{figure*}
 
+In Figure~\ref{}, we present the results of transferring from $5$ source tasks to the mazes shown in Figure~\ref{fig:maze0}, Figure~\ref{fig:maze6}, Figure~\ref{fig:maze8} and Figure~\ref{fig:maze13} using \todo{also GVT?} GVT and MGVT. We show both the evaluation reward, i.e. the average performance obtained evaluating the mean parameters of the posterior in a given iteration of the algorithm by following a greedy policy w.r.t. those parameters, and the expected return. All the curves result from averaging $20$ independent runs and randomly sampled sources.
+
+% Placer-holder to actual plots. Add analyses
 \begin{figure*}[h]
 	\begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev_maze0.pdf}
