@@ -864,11 +864,11 @@ Clearly, this variation in the values among tasks allows MGVT to excel w.r.t. to
 
 \subsection{Maze Navigation}
 
-For the maze navigation task in Section~\ref{sec:mn}, here we enumerate the mazes that were designed to realize the experiments. In Figure~\ref{fig:mazes}, there are $20$ mazes with varying degree of difficulty and that were designed to hold some similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+The mazes adopted in the experiments of Sec. \ref{} are shown in Fig.~\ref{fig:mazes}. Our $20$ mazes have with varying degree of difficulty and are designed to hold few similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
 
-For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU as activation functions..For training the sources we use DDQN with a \textit{Batch size} of $70$, a \textit{Buffer Size} of $10000$ and a \textit{Target Update Frequency} of $100$, setting the \textit{Exploration Fraction} to $0.1$ and learning rate to $\alpha=0.001$.
+For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU activation functions. For training the sources we use a DDQN with a \textit{batch size} of $70$, a \textit{buffer size} of $10000$ and a \textit{target update frequency} of $100$, setting the \textit{exploration fraction} to $0.1$ and learning rate to $\alpha=0.001$.
 
-In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \textit{Buffer Size} of $50000$ and use $10$ sampled \textit{weights} from the posterior to approximate the TD error. Moreover, we use $\lambda=10^{-6}$. For GVT, in particular, we use $\alpha_{\mu}=0.001$ as the rate to learn the mean parameters of our Gaussian posterior. For the Cholesky factor L, instead, we use $\alpha_{L}=10^{-7}$ and set the minimum value reachable by its eigenvalues to be $\sigma_{min}=0.0001$. In the case of MGVT experiments we set $\alpha_{\mu}=0.001$ to learn the mean of the different Gaussian components of our posterior and set $\alpha_{L}=10^{-6}$ for the Cholesky factors of its covariances. Finally, we use $\sigma_p^2=10^{-5}$ as the prior variance.
+In the transfer experiments we use $\psi=0.5$, a \textit{batch size} of $50$, a \textit{buffer size} of $50000$ and use $10$ sampled \textit{weights} from the posterior to approximate the TD error. Moreover, we use $\lambda=10^{-6}$. For GVT, in particular, we use $\alpha_{\mu}=0.001$, $\alpha_{L}=10^{-7}$, and set the minimum value reachable by its eigenvalues to be $\sigma_{min}=0.0001$. In the case of MGVT, we set $\alpha_{\mu}=0.001$ and $\alpha_{L}=10^{-6}$. Finally, we use $\sigma_p^2=10^{-5}$ as the prior bandwidth.
 
 
 \begin{figure*}[t]
@@ -960,8 +960,6 @@ In transfer experiments we use $\psi=0.5$, a \textit{Batch Size} of $50$, a \tex
   \label{fig:mazes}
 \end{figure*}
 
-In Figure~\ref{}, we present the results of transferring from $5$ source tasks to the mazes shown in Figure~\ref{fig:maze0}, Figure~\ref{fig:maze6}, Figure~\ref{fig:maze8} and Figure~\ref{fig:maze13} using \todo{also GVT?} GVT and MGVT. We show both the evaluation reward, i.e. the average performance obtained evaluating the mean parameters of the posterior in a given iteration of the algorithm by following a greedy policy w.r.t. those parameters, and the expected return. All the curves result from averaging $20$ independent runs and randomly sampled sources.
-
 % Placer-holder to actual plots. Add analyses
 \begin{figure*}[h]
 	\begin{subfigure}[b]{0.45\textwidth}
@@ -998,10 +996,9 @@ In Figure~\ref{}, we present the results of transferring from $5$ source tasks t
   \label{fig:rew-maze13}
 \end{figure*}
 
-Hereafter, we present additional results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6} and Fig. \ref{fig:maze13} using both GVT and MGVT. We show both the evaluation performance, i.e. the average performance obtained evaluating the mean parameters of the posterior in a given iteration of the algorithm by following a greedy policy w.r.t. those parameters, and the expected return during the learning process. All the curves result from averaging $20$ independent runs and randomly sampled sources.
+Hereafter, we present additional results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6} and Fig. \ref{fig:maze13} using both GVT and MGVT. We show both the greedy and online performances. All the curves result from averaging $20$ independent runs and randomly sampled sources.
 
 In Fig. \ref{fig:maze0}, \ref{fig:maze6}, \ref{fig:maze13}, we can appreciate that in this more complex transfer setting, MGVT is able to provide significant speed-up in a consistent manner in this subset of mazes. It is also noticeable the bad performance obtained with GVT in all cases. The Gaussian prior model clearly fails to capture enough information to transfer in this setting that result in a negative transfer effect.
-
 
 
 \end{document}
