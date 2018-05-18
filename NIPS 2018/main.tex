@@ -226,7 +226,7 @@ The proof is provided in App. \ref{app:a1}. Notice that $\wt{Q}$ converges to $Q
 The second question that we need to answer is whether we can provide any guarantee on our algorithm's performance when given limited data. To address this point, we consider the two variants of Algorithm~\ref{alg:transfer} from Sec. \ref{sec:gvt} and \ref{sec:mgvt} with linear approximators. We assume only a finite dataset is available and provide a finite-sample analysis bounding the expected (mellow) Bellman error under the variational distribution minimizing the objective \eqref{eq:elbo}. Due to space constraints, we provide only the result for mixtures of Gaussians, while referring the reader to App. \ref{app:a2} for the Gaussian case.
 
 \begin{restatable}{theorem}{thmg} \label{th:main-mixture}
-Fix a target task $\mathcal{M}_{\tau}$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\norm{\bm{w}}_2\leq w_{max}$ and uniformly bounded features $\norm{\bm{\phi}(s,a)}_2\leq \phi_{\max}$. Consider the mixture version of Algorithm~ \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}||\wt{B}_{\bm{w}}||_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt b_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
+Fix a target task $\mathcal{M}_{\tau}$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\norm{\bm{w}}_2\leq w_{max}$ and uniformly bounded features $\norm{\bm{\phi}(s,a)}_2\leq \phi_{\max}$. Consider the mixture version of Algorithm~ \ref{alg:transfer} using $C$ components, source task weights $\mathcal{W}_s$, and bandwidth $\sigma^2_p\ $ for the prior. Denote by $\wh{\bm{\xi}} = (\wh{\bm{\mu}}_1,\dots,\wh{\bm{\mu}}_C,\wh{\bm{\Sigma}}_1,\dots,\wh{\bm{\Sigma}}_C)$ the variational parameters minimizing the objective of Eq. \eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}||\wt{B}_{\bm{w}}||_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-\delta$ over the choice of weights $\bm{w} \sim \frac{1}{C}\sum_i\mathcal{N}(\wh{\bm{\mu}}_i,\wh{\bm{\Sigma}}_i)$ and dataset $D$:
 \begin{equation}
 \resizebox{0.93\textwidth}{!}{$
 \mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\  2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda d \log N + 2\lambda\varphi\left(\frac{1}{2\sigma^2_p}\norm{\bm{w}^* - \bm{w}_j}\right)}{N} + \frac{c_3}{N^2}$},
@@ -441,7 +441,7 @@ Taking the norm and plugging this into Eq. \eqref{eq:mm1} concludes the proof.
 We begin by proving some important lemmas. Then, we use them to derive a finite-sample analysis of Algorithm~\ref{alg:transfer} with linearly parameterized value functions for both Gaussian distributions (Thm. \ref{th:main-gaussian}) and Gaussian mixture models (Thm. \ref{th:main-mixture}). We start by proving some important properties of the variational approximation introduced in Section~\ref{sec:alg}. Our results generalize those of existing works that consider variational approximations of intractable Gibbs posteriors \cite{alquier2016properties,cottet20181}. From now on, we consider only $Q$-functions parameterized by weights $\bm{w}$ and assume them to be uniformly bounded by $\frac{R_{max}}{1-\gamma}$. 
 
 \begin{lemma}\label{lemma:l2}
-Let $p$ and $q$ be arbitrary distributions over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$ and define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b_{\bm{w}}\right]\right]$. Then, for any $\lambda > 0$ and $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
+Let $p$ and $q$ be arbitrary distributions over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Consider a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$ and define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b(\bm{w})\right]\right]$. Then, for any $\lambda > 0$ and $\delta > 0$, with probability at least $1-\delta$, the following two inequalities hold simultaneously:
 \begin{equation}\label{eq:lemma2-1}
 \mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \mathbb{E}_q\left[ \norm{\wt B_{\bm{w}}}_D^2 \right] - \mathbb{E}_q\left[ \text{v}(\bm{w}) \right] + \frac{\lambda}{N} KL(q||p) + 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}
 \end{equation}
@@ -460,9 +460,9 @@ which implies that, for any $\delta>0$, with probability at least $1-\delta$:
 \end{align*}
 Under independence assumptions, the expected TD error can be re-written as:
 \begin{align*}
-\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{\wt B_{\bm{w}}}_D^2\right] =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[\frac{1}{N}\sum_{i=1}^N (r_i + \gamma \mm_{a'} Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i))^2\right]\\ =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[(R(s,a) + \gamma \mm_{a'} Q_{\bm{w}}(s',a') - Q_{\bm{w}}(s,a))^2\right]\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{P}}\left[\wt B_{\bm{w}}^2\right]\right]\\ =\ & \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt B_{\bm{w}}\right] + \mathbb{E}_{\mathcal{P}}\left[\wt B_{\bm{w}}\right]^2\right]\\ =\ & v(\bm{w}) + \norm{\wt B_{\bm{w}}}_{\nu}^2,
+\mathbb{E}_{\nu,\mathcal{P}}\left[\norm{\wt B_{\bm{w}}}_D^2\right] =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[\frac{1}{N}\sum_{i=1}^N (r_i + \gamma \mm_{a'} Q_{\bm{w}}(s_i',a') - Q_{\bm{w}}(s_i,a_i))^2\right]\\ =\ & \mathbb{E}_{\nu,\mathcal{P}}\left[(R(s,a) + \gamma \mm_{a'} Q_{\bm{w}}(s',a') - Q_{\bm{w}}(s,a))^2\right]\\ =\ & \mathbb{E}_{\nu}\left[\mathbb{E}_{\mathcal{P}}\left[\wt b(\bm{w})^2\right]\right]\\ =\ & \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b(\bm{w})\right] + \mathbb{E}_{\mathcal{P}}\left[\wt b(\bm{w})\right]^2\right]\\ =\ & v(\bm{w}) + \norm{\wt B_{\bm{w}}}_{\nu}^2,
 \end{align*}
-where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b_{\bm{w}}\right]\right]$. Thus:
+where $v(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b(\bm{w})\right]\right]$. Thus:
 \begin{align}\label{eq:hoeff}
 \abs{\norm{\wt B_{\bm{w}}}_{\nu}^2 + v(\bm{w}) - \norm{\wt B_{\bm{w}}}_D^2} \leq 4\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align}
@@ -484,7 +484,7 @@ from which the lemma follows straightforwardly.
 From Lemma \ref{lemma:l2} we can straightforwardly prove the following result which will be of fundamental importance in the remaining.
 
 \begin{lemma}\label{lemma:general-bound}
-Fix a task $\mathcal{M}_{\tau}$. Let $p$ be a prior distribution over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of \eqref{eq:elbo} for a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$. Define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt b_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
+Fix a task $\mathcal{M}_{\tau}$. Let $p$ be a prior distribution over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of \eqref{eq:elbo} for a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$. Define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt b(\bm{w})\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
@@ -506,7 +506,7 @@ It is worth noting the generality of Lemma \ref{lemma:general-bound}: in boundin
 We are now ready to state our main result. We start from the Gaussian case and then straightforwardly extend the proof to the mixture one.
 
 \begin{restatable}{theorem}{thg} \label{th:main-gaussian}
-Fix a target task $\mathcal{M}_{\tau}$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\norm{\bm{w}}_{2}\leq w_{max}$ and uniformly bounded features $\norm{\bm{\phi}(s,a)}_{2}\leq \phi_{\max}$. Consider the Gaussian version of Algorithm~\ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq.~\eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b_{\bm{w}}\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
+Fix a target task $\mathcal{M}_{\tau}$ and let $\wt{Q}$ be the fixed-point of the corresponding mellow Bellman operator. Assume linearly parameterized value functions $Q_{\bm{w}}(s,a)=\bm{w}^T\bm{\phi}(s,a)$ with bounded weights $\norm{\bm{w}}_{2}\leq w_{max}$ and uniformly bounded features $\norm{\bm{\phi}(s,a)}_{2}\leq \phi_{\max}$. Consider the Gaussian version of Algorithm~\ref{alg:transfer} with prior $p(\bm{w}) =\mathcal{N}(\bm{\mu}_p,\bm{\Sigma}_p)$ and denote by $(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ the variational parameter minimizing the objective of Eq.~\eqref{eq:elbo} on a dataset $D$ of $N$ i.i.d. samples distributed according to $\tau$ and $\nu$. Let $\bm{w}^* = \arginf_{\bm{w}}\norm{\wt{B}_{\bm{w}}}_{\nu}^2$ and define $\upsilon(\bm{w}^*) \triangleq \mathbb{E}_{\mathcal{N}(\bm{w}^*,\frac{1}{N}\bm{I})}\left[ \text{v}(\bm{w}) \right]$, with $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}}\left[\wt b(\bm{w})\right]\right]$. Then, there exist constants $c_1,c_2,c_3$ such that, with probability at least $1-\delta$ over the choice of weights $\bm{w} \sim \mathcal{N}(\wh{\bm{\mu}},\wh{\bm{\Sigma}})$ and dataset $D$:
 \begin{equation}
 \resizebox{0.92\textwidth}{!}{$
 \mathbb{E}_{q_{\wh{\bm{\xi}}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq\  2\norm{\wt{B}_{\bm{w}^{*}}}_{\nu}^2 + \upsilon(\bm{w}^*) + c_1\sqrt{\frac{\log\frac{2}{\delta}}{N}} + \frac{c_2 + \lambda d \log N + \lambda\norm{\bm{w}^* - \bm{\mu}_p}_{\bm{\Sigma}_p^{-1}}}{N} + \frac{c_3}{N^2}$}.
@@ -677,7 +677,7 @@ Notice that, from now on, one can simply apply the proof of Thm. \ref{th:main-ga
 
 \section{Additional Details on the Algorithms}
 
-\subsection{Optimizing the TD Error}\label{app:b1}
+\subsection{Minimizing the TD Error}\label{app:b1}
 
 Although residual algorithms have guaranteed convergence, they are typically much slower than their semi-gradient counterpart. \cite{baird1995residual} proposed to project the gradient in a direction that achieves higher learning speed, while preserving convergence. This projection is obtained by including a parameter $\psi\in[0,1]$ in the TD error gradient:
 \begin{equation}
@@ -814,7 +814,7 @@ In Figure~\ref{fig:sequential} we present the expected return as a function of t
   \label{fig:sequential}
 \end{figure*}
 
-Finally, we analyze the transfer performance as a function of how likely the target task is according to the prior. We consider a two-room version of the environment of Figure~\ref{f:rooms}. Unlike before, we generate tasks by sampling the door position from a Gaussian with mean $5$ and standard deviation $1.8$, so that tasks with the door near the sides are very unlikely. Figure~\ref{f:likelihood} shows the performance reached by GVT and 1-MGVT at fixed iterations as a function of how likely the target task is according to such distribution. As expected, GVT achieves poor performance on very unlikely tasks, even after many iterations. In fact, estimating a single Gaussian distribution definitely entails some information loss, especially about the unlikely tasks. On the other hand, MGVT keeps such information and, consequently, performs much better. Perhaps not surprisingly, MGVT reaches the optimal performance in $4k$ iterations no matter what task is being solved.
+Finally, we analyze the transfer performance as a function of how likely the target task is according to the prior. We consider a two-room version of the environment of Figure~\ref{fig:main}. Unlike before, we generate tasks by sampling the door position from a Gaussian with mean $5$ and standard deviation $1.8$, so that tasks with the door near the sides are very unlikely. Figure~\ref{fig:likelihood} shows the performance reached by GVT and 1-MGVT at fixed iterations as a function of how likely the target task is according to such distribution. As expected, GVT achieves poor performance on very unlikely tasks, even after many iterations. In fact, estimating a single Gaussian distribution definitely entails some information loss, especially about the unlikely tasks. On the other hand, MGVT keeps such information and, consequently, performs much better. Perhaps not surprisingly, MGVT reaches the optimal performance in $4k$ iterations no matter what task is being solved.
 
 \begin{figure*}[t]
 \centering
@@ -865,7 +865,7 @@ Clearly, this variation in the values among tasks allows MGVT to excel w.r.t. to
 
 \subsection{Maze Navigation}\label{app:c3}
 
-The mazes adopted in the experiments of Sec. \ref{sec:exp} are shown in Fig.~\ref{fig:mazes}. Our $20$ mazes have with varying degree of difficulty and are designed to hold few similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
+The mazes adopted in the experiments of Sec. \ref{sec:exp} are shown in Fig.~\ref{fig:mazes}. Our $20$ mazes have varying degree of difficulty and are designed to hold few similarities that would be useful for transferring. Moreover, we ensure $4$ groups of mazes that are characterized by their goal position. 
 
 For the experiments we use as an approximator an MLP with two hidden layers of $32$ neurons with ReLU activation functions. For training the sources we use a DDQN with a \textit{batch size} of $70$, a \textit{buffer size} of $10000$ and a \textit{target update frequency} of $100$, setting the \textit{exploration fraction} to $0.1$ and learning rate to $\alpha=0.001$.
 
@@ -995,11 +995,22 @@ In the transfer experiments we use $\psi=0.5$, a \textit{batch size} of $50$, a 
   \end{subfigure}
   \caption{Performance in Maze \ref{fig:maze13} }
   \label{fig:rew-maze13}
+  
+    \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/lrev_maze8.pdf}
+    \caption{Expected Return during learning}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=4.5cm]{images/maze/erew_maze8.pdf}
+    \caption{Expected Return w.r.t. greedy policy}
+  \end{subfigure}
+  \caption{Performance in Maze \ref{fig:maze8} }
+  \label{fig:rew-maze8}
 \end{figure*}
 
-Hereafter, we present additional results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6} and Fig. \ref{fig:maze13} using both GVT and MGVT. We show both the greedy and online performances. All the curves result from averaging $20$ independent runs and randomly sampled sources.
+Hereafter, we present additional results of transferring from $5$ source tasks to the mazes shown in Fig. \ref{fig:maze0}, Fig. \ref{fig:maze6}, Fig. \ref{fig:maze13}, and Fig. \ref{fig:maze8} using both GVT and MGVT. We show both the greedy and online performances. All the curves result from averaging $20$ independent runs and randomly sampled sources.
 
-In Fig. \ref{fig:maze0}, \ref{fig:maze6}, \ref{fig:maze13}, we can appreciate that in this more complex transfer setting, MGVT is able to provide significant speed-up in a consistent manner in this subset of mazes. It is also noticeable the bad performance obtained with GVT in all cases. The Gaussian prior model clearly fails to capture enough information to transfer in this setting that result in a negative transfer effect.
+In Fig. \ref{fig:rew-maze0}, \ref{fig:rew-maze6}, \ref{fig:rew-maze13}, and \ref{fig:rew-maze8} we can appreciate that in this more complex transfer setting, MGVT is able to provide significant speed-up in a consistent manner in this subset of mazes. It is also noticeable the bad performance obtained with GVT in all cases. The Gaussian prior model clearly fails to capture enough information to transfer in this setting that result in a negative transfer effect.
 
 
 \end{document}

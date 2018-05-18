@@ -13,7 +13,7 @@
 \BOOKMARK [2][-]{subsection.A.1}{Proof of Theorem 1}{appendix.A}% 13
 \BOOKMARK [2][-]{subsection.A.2}{Proof of Theorem 2}{appendix.A}% 14
 \BOOKMARK [1][-]{appendix.B}{Additional Details on the Algorithms}{}% 15
-\BOOKMARK [2][-]{subsection.B.1}{Optimizing the TD Error}{appendix.B}% 16
+\BOOKMARK [2][-]{subsection.B.1}{Minimizing the TD Error}{appendix.B}% 16
 \BOOKMARK [2][-]{subsection.B.2}{Gaussian Variational Transfer}{appendix.B}% 17
 \BOOKMARK [2][-]{subsection.B.3}{Mixture of Gaussian Variational Transfer}{appendix.B}% 18
 \BOOKMARK [1][-]{appendix.C}{Additional Details on the Experiments}{}% 19
