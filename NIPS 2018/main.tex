@@ -259,7 +259,7 @@ We consider an agent navigating in the environment depicted in Figure~\ref{f:roo
   \begin{subfigure}[b]{0.32\textwidth}
     %\includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
     \begin{tikzpicture}[scale=0.37]
-\draw [white] (0,0) grid (11,8);
+\draw [white] (0,0) grid (12,9);
 %\begin{scope}[shift={(0,2)}]
 %\draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
 %\path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
@@ -287,8 +287,8 @@ We consider an agent navigating in the environment depicted in Figure~\ref{f:roo
 %\draw [thick, line width=0.6mm, mgvt3] (5.5,1) -- (7,1);
 %\node at (7,1) [right] {3-MGVT};
 
-\begin{scope}[shift={(0,3)}]
-\begin{scope}[shift={(3,0)}]
+\begin{scope}[shift={(0,3.8)}]
+\begin{scope}[shift={(4,0)}]
 \draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
 \path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
 \draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
@@ -307,19 +307,19 @@ We consider an agent navigating in the environment depicted in Figure~\ref{f:roo
 \draw [line width=0.5mm, gray] (3.75,10/3) -- (5,10/3);
 
 \end{scope}
-
+\begin{scope}[shift={(1,0)}]
 \draw [thick, line width=0.6mm, dotted, nt] (0,-1.5) -- (1,-1.5);
-\node at (1.5,-1.5) [right] {NT};
+\node at (1.5,-1.5) [right] {\small NT};
 \draw [thick, line width=0.6mm, dashed,gvt] (6, -1.5) -- (7,-1.5);
-\node at (7,-1.5) [right] {GVT};
+\node at (7,-1.5) [right] {\small GVT};
 \draw [thick, line width=0.6mm, mgvt1] (0,-2.5) -- (1,-2.5);
-\node at (1.5,-2.5) [right] {1-MGVT};
+\node at (1.5,-2.5) [right] {\small 1-MGVT};
 \draw [thick, line width=0.6mm, mgvt3] (6, -2.5) -- (7,-2.5);
-\node at (11.2,-2.5) [left] {3-MGVT};
-
+\node at (10.9,-2.5) [left] {\small 3-MGVT};
+\end{scope}
 \end{scope}
 \end{tikzpicture} 
-    \caption{The rooms problem}\label{f:rooms}
+    %\caption{The rooms problem}\label{f:rooms}
   \end{subfigure}
   \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[trim=0cm 0cm 1.2cm 1.1cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
