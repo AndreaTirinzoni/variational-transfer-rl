@@ -406,7 +406,7 @@ Let us bound the norm on the right-hand side separately. In order to do that, we
 \begin{align} \label{eq:mm5}
 \abs{TQ^*(s,a) - \wt{T}Q^*(s,a)} =\ & \abs{R(s,a) + \gamma\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - R(s,a) - \gamma\mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ =\ & \gamma\abs{\mathbb{E}\left[\max_{a'}Q^*(s',a')\right] - \mathbb{E}\left[\mm_{a'}Q^*(s',a')\right]}\notag \\ \leq\ & \gamma\mathbb{E}\left[\abs{\max_{a'}Q^*(s',a') - \mm_{a'}Q^*(s',a')}\right].
 \end{align}
-Thus, bounding this quantity reduces to bounding $\abs{\max_{a}Q^*(s,a) - \mm_{a}Q^*(s,a)}$ point-wisely for any $s$. Recall that applying the mellow Bellman operator is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta_{\kappa}$ induced by $\kappa$ \cite{}\todo{Cite MM}. Thus, we can write:
+Thus, bounding this quantity reduces to bounding $\abs{\max_{a}Q^*(s,a) - \mm_{a}Q^*(s,a)}$ point-wisely for any $s$. Recall that applying the mellow Bellman operator is equivalent to computing an expectation under a Boltzmann distribution with inverse temperature $\beta_{\kappa}$ induced by $\kappa$ \cite{asadi2017alternative}. Thus, we can write:
 \begin{align} \label{eq:mm2}
 \abs{\max_a Q^*(s,a) - \mm_a Q^*(s,a)} =\ & \abs{\sum_a \pi^*(a|s)Q^*(s,a) - \sum_a \pi_{\beta_{\kappa}}(a|s)Q^*(s,a)}\notag\\ =\ & \abs{\sum_a Q^*(s,a) \left( \pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)  \right)}\notag\\ \leq\ & \sum_a \abs{Q^*(s,a)} \abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)}\notag\\ \leq\ & \frac{R_{max}}{1-\gamma}\sum_a\abs{\pi^*(a|s) - \pi_{\beta_{\kappa}}(a|s)},
 \end{align}
@@ -514,7 +514,7 @@ from which the lemma follows straightforwardly.
 From Lemma \ref{lemma:l2} we can straightforwardly prove the following result which will be of fundamental importance in the remaining.
 
 \begin{lemma}\label{lemma:general-bound}
-Fix a task $\mathcal{M}_{\tau}$. Let $p$ be a prior distribution over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of \eqref{eq:elbo} for a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$. Define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:\todo{Make sure that the constants multiplying sqrt are correct now}
+Fix a task $\mathcal{M}_{\tau}$. Let $p$ be a prior distribution over weights $\bm{w}$, and $\nu$ be a probability measure over $\mathcal{S}\times\mathcal{A}$. Assume $\wh{\xi}$ is the minimizer of \eqref{eq:elbo} for a dataset $D$ of $N$ i.i.d. samples where state-action couples are distributed according to $\nu$. Define $\text{v}(\bm{w}) \triangleq \mathbb{E}_{\nu}\left[Var_{\mathcal{P}_{\tau}}\left[\wt B_{\bm{w}}\right]\right]$. Then, for any $\delta > 0$, with probability at least $1-\delta$:
 \begin{align*}
 \mathbb{E}_{q_{\wh{\xi}}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] \leq \inf_{\xi \in \Xi}\left\{ \mathbb{E}_{q_{\xi}}\left[ \norm{\wt B_{\bm{w}}}_{\nu}^2 \right ] + \mathbb{E}_{q_{\xi}}\left[ v(\bm{w}) \right] + 2\frac{\lambda}{N} KL({q_{\xi}}||p) \right\} + 8\frac{R_{max}^2}{(1-\gamma)^2}\sqrt{\frac{\log\frac{2}{\delta}}{2N}}.
 \end{align*}
