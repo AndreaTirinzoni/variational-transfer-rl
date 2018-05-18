@@ -213,13 +213,15 @@ where $\kappa$ is a hyperparameter and $|\mathcal{A}|$ is the number of actions.
 A first important question that we need to answer is whether replacing max with mellow-max in the Bellman operator constitutes a strong approximation or not. It has been proved \cite{asadi2017alternative} that the mellow Bellman operator is a non-expansion under the $L_{\infty}$-norm and, thus, has a unique fixed-point.  However, how such fixed-point differs from the one of the optimal Bellman operator remains an open question. Since mellow-max monotonically converges to max as $\kappa \rightarrow \infty$, it would be desirable if the fixed point of the corresponding operator also monotonically converged to the fixed point of the optimal one. We confirm that this property actually holds in the following theorem.
 
 \begin{restatable}{theorem}{thmm} \label{th:mm}
-Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{Q}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta_{\kappa} > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). Let $\nu$ be a probability measure over the state-action space. Then, for any $p \geq 1$:
+Let $Q^*$ be the fixed-point of the optimal Bellman operator $T$. Define the action-gap function $g(s)$ as the difference between the value of the best action and the second best action at each state $s$. Let $\wt{Q}$ be the fixed-point of the mellow Bellman operator $\wt{T}$ with parameter $\kappa > 0$ and denote by $\beta_{\kappa} > 0$ the inverse temperature of the induced Boltzmann distribution (as in \cite{asadi2017alternative}). 
+% Let $\nu$ be a probability measure over the state-action space. 
+Then:
 \begin{equation}
-\norm{Q^*-\wt{Q}}_{\nu,p}^p \leq\ \frac{2\gamma R_{max}}{(1-\gamma)^2}\norm{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g}}}_{\nu,p}^p.
+\norm{Q^*-\wt{Q}}_{\infty} \leq\ \frac{2\gamma R_{max}}{(1-\gamma)^2}\norm{\frac{1}{1 + \frac{1}{\abs{\mathcal{A}}}e^{\beta_{\kappa} g}}}_{\infty}.
 \end{equation}
 \end{restatable}
 
-The proof is provided in App. \ref{app:a1}. As expected, $\wt{Q}$ converges to $Q^*$ exponentially fast when either $\kappa$ (equivalently, $\beta_{\kappa}$) increases, or the action gaps are enlarged. Notice that this result is of interest even outside our specific settings.
+The proof is provided in App. \ref{app:a1}. Notice that $\wt{Q}$ converges to $Q^*$ exponentially fast as $\kappa$ (equivalently, $\beta_{\kappa}$) increases and the action gaps are all larger than zero. Notice that this result is of interest even outside our specific settings.
 
 The second question that we need to answer is whether we can provide any guarantee on our algorithm's performance when given limited data. To address this point, we consider the two variants of Algorithm~\ref{alg:transfer} from Sec. \ref{sec:gvt} and \ref{sec:mgvt} with linear approximators. We assume only a finite dataset is available and provide a finite-sample analysis bounding the expected (mellow) Bellman error under the variational distribution minimizing the objective \eqref{eq:elbo}. Due to space constraints, we provide only the result for mixtures of Gaussians, while referring the reader to App. \ref{app:a2} for the Gaussian case.
 
@@ -394,14 +396,14 @@ Since our algorithm effectively models the uncertainty over tasks, a relevant fu
 \begin{proof}
 We begin by noticing that:
 \begin{align*}
-\norm{Q^*-\wt{Q}}_{\nu,p}^p =\ & \norm{TQ^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ =\ &
-\norm{TQ^* - \wt{T}Q^* + \wt{T}Q^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ \leq\ &
-\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p + \norm{\wt{T}Q^* - \wt{T}\wt{Q}}_{\nu,p}^p \\ \leq\ &
-\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p + \gamma\norm{Q^* - \wt{Q}}_{\nu,p}^p,
+\norm{Q^*-\wt{Q}}_{\infty} =\ & \norm{TQ^* - \wt{T}\wt{Q}}_{\infty} \\ =\ &
+\norm{TQ^* - \wt{T}Q^* + \wt{T}Q^* - \wt{T}\wt{Q}}_{\infty} \\ \leq\ &
+\norm{TQ^* - \wt{T}Q^*}_{\infty} + \norm{\wt{T}Q^* - \wt{T}\wt{Q}}_{\infty} \\ \leq\ &
+\norm{TQ^* - \wt{T}Q^*}_{\infty} + \gamma\norm{Q^* - \wt{Q}}_{\infty},
 \end{align*}
 where the first inequality follows from Minkowsky's inequality and the second one from the contraction property of the mellow Bellman operator. This implies that:
 \begin{align} \label{eq:mm1}
-\norm{Q^*-\wt{Q}}_{\nu,p}^p \leq \frac{1}{1-\gamma}\norm{TQ^* - \wt{T}Q^*}_{\nu,p}^p.
+\norm{Q^*-\wt{Q}}_{\infty} \leq \frac{1}{1-\gamma}\norm{TQ^* - \wt{T}Q^*}_{\infty}.
 \end{align}
 Let us bound the norm on the right-hand side separately. In order to do that, we will bound the function $\abs{TQ^*(s,a) - \wt{T}Q^*(s,a)}$ point-wisely for any pair $\langle s,a\rangle$. By applying the definition of the optimal and mellow Bellman operators, we obtain:
 \begin{align} \label{eq:mm5}
