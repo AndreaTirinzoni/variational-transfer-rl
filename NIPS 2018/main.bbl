@@ -36,10 +36,6 @@ David~M Blei, Alp Kucukelbir, and Jon~D McAuliffe.
 \newblock {\em Journal of the American Statistical Association},
   112(518):859--877, 2017.
 
-\bibitem{boyan1999least}
-Justin~A Boyan.
-\newblock Least-squares temporal difference learning.
-
 \bibitem{bubeck2012regret}
 S{\'e}bastien Bubeck, Nicolo Cesa-Bianchi, et~al.
 \newblock Regret analysis of stochastic and nonstochastic multi-armed bandit
@@ -190,6 +186,13 @@ David~W Scott.
 \newblock {\em Multivariate density estimation: theory, practice, and
   visualization}.
 \newblock John Wiley \& Sons, 2015.
+
+\bibitem{sehnke2008policy}
+Frank Sehnke, Christian Osendorfer, Thomas R{\"u}ckstie{\ss}, Alex Graves, Jan
+  Peters, and J{\"u}rgen Schmidhuber.
+\newblock Policy gradients with parameter-based exploration for control.
+\newblock In {\em International Conference on Artificial Neural Networks},
+  pages 387--396. Springer, 2008.
 
 \bibitem{seldin2012pac}
 Yevgeny Seldin, Fran{\c{c}}ois Laviolette, Nicolo Cesa-Bianchi, John

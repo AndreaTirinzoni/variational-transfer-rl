@@ -33,7 +33,7 @@
 \citation{killian2017robust}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
 \citation{lazaric2010bayesian}
-\citation{osband2014generalization}
+\citation{osband2014generalization,azizzadenesheli2018efficient}
 \citation{puterman1994markov}
 \citation{maillard2010finite}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Preliminaries}{2}{section.2}}
@@ -41,7 +41,7 @@
 \citation{catoni2007pac}
 \citation{blei2017variational}
 \citation{bubeck2012regret}
-\citation{osband2014generalization}
+\citation{osband2014generalization,azizzadenesheli2018efficient}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Variational Transfer\relax }}{3}{algorithm.1}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{alg:transfer}{{1}{3}{Variational Transfer\relax }{algorithm.1}{}}
@@ -62,8 +62,8 @@
 \citation{asadi2017alternative}
 \citation{asadi2017alternative}
 \citation{asadi2017alternative}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Optimizing the TD Error}{5}{subsection.3.4}}
-\newlabel{sec:td}{{3.4}{5}{Optimizing the TD Error}{subsection.3.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Minimizing the TD Error}{5}{subsection.3.4}}
+\newlabel{sec:td}{{3.4}{5}{Minimizing the TD Error}{subsection.3.4}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Theoretical Analysis}{5}{section.4}}
 \newlabel{sec:theory}{{4}{5}{Theoretical Analysis}{section.4}{}}
 \newlabel{thmt@@thmm@data}{{\def \theequation {\@arabic {\c@equation }}\def \theHequation {(restate \theHthmt@dummyctr )4.\@arabic {\c@equation }}\setcounter {equation}{3}}{5}{Theoretical Analysis}{section.4}{}}
@@ -80,21 +80,18 @@
 \@writefile{toc}{\contentsline {paragraph}{The Rooms Problem}{6}{figure.caption.3}}
 \citation{sutton1998reinforcement}
 \citation{van2016deep}
-\newlabel{f:rooms}{{1a}{7}{The rooms problem\relax }{figure.caption.3}{}}
-\newlabel{sub@f:rooms}{{a}{7}{The rooms problem\relax }{figure.caption.3}{}}
-\newlabel{f:two_doors}{{1b}{7}{Rooms: two doors moving\relax }{figure.caption.3}{}}
-\newlabel{sub@f:two_doors}{{b}{7}{Rooms: two doors moving\relax }{figure.caption.3}{}}
-\newlabel{f:one_door}{{1c}{7}{Rooms: one door moving\relax }{figure.caption.3}{}}
-\newlabel{sub@f:one_door}{{c}{7}{Rooms: one door moving\relax }{figure.caption.3}{}}
-\newlabel{f:cartpole}{{1d}{7}{Cartpole\relax }{figure.caption.3}{}}
-\newlabel{sub@f:cartpole}{{d}{7}{Cartpole\relax }{figure.caption.3}{}}
-\newlabel{f:mountaincar}{{1e}{7}{Mountain Car\relax }{figure.caption.3}{}}
-\newlabel{sub@f:mountaincar}{{e}{7}{Mountain Car\relax }{figure.caption.3}{}}
-\newlabel{f:maze_results}{{1f}{7}{Maze Navigation\relax }{figure.caption.3}{}}
-\newlabel{sub@f:maze_results}{{f}{7}{Maze Navigation\relax }{figure.caption.3}{}}
+\newlabel{f:two_doors}{{1a}{7}{Rooms: two doors moving\relax }{figure.caption.3}{}}
+\newlabel{sub@f:two_doors}{{a}{7}{Rooms: two doors moving\relax }{figure.caption.3}{}}
+\newlabel{f:one_door}{{1b}{7}{Rooms: one door moving\relax }{figure.caption.3}{}}
+\newlabel{sub@f:one_door}{{b}{7}{Rooms: one door moving\relax }{figure.caption.3}{}}
+\newlabel{f:cartpole}{{1c}{7}{Cartpole\relax }{figure.caption.3}{}}
+\newlabel{sub@f:cartpole}{{c}{7}{Cartpole\relax }{figure.caption.3}{}}
+\newlabel{f:mountaincar}{{1d}{7}{Mountain Car\relax }{figure.caption.3}{}}
+\newlabel{sub@f:mountaincar}{{d}{7}{Mountain Car\relax }{figure.caption.3}{}}
+\newlabel{f:maze_results}{{1e}{7}{Maze Navigation\relax }{figure.caption.3}{}}
+\newlabel{sub@f:maze_results}{{e}{7}{Maze Navigation\relax }{figure.caption.3}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Expected return as a function of the number of iterations averaged over $20$ independent runs. $95\%$ confidence intervals are shown.\relax }}{7}{figure.caption.3}}
-\newlabel{fig:ccmazeplots}{{1}{7}{Expected return as a function of the number of iterations averaged over $20$ independent runs. $95\%$ confidence intervals are shown.\relax }{figure.caption.3}{}}
-\newlabel{fig:dipfdbsgraphplots}{{1}{7}{Expected return as a function of the number of iterations averaged over $20$ independent runs. $95\%$ confidence intervals are shown.\relax }{figure.caption.3}{}}
+\newlabel{fig:main}{{1}{7}{Expected return as a function of the number of iterations averaged over $20$ independent runs. $95\%$ confidence intervals are shown.\relax }{figure.caption.3}{}}
 \newlabel{sec:cc}{{5}{7}{Classic Control}{section*.4}{}}
 \@writefile{toc}{\contentsline {paragraph}{Classic Control}{7}{section*.4}}
 \newlabel{sec:mn}{{5}{7}{Maze Navigation}{section*.5}{}}
@@ -108,46 +105,43 @@
 \citation{wilson2007multi}
 \citation{doshi2016hidden}
 \citation{killian2017robust}
-\citation{osband2014generalization}
-\citation{boyan1999least}
-\citation{azizzadenesheli2018efficient}
 \citation{houthooft2016vime}
-\citation{liu2017stein}
+\citation{sehnke2008policy,liu2017stein}
 \bibdata{biblio.bib}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Related Works}{8}{section.6}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{8}{section.7}}
 \bibcite{alquier2016properties}{{1}{}{{}}{{}}}
 \bibcite{asadi2017alternative}{{2}{}{{}}{{}}}
 \bibcite{azizzadenesheli2018efficient}{{3}{}{{}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Related Works}{8}{section.6}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{8}{section.7}}
 \bibcite{baird1995residual}{{4}{}{{}}{{}}}
 \bibcite{barreto2017successor}{{5}{}{{}}{{}}}
 \bibcite{blei2017variational}{{6}{}{{}}{{}}}
-\bibcite{boyan1999least}{{7}{}{{}}{{}}}
-\bibcite{bubeck2012regret}{{8}{}{{}}{{}}}
-\bibcite{catoni2007pac}{{9}{}{{}}{{}}}
-\bibcite{cottet20181}{{10}{}{{}}{{}}}
-\bibcite{doshi2016hidden}{{11}{}{{}}{{}}}
-\bibcite{fernandez2006probabilistic}{{12}{}{{}}{{}}}
-\bibcite{hershey2007approximating}{{13}{}{{}}{{}}}
-\bibcite{hoffman2013stochastic}{{14}{}{{}}{{}}}
-\bibcite{houthooft2016vime}{{15}{}{{}}{{}}}
-\bibcite{killian2017robust}{{16}{}{{}}{{}}}
-\bibcite{kober2009policy}{{17}{}{{}}{{}}}
-\bibcite{konidaris2006autonomous}{{18}{}{{}}{{}}}
-\bibcite{konidaris2007building}{{19}{}{{}}{{}}}
-\bibcite{lazaric2012transfer}{{20}{}{{}}{{}}}
-\bibcite{lazaric2010bayesian}{{21}{}{{}}{{}}}
-\bibcite{lazaric2008transfer}{{22}{}{{}}{{}}}
-\bibcite{levine2016end}{{23}{}{{}}{{}}}
-\bibcite{lillicrap2015continuous}{{24}{}{{}}{{}}}
-\bibcite{liu2017stein}{{25}{}{{}}{{}}}
-\bibcite{maillard2010finite}{{26}{}{{}}{{}}}
-\bibcite{mnih2015human}{{27}{}{{}}{{}}}
-\bibcite{osband2014generalization}{{28}{}{{}}{{}}}
-\bibcite{puterman1994markov}{{29}{}{{}}{{}}}
-\bibcite{rezende2014stochastic}{{30}{}{{}}{{}}}
-\bibcite{schaul2015prioritized}{{31}{}{{}}{{}}}
-\bibcite{scott2015multivariate}{{32}{}{{}}{{}}}
+\bibcite{bubeck2012regret}{{7}{}{{}}{{}}}
+\bibcite{catoni2007pac}{{8}{}{{}}{{}}}
+\bibcite{cottet20181}{{9}{}{{}}{{}}}
+\bibcite{doshi2016hidden}{{10}{}{{}}{{}}}
+\bibcite{fernandez2006probabilistic}{{11}{}{{}}{{}}}
+\bibcite{hershey2007approximating}{{12}{}{{}}{{}}}
+\bibcite{hoffman2013stochastic}{{13}{}{{}}{{}}}
+\bibcite{houthooft2016vime}{{14}{}{{}}{{}}}
+\bibcite{killian2017robust}{{15}{}{{}}{{}}}
+\bibcite{kober2009policy}{{16}{}{{}}{{}}}
+\bibcite{konidaris2006autonomous}{{17}{}{{}}{{}}}
+\bibcite{konidaris2007building}{{18}{}{{}}{{}}}
+\bibcite{lazaric2012transfer}{{19}{}{{}}{{}}}
+\bibcite{lazaric2010bayesian}{{20}{}{{}}{{}}}
+\bibcite{lazaric2008transfer}{{21}{}{{}}{{}}}
+\bibcite{levine2016end}{{22}{}{{}}{{}}}
+\bibcite{lillicrap2015continuous}{{23}{}{{}}{{}}}
+\bibcite{liu2017stein}{{24}{}{{}}{{}}}
+\bibcite{maillard2010finite}{{25}{}{{}}{{}}}
+\bibcite{mnih2015human}{{26}{}{{}}{{}}}
+\bibcite{osband2014generalization}{{27}{}{{}}{{}}}
+\bibcite{puterman1994markov}{{28}{}{{}}{{}}}
+\bibcite{rezende2014stochastic}{{29}{}{{}}{{}}}
+\bibcite{schaul2015prioritized}{{30}{}{{}}{{}}}
+\bibcite{scott2015multivariate}{{31}{}{{}}{{}}}
+\bibcite{sehnke2008policy}{{32}{}{{}}{{}}}
 \bibcite{seldin2012pac}{{33}{}{{}}{{}}}
 \bibcite{silver2016mastering}{{34}{}{{}}{{}}}
 \bibcite{sutton1998reinforcement}{{35}{}{{}}{{}}}
