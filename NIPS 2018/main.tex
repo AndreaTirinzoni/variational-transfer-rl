@@ -35,6 +35,7 @@
 \usepackage{thmtools, thm-restate}
 \usepackage{subcaption}
 \usepackage{tikz}
+\usepackage{color}
 
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
@@ -54,6 +55,11 @@
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
 \title{Transfer of Value Functions via Variational Methods}
+
+\definecolor{nt}{RGB}{14, 90, 211}
+\definecolor{gvt}{RGB}{188, 45, 20}
+\definecolor{mgvt1}{RGB}{34, 170, 22}
+\definecolor{mgvt3}{RGB}{160, 17, 163}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -250,11 +256,39 @@ We consider an agent navigating in the environment depicted in Figure~\ref{f:roo
 %Since the agent does not know the locations of the doors in advance and receives only very sparse feedback, it must efficiently explore the environment to figure out (i) their positions, and (ii) how to reach the goal. While this might be a complicated problem for plain RL, our transfer algorithm should be able to figure out the door positions quickly. In fact, notice that, although different, the optimal $Q$-functions for all tasks share some similarities. For example, once the agent has passed the last door before the goal, the $Q$-values are exactly the same in all tasks. The same does not hold for positions nearby the starting state. However, it is clear that there should be a preference over actions \textit{up} and \textit{right}, rather than \textit{down} and \textit{left} (which are worse in all tasks).\todo{Good candidate to be removed}
 
 \begin{figure*}[t] 
-  \begin{subfigure}[b]{0.15\textwidth}
+  \begin{subfigure}[b]{0.32\textwidth}
     %\includegraphics[trim=0.0cm 0.2cm 0.0cm 0.2cm,clip=true,height=2.6cm, width=2.0cm]{images/rooms2.pdf}
     \begin{tikzpicture}[scale=0.37]
-\draw [white] (0,0) grid (7,7);
-\begin{scope}[shift={(0,2)}]
+\draw [white] (0,0) grid (11,8);
+%\begin{scope}[shift={(0,2)}]
+%\draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
+%\path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
+%\draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
+%\path [fill=lightgray!10, very thin] (0,1) arc [radius=1, start angle=90, end angle=0] -- (1,0) --(0,0)--(0,1);
+%
+%%\draw [fill=black!50] (1,1) circle [radius=0.1cm];
+%%\node at (1,1) [ right] {$A$};
+%
+%\node at (1.8,-0.5)[left] {\color{darkgray}\small Start};
+%\node at (3.1,5.5) [right]{\color{darkgray}\small Goal};
+%
+%\draw [thick, gray] (0,0) rectangle (5,5);
+%\draw [line width=0.5mm, gray] (1.25,5/3) -- (5,5/3);
+%\draw [line width=0.5mm, gray] (0,5/3) -- (0.75,5/3);
+%\draw [line width=0.5mm, gray] (0,10/3) -- (3.25,10/3);
+%\draw [line width=0.5mm, gray] (3.75,10/3) -- (5,10/3);
+
+%\draw [thick, line width=0.6mm, dotted, nt] (5.5,4) -- (7,4);
+%\node at (7,4) [right] {NT};
+%\draw [thick, line width=0.6mm, dashed,gvt] (5.5,3) -- (7,3);
+%\node at (7,3) [right] {GVT};
+%\draw [thick, line width=0.6mm, mgvt1] (5.5,2) -- (7,2);
+%\node at (7,2) [right] {1-MGVT};
+%\draw [thick, line width=0.6mm, mgvt3] (5.5,1) -- (7,1);
+%\node at (7,1) [right] {3-MGVT};
+
+\begin{scope}[shift={(0,3)}]
+\begin{scope}[shift={(3,0)}]
 \draw [thick] (4,5) arc [radius=1, start angle=180, end angle= 270];
 \path [fill=gray!50, very thin] (4,5) arc [radius=1, start angle=180, end angle= 270] -- (5,4) --(5,5)--(4,5);
 \draw [thick] (0,1) arc [radius=1, start angle=90, end angle= 0];
@@ -271,23 +305,50 @@ We consider an agent navigating in the environment depicted in Figure~\ref{f:roo
 \draw [line width=0.5mm, gray] (0,5/3) -- (0.75,5/3);
 \draw [line width=0.5mm, gray] (0,10/3) -- (3.25,10/3);
 \draw [line width=0.5mm, gray] (3.75,10/3) -- (5,10/3);
+
+\end{scope}
+
+\draw [thick, line width=0.6mm, dotted, nt] (0,-1.5) -- (1,-1.5);
+\node at (1.5,-1.5) [right] {NT};
+\draw [thick, line width=0.6mm, dashed,gvt] (6, -1.5) -- (7,-1.5);
+\node at (7,-1.5) [right] {GVT};
+\draw [thick, line width=0.6mm, mgvt1] (0,-2.5) -- (1,-2.5);
+\node at (1.5,-2.5) [right] {1-MGVT};
+\draw [thick, line width=0.6mm, mgvt3] (6, -2.5) -- (7,-2.5);
+\node at (11.2,-2.5) [left] {3-MGVT};
+
 \end{scope}
 \end{tikzpicture} 
     \caption{}\label{f:rooms}
   \end{subfigure}
-  \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
-    \caption{}\label{f:two_doors}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0cm 0cm 1.2cm 1.1cm,clip=true,height=2.9cm]{images/three-room/lrev.pdf}
+    \caption{Rooms Problem}\label{f:two_doors}
   \end{subfigure}
-    \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/three-room-gen/lrev.pdf}
-    \caption{}\label{f:one_door}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0cm 0cm 1.2cm 1.1cm,clip=true,height=2.9cm]{images/three-room-gen/lrev.pdf}
+    \caption{Rooms Problem: Generalization}\label{f:one_door}
   \end{subfigure}
-    \begin{subfigure}[b]{0.27\textwidth}
-    \includegraphics[trim=0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/likelihood/lrew.pdf}
-    \caption{}\label{f:likelihood}
+%    \begin{subfigure}[b]{0.27\textwidth}
+%    \includegraphics[trim=0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/likelihood/lrew.pdf}
+%    \caption{}\label{f:likelihood}
+%  \end{subfigure}
+
+	\begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.2cm 1.3cm,clip=true,height=2.9cm]{images/cartpole/lrev.pdf}
+    \caption{Cartpole}\label{f:cartpole}
   \end{subfigure}
-  \caption{(a) the rooms environment, (b) transfer from $10$ source tasks with both doors moving, (c) transfer from $10$ source tasks with only one door moving, and (d) transfer performance as a function of how likely the target task is according to the prior.}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.2cm 1.3cm,clip=true,height=2.9cm]{images/mountaincar/lrev.pdf}
+    \caption{Mountain Car}\label{f:mountaincar}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[trim=0.0cm 0cm 1.2cm 1.3cm,clip=true,height=2.9cm]{images/maze/lrev_main.pdf}
+    \caption{Maze Navigation}\label{f:maze_results}
+  \end{subfigure}
+  \caption{Expected Return}
+  \label{fig:ccmazeplots}
+
   \label{fig:dipfdbsgraphplots}
 \end{figure*}
 
@@ -301,22 +362,22 @@ We now consider two well-known classic control environments: Cartpole and Mounta
 
 \subsection{Maze Navigation} \label{sec:mn}
 
-\begin{figure*}[t]
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/cartpole/lrev.pdf}
-    \caption{}\label{f:cartpole}
-  \end{subfigure}
-    \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/mountaincar/lrev.pdf}
-    \caption{}\label{f:mountaincar}
-  \end{subfigure}
-    \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/maze/lrev_main.pdf}
-    \caption{}\label{f:maze_results}
-  \end{subfigure}
-  \caption{(a) Cartpole, (b) Mountain Car, and (c) Maze Navigation}
-  \label{fig:ccmazeplots}
-\end{figure*}
+%\begin{figure*}[t]
+%  \begin{subfigure}[b]{0.32\textwidth}
+%    \includegraphics[trim=0.0cm 0cm 1.8cm 1.3cm,clip=true,height=2.9cm]{images/cartpole/lrev.pdf}
+%    \caption{}\label{f:cartpole}
+%  \end{subfigure}
+%    \begin{subfigure}[b]{0.32\textwidth}
+%    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/mountaincar/lrev.pdf}
+%    \caption{}\label{f:mountaincar}
+%  \end{subfigure}
+%    \begin{subfigure}[b]{0.32\textwidth}
+%    \includegraphics[trim=0.0cm 0cm 1.6cm 1.3cm,clip=true,height=2.9cm]{images/maze/lrev_main.pdf}
+%    \caption{}\label{f:maze_results}
+%  \end{subfigure}
+%  \caption{(a) Cartpole, (b) Mountain Car, and (c) Maze Navigation}
+%  \label{fig:ccmazeplots}
+%\end{figure*}
 
 In our last experiment, we consider a robotic agent navigating mazes. At the beginning of each episode, the agent is dropped to a random position in a $10m^2$ maze and must reach a goal area in the smallest time possible. The robot is equipped with sensors detecting its absolute position, its orientation, the distance to any obstacle within $2m$ in $9$ equally-spaced directions, and whether the goal is detected in the same range. The only actions available are \textit{move forward} with speed $0.5m/s$ or \textit{rotate} (in either direction) with speed of $\pi/8 rad/s$. Each time step corresponds to $1s$ of simulation. The reward is $1$ for reaching the goal and $0$ otherwise, while the discount factor is $\gamma=0.99$. For this experiment, we design a set of $20$ different mazes and solve them using a DDQN with two layers of $32$ neurons and ReLU activations. Then, we fix a target maze and transfer from $5$ source mazes uniformly sampled from such set (excluding the chosen target). To further asses the robustness of our method, we now consider transferring from the $Q$-functions learned by DDQNs instead of those obtained by minimizing the TD error as in the previous domains. From our considerations of Sec. \ref{sec:td} and \ref{sec:theory}, the fixed-points of the two algorithms are different, which creates a further challenge for our method. We show the results for a fixed target maze in Fig. \ref{}, while referring the reader to App.  \ref{} for the illustration of our mazes and additional results. Once again, MGVT achieves a remarkable speed-up over (no-transfer) DDQN. This time, using $3$ components achieves slightly better performance than using only $1$, which is likely due to the fact that the task distribution is much more complicated than in the previous domains. For the same reason, GVT shows negative transfer and performs even worse than no-transfer.
  
