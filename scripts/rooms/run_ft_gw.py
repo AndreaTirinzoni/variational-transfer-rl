@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../")
+import os
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
+sys.path.append(os.path.abspath(path + "/../.."))
 
 import numpy as np
 from envs.two_room_gw import TwoRoomGridworld
@@ -8,7 +10,7 @@ from features.agrbf import build_features_gw_state
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
 from algorithms.nt import learn
-import utils
+from misc import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
