@@ -1,6 +1,5 @@
-import utils
+from misc import utils
 from operators.operator import Operator
-from approximators.mlp_torch import MLPQFunction
 from torch.nn.functional import smooth_l1_loss
 import numpy as np
 import torch

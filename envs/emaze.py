@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 from gym import spaces
-import time
 import matplotlib.pyplot as plt
 
 """
@@ -355,7 +354,7 @@ class Maze(gym.Env):
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
 if __name__ == '__main__':
-    import utils
+    from misc import utils
     from random import shuffle
     mazes = utils.load_object("../scripts/mazes10")
     i=0

@@ -222,7 +222,8 @@ class Maze(gym.Env):
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
 if __name__ == '__main__':
-    import utils
+    from misc import utils
+
     mazes = utils.load_object("../scripts/mazes10x10")
     for maze in mazes:
         m = Maze(size=maze[0], wall_dim=maze[1], goal_pos=maze[2], start_pos=maze[3], walls=maze[4])

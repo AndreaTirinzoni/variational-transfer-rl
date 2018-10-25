@@ -10,7 +10,7 @@ from features.agrbf import build_features_gw_state
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
 from algorithms.gvt import learn
-import utils
+from misc import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime

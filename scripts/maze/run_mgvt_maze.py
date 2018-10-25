@@ -7,7 +7,7 @@ from envs.emaze import Maze
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
 from algorithms.mgvt_torch import learn
-import utils
+from misc import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime

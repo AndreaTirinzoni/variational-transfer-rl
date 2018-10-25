@@ -8,7 +8,7 @@ from envs.cartpole import CartPoleEnv
 from approximators.mlp import MLPQFunction
 from operators.mellow import MellowBellmanOperator
 from algorithms.nt import learn
-import utils
+from misc import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
