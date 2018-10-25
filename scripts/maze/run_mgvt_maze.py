@@ -1,8 +1,7 @@
 import sys
-
+import os
 sys.path.append("../")
 
-import numpy as np
 from envs.emaze import Maze
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
@@ -13,11 +12,11 @@ from joblib import Parallel, delayed
 import datetime
 import numpy as np
 
-from random import shuffle
 
 # Global parameters
 render = False
 verbose = True
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
 
 # Command line arguments
 parser = argparse.ArgumentParser()
@@ -42,7 +41,7 @@ parser.add_argument("--cholesky_clip", default=0.0001)
 parser.add_argument("--maze", default=-1)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=32)
-parser.add_argument("--mazes_file", default="../scripts/mazes10")
+parser.add_argument("--mazes_file", default=path + "/mazes10x10")
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="mgvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
@@ -163,7 +162,7 @@ if fixed_seed < 0:
     seeds = seeds[:n_runs]
 else:
     seeds = [fixed_seed for _ in range(n_runs)]
-# seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed,source) in zip(envs,seeds,sources)]
 elif n_jobs > 1:

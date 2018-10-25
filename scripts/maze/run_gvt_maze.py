@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append("../")
 
 import numpy as np
@@ -10,12 +11,12 @@ import utils
 import argparse
 from joblib import Parallel, delayed
 import datetime
-from random import shuffle
 
 
 # Global parameters
 render = False
 verbose = True
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
 
 # Command line arguments
 parser = argparse.ArgumentParser()
@@ -37,7 +38,7 @@ parser.add_argument("--maze", default=-1)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=32)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--mazes_file", default="../scripts/mazes10")
+parser.add_argument("--mazes_file", default=path + "/mazes10x10")
 
 #GVT parameters
 parser.add_argument("--alpha_adam", default=0.001)

@@ -1,5 +1,4 @@
-import sys
-sys.path.append("../")
+import os
 
 import numpy as np
 from envs.emaze import Maze
@@ -18,6 +17,7 @@ from algorithms.dqn import DQN
 # Global parameters
 render = False
 verbose = True
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
 
 # Command line arguments
 parser = argparse.ArgumentParser()
@@ -42,7 +42,7 @@ parser.add_argument("--n_runs", default=1)
 parser.add_argument("--l1", default=32)
 parser.add_argument("--l2", default=32)
 parser.add_argument("--file_name", default="nt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--mazes_file", default="../scripts/mazes10")
+parser.add_argument("--mazes_file", default= path + "/mazes10x10")
 parser.add_argument("--dqn", default=False)
 
 # Read arguments
