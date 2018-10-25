@@ -1,11 +1,10 @@
 import numpy as np
-from policies import EpsilonGreedy
+from utils.policies import EpsilonGreedy
 from approximators.mlp_torch import MLPQFunction
-from buffer import Buffer
+from utils.buffer import Buffer
 import utils
 import time
 
-from torch.distributions import MultivariateNormal
 import torch
 
 prior_eigen = None

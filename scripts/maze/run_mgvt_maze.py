@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append("../")
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
+sys.path.append(os.path.abspath(path + "/../.."))
 
 from envs.emaze import Maze
 from approximators.mlp_torch import MLPQFunction

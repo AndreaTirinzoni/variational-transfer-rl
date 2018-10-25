@@ -2,9 +2,9 @@ import sys
 sys.path.append("../")
 
 import numpy as np
-from policies import EpsilonGreedy
+from utils.policies import EpsilonGreedy
 from approximators.mlp_torch import MLPQFunction
-from buffer import Buffer
+from utils.buffer import Buffer
 import utils
 import time
 import torch

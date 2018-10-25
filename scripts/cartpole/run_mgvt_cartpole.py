@@ -1,6 +1,7 @@
 import sys
-
-sys.path.append("../")
+import os
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
+sys.path.append(os.path.abspath(path + "/../.."))
 
 import numpy as np
 from envs.cartpole import CartPoleEnv
@@ -141,7 +142,9 @@ def run(mdp, seed=None):
 
 seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
 seeds = seeds[:n_runs]
+
 # seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
 elif n_jobs > 1:

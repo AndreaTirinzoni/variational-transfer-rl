@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../")
+import os
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
+sys.path.append(os.path.abspath(path + "/../.."))
 
 import numpy as np
 from envs.mountain_car import MountainCarEnv

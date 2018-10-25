@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../")
+import os
+path = os.path.dirname(os.path.realpath(__file__))  # path to this directory
+sys.path.append(os.path.abspath(path + "/../.."))
 
 import numpy as np
 from envs.mountain_car import MountainCarEnv
@@ -69,8 +71,7 @@ file_name = str(args.file_name)
 dqn = bool(args.dqn)
 
 # Seed to get reproducible results
-# np.random.seed(485)
-# torch.manual_seed(485)
+np.random.seed(485)
 
 # Generate tasks
 vel = [np.random.uniform(0.001, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
@@ -117,10 +118,10 @@ def run(mdp, seed=None):
                  verbose=verbose)
 
 
-# seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
-# seeds = seeds[:n_runs]
+seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+seeds = seeds[:n_runs]
 
-seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+# seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 
 
 if n_jobs == 1:

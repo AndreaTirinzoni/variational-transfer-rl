@@ -1,7 +1,7 @@
 import numpy as np
-from policies import EpsilonGreedy, ScheduledEpsilonGreedy
+from utils.policies import EpsilonGreedy, ScheduledEpsilonGreedy
 from approximators.mlp_torch import MLPQFunction
-from buffer import Buffer
+from utils.buffer import Buffer
 import utils
 import time
 
