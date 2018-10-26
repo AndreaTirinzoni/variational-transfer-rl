@@ -73,6 +73,14 @@ file_name = str(args.file_name)
 dqn = bool(args.dqn)
 source_file = str(args.source_file)
 
+# set init weights
+weights = utils.load_object(source_file)
+ws = np.array([w[1] for w in weights])
+np.random.shuffle(ws)
+params = np.array([w[0][1:] for w in weights])
+
+n_runs = min((n_runs, len(weights)))
+
 
 # Generate tasks
 vel = [np.random.uniform(0.001, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
@@ -96,11 +104,7 @@ if not dqn:
 else:
     Q, operator = DQN(state_dim, action_dim, n_actions, mdps[0].gamma, layers=layers)
 
-# set init weights
-weights = utils.load_object(source_file)
-ws = np.array([w[1] for w in weights])
-np.random.shuffle(ws)
-params = np.array([w[0][1:] for w in weights])
+
 
 def run(mdp, seed=None, idx=0):
     Q._w = ws[idx]

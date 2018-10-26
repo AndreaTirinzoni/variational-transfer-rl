@@ -25,7 +25,7 @@ parser.add_argument("--kappa", default=100.)
 parser.add_argument("--xi", default=0.5)
 parser.add_argument("--tau", default=0.0)
 parser.add_argument("--batch_size", default=50)
-parser.add_argument("--max_iter", default=5000)
+parser.add_argument("--max_iter", default=20000)
 parser.add_argument("--buffer_size", default=50000)
 parser.add_argument("--random_episodes", default=0)
 parser.add_argument("--train_freq", default=1)
@@ -37,7 +37,7 @@ parser.add_argument("--lambda_", default=0.000001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=10)
-parser.add_argument("--env", default="two-room-gw")
+parser.add_argument("--env", default="three-room-gw")
 parser.add_argument("--gw_size", default=10)
 parser.add_argument("--cholesky_clip", default=0.0001)
 # Door at -1 means random positions over all runs
@@ -45,9 +45,9 @@ parser.add_argument("--door", default=-1)
 parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=11)
 parser.add_argument("--n_jobs", default=1)
-parser.add_argument("--n_runs", default=1)
+parser.add_argument("--n_runs", default=20)
 parser.add_argument("--file_name", default="mgvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--source_file", default="source_tasks/gw10x10_torch")
+parser.add_argument("--source_file", default=path + "/sources")
 parser.add_argument("--eta", default=1e-6)  # learning rate for
 parser.add_argument("--eps", default=0.001)  # precision for the initial posterior approximation and upperbound tighting
 parser.add_argument("--bandwidth", default=.00001)  # Bandwidth for the Kernel Estimator
@@ -112,47 +112,43 @@ Q = MLPQFunction(K, n_actions, layers=None)
 # Create RBFs
 rbf = build_features_gw_state(gw_size, n_basis, state_dim)
 
-scores = []
 
-for i in np.arange(2, n_source+1):
-
-    def run(mdp, seed=None):
-        return learn(mdp,
-                     Q,
-                     operator,
-                     max_iter=max_iter,
-                     buffer_size=buffer_size,
-                     batch_size=batch_size,
-                     alpha_adam=alpha_adam,
-                     alpha_sgd=alpha_sgd,
-                     lambda_=lambda_,
-                     n_weights=n_weights,
-                     train_freq=train_freq,
-                     eval_freq=eval_freq,
-                     random_episodes=random_episodes,
-                     eval_states=eval_states,
-                     mean_episodes=mean_episodes,
-                     preprocess=rbf,
-                     cholesky_clip=cholesky_clip,
-                     bandwidth=bandwidth,
-                     post_components=post_components,
-                     max_iter_ukl=max_iter_ukl,
-                     eps=eps,
-                     eta=eta,
-                     time_coherent=time_coherent,
-                     n_source=i,
-                     source_file=source_file,
-                     seed=seed,
-                     render=render,
-                     verbose=verbose)
+def run(mdp, seed=None):
+    return learn(mdp,
+                 Q,
+                 operator,
+                 max_iter=max_iter,
+                 buffer_size=buffer_size,
+                 batch_size=batch_size,
+                 alpha_adam=alpha_adam,
+                 alpha_sgd=alpha_sgd,
+                 lambda_=lambda_,
+                 n_weights=n_weights,
+                 train_freq=train_freq,
+                 eval_freq=eval_freq,
+                 random_episodes=random_episodes,
+                 eval_states=eval_states,
+                 mean_episodes=mean_episodes,
+                 preprocess=rbf,
+                 cholesky_clip=cholesky_clip,
+                 bandwidth=bandwidth,
+                 post_components=post_components,
+                 max_iter_ukl=max_iter_ukl,
+                 eps=eps,
+                 eta=eta,
+                 time_coherent=time_coherent,
+                 n_source=n_source,
+                 source_file=source_file,
+                 seed=seed,
+                 render=render,
+                 verbose=verbose)
 
 
-    seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
-    seeds = seeds[:n_runs]
-    if n_jobs == 1:
-        results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
-    elif n_jobs > 1:
-        results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed) for (mdp,seed) in zip(mdps,seeds))
-    scores.append([i, results])
+seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
+seeds = seeds[:n_runs]
+if n_jobs == 1:
+    results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
+elif n_jobs > 1:
+    results = Parallel(n_jobs=n_jobs)(delayed(run)(mdp,seed) for (mdp,seed) in zip(mdps,seeds))
 
-utils.save_object(scores, file_name)
+utils.save_object(results, file_name)

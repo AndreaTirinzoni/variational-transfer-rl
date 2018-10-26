@@ -45,7 +45,7 @@ parser.add_argument("--cart_mass", default=-1)
 parser.add_argument("--pole_mass", default=-1)
 parser.add_argument("--pole_length", default=-1)
 parser.add_argument("--n_jobs", default=1)
-parser.add_argument("--n_runs", default=1)
+parser.add_argument("--n_runs", default=20)
 parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--source_file", default=path + "/sources")
 

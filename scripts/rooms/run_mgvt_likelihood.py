@@ -8,7 +8,7 @@ from envs.two_room_gw import TwoRoomGridworld
 from features.agrbf import build_features_gw_state
 from approximators.mlp_torch import MLPQFunction
 from operators.mellow_torch import MellowBellmanOperator
-from algorithms.gvt import learn
+from algorithms.mgvt_torch import learn
 from misc import utils
 import argparse
 from joblib import Parallel, delayed
@@ -32,22 +32,26 @@ parser.add_argument("--eval_freq", default=50)
 parser.add_argument("--mean_episodes", default=50)
 parser.add_argument("--alpha_adam", default=0.001)
 parser.add_argument("--alpha_sgd", default=0.1)
-parser.add_argument("--lambda_", default=0.001)
+parser.add_argument("--lambda_", default=0.000001)
 parser.add_argument("--time_coherent", default=False)
 parser.add_argument("--n_weights", default=10)
 parser.add_argument("--n_source", default=10)
-parser.add_argument("--sigma_reg", default=0.0001)
-parser.add_argument("--cholesky_clip", default=0.0001)
 parser.add_argument("--env", default="two-room-gw")
 parser.add_argument("--gw_size", default=10)
+parser.add_argument("--cholesky_clip", default=0.0001)
 # Door at -1 means random positions over all runs
 parser.add_argument("--door", default=-1)
 parser.add_argument("--door2", default=-1)
 parser.add_argument("--n_basis", default=11)
 parser.add_argument("--n_jobs", default=1)
-parser.add_argument("--n_runs", default=1)
-parser.add_argument("--file_name", default="gvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--source_file", default="source_tasks/gw10x10_gaussian")
+parser.add_argument("--n_runs", default=20)
+parser.add_argument("--file_name", default="mgvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
+parser.add_argument("--source_file", default=path + "/sources_likelihood")
+parser.add_argument("--eta", default=1e-6)  # learning rate for
+parser.add_argument("--eps", default=0.001)  # precision for the initial posterior approximation and upperbound tighting
+parser.add_argument("--bandwidth", default=.00001)  # Bandwidth for the Kernel Estimator
+parser.add_argument("--post_components", default=1)  # number of components of the posterior family
+parser.add_argument("--max_iter_ukl", default=60)
 
 # Read arguments
 args = parser.parse_args()
@@ -64,10 +68,9 @@ mean_episodes = int(args.mean_episodes)
 alpha_adam = float(args.alpha_adam)
 alpha_sgd = float(args.alpha_sgd)
 lambda_ = float(args.lambda_)
-time_coherent = bool(args.time_coherent)
+time_coherent = bool(int(args.time_coherent))
 n_weights = int(args.n_weights)
 n_source = int(args.n_source)
-sigma_reg = float(args.sigma_reg)
 cholesky_clip = float(args.cholesky_clip)
 env = str(args.env)
 gw_size = int(args.gw_size)
@@ -78,6 +81,11 @@ n_jobs = int(args.n_jobs)
 n_runs = int(args.n_runs)
 file_name = str(args.file_name)
 source_file = str(args.source_file)
+eps = float(args.eps)
+eta = float(args.eta)
+post_components = int(args.post_components)
+bandwidth = float(args.bandwidth)
+max_iter_ukl = int(args.max_iter_ukl)
 
 # Seed to get reproducible results
 np.random.seed(485)
@@ -117,8 +125,12 @@ def run(mdp, seed=None):
                  eval_states=eval_states,
                  mean_episodes=mean_episodes,
                  preprocess=rbf,
-                 sigma_reg=sigma_reg,
                  cholesky_clip=cholesky_clip,
+                 bandwidth=bandwidth,
+                 post_components=post_components,
+                 max_iter_ukl=max_iter_ukl,
+                 eps=eps,
+                 eta=eta,
                  time_coherent=time_coherent,
                  n_source=n_source,
                  source_file=source_file,
@@ -140,3 +152,4 @@ for m in mdps:
     scores.append([m.door_x, results])
 
 utils.save_object(scores, file_name)
+

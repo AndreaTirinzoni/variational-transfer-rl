@@ -33,7 +33,7 @@ parser.add_argument("--train_freq", default=1)
 parser.add_argument("--eval_freq", default=100)
 parser.add_argument("--mean_episodes", default=25)
 parser.add_argument("--n_jobs", default=1)
-parser.add_argument("--n_runs", default=1)
+parser.add_argument("--n_runs", default=20)
 
 parser.add_argument("--maze", default=-1)
 parser.add_argument("--l1", default=32)

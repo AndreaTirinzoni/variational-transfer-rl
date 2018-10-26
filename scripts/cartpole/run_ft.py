@@ -42,7 +42,7 @@ parser.add_argument("--cart_mass", default=-1)
 parser.add_argument("--pole_mass", default=-1)
 parser.add_argument("--pole_length", default=-1)
 parser.add_argument("--n_jobs", default=1)
-parser.add_argument("--n_runs", default=1)
+parser.add_argument("--n_runs", default=10)
 parser.add_argument("--file_name", default="nt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--dqn", default=False)
 parser.add_argument("--source_file", default=path + "/sources")
@@ -75,6 +75,14 @@ file_name = str(args.file_name)
 dqn = bool(args.dqn)
 source_file = str(args.source_file)
 
+# load weights
+
+weights = utils.load_object(source_file)
+ws = np.array([w[1] for w in weights])
+np.random.shuffle(ws)
+params = np.array([w[0][1:] for w in weights])
+n_runs = min((n_runs, len(weights)))
+
 # Generate tasks
 mc = [np.random.uniform(0.5, 1.5) if cart_mass < 0 else cart_mass for _ in range(n_runs)]
 mp = [np.random.uniform(0.1, 0.3) if pole_mass < 0 else pole_mass for _ in range(n_runs)]
@@ -98,10 +106,6 @@ if not dqn:
 else:
     Q, operator = DQN(state_dim, action_dim, n_actions, mdps[0].gamma, layers=layers)
 
-weights = utils.load_object(source_file)
-ws = np.array([w[1] for w in weights])
-np.random.shuffle(ws)
-params = np.array([w[0][1:] for w in weights])
 
 
 
