@@ -44,7 +44,7 @@ parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="ft_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
 parser.add_argument("--dqn", default=False)
-parser.add_argument("--source_file", default="mountaincar_sources_64nn_200k")
+parser.add_argument("--source_file", default=path + "/sources")
 
 
 # Read arguments
@@ -73,8 +73,6 @@ file_name = str(args.file_name)
 dqn = bool(args.dqn)
 source_file = str(args.source_file)
 
-# Seed to get reproducible results
-np.random.seed(485)
 
 # Generate tasks
 vel = [np.random.uniform(0.001, 0.0015) if speed < 0 else speed for _ in range(n_runs)]
@@ -126,10 +124,8 @@ def run(mdp, seed=None, idx=0):
                  verbose=verbose)
 
 
-seeds = [9, 44, 404, 240, 259, 141, 371, 794, 41, 507, 819, 959, 829, 558, 638, 127, 672, 4, 635, 687]
-seeds = seeds[:n_runs]
 
-# seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+seeds = [np.random.randint(1000000) for _ in range(n_runs)]
 
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed) in zip(mdps,seeds)]
