@@ -46,7 +46,7 @@ parser.add_argument("--mazes_file", default=path + "/mazes10x10")
 parser.add_argument("--n_jobs", default=1)
 parser.add_argument("--n_runs", default=1)
 parser.add_argument("--file_name", default="mgvt_{}".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S")))
-parser.add_argument("--source_file", default="../scripts/mazes10x10_ns20_32x32nn_uniqueInit")
+parser.add_argument("--source_file", default=path + "/sources")
 parser.add_argument("--eta", default=1e-6)  # learning rate for
 parser.add_argument("--eps", default=0.001)  # precision for the initial posterior approximation and upperbound tighting
 parser.add_argument("--bandwidth", default=.00001)  # Bandwidth for the Kernel Estimator
@@ -163,7 +163,7 @@ if fixed_seed < 0:
     seeds = seeds[:n_runs]
 else:
     seeds = [fixed_seed for _ in range(n_runs)]
-seeds = [np.random.randint(1000000) for _ in range(n_runs)]
+
 if n_jobs == 1:
     results = [run(mdp,seed) for (mdp,seed,source) in zip(envs,seeds,sources)]
 elif n_jobs > 1:
