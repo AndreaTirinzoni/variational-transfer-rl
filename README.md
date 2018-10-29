@@ -1,7 +1,7 @@
 # Transfer of Value Functions via Variational Methods
 
 This repository contains the code used for the empirical evaluation of our
-Variational Transfer Algorithms, presented in our paper "Transfer of Value Functions via Variational Methods"
+Variational Transfer Algorithms [1], presented in our paper "Transfer of Value Functions via Variational Methods"
 (NIPS 2018), together with the instruction on how to reproduce our results.
 
 ## Abstract
@@ -17,7 +17,6 @@ PyTorch 0.4.1
 joblib
 matplotlib
 OpenAI gym
-
 ```
 
 ## Repository Structure
@@ -40,12 +39,14 @@ In the folder *experiments/*, further folders, corresponding to each experimenta
 * ```run_mgvt.py``` runs the Mixture of Gaussian Variational Transfer (MGVT). By default, it uses 1 component for the posterior representation. To run for 3 components is only required to add the command line argument ```--post_components 3```.
 * ```run_nt.py``` runs a non transfer algorithm. By default, it runs our algorithm based in the minimization of the Mellow Bellman Error. To run DDQN, it is enough to add the command-line argument ```--dqn 1```
 
-Particularly, for the *Rooms* environment, we have further scripts that correspond to the additional experiments.
+Particularly, for the *Rooms* environment, we have further scripts that correspond to the additional experiments. In here we use ```*``` to substitute the algorithm name [gvt,mgvt].
 
 * ```run_*_likelihood``` runs the GVT or MGVT (depending of the script) using the sources with Gaussian distribution governing the door position. By default, it runs the 2-rooms environment.
 * ```run_*_sequential``` runs the GVT or MGVT (depending of the script) by evaluating the performance with different number of source task given to the algorithm.
-* To run the experiment with the distribution shift (tasks distribution of the sources restricted) is enough to run ```python3 run_*.py --source_file path/to/sources_gen```
+* To run the experiment with the distribution shift (tasks distribution of the sources restricted) is enough to run ```python3 run_*.py --source_file path/to/experiments/rooms/sources_gen``` where *path/to/experiments/rooms/sources_gen* is the absolute path or relative path (from the working directory) to the file ```sources_gen.pkl``` that contains the sources sampled from the restricted distribution of tasks.
 
 ## References
+
+[1] Andrea Tirinzoni, Rafael Rodriguez Sanchez and Marcello Restelli. Tranfer of Value Functions via Variational Methods. 2018
 
 [2] Hado Van Hasselt, Arthur Guez, and David Silver. Deep reinforcement learning with double q-learning. 2016.
